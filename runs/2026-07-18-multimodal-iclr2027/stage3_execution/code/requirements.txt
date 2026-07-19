@@ -1,0 +1,22 @@
+# Stage-3 execution env for the provenance-gated re-examination study (training-free).
+# Pin exact versions at first install on pku-server; record in results/ per run (integrity rule 4).
+torch>=2.4
+transformers>=4.51        # Qwen3-VL / Qwen2.5-VL / LLaVA / InternVL support; verify Qwen3-VL rev on install
+accelerate>=0.34
+datasets>=2.20
+huggingface_hub>=0.24
+qwen-vl-utils               # Qwen2.5/3-VL image preprocessing
+pillow
+numpy
+scipy                       # bootstrap CIs, MDE/power, FDR (Benjamini-Hochberg)
+scikit-learn                # gate probe (logistic/MLP), AUROC
+pandas
+pyyaml
+tqdm
+matplotlib                  # Pareto plots, localization curves
+# --- attention capture ---
+# eager attention (attn_implementation="eager") is REQUIRED to hook post-softmax weights + steer image-key logits.
+# FlashAttention/SDPA fused kernels do NOT expose per-head weights -> do not use for capture/steering runs.
+# --- upstream harness ---
+# VisualSwap (github.com/visualswap/visualswap) is a VLMEvalKit fork: run_inference.py applies the image swap,
+# download_data.py fetches VS-Bench. We reuse its swap protocol + eval; our steering hooks wrap its model calls.

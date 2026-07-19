@@ -1,0 +1,1140 @@
+{
+  "summary": "Adversarially verify novelty/feasibility/publishability of 3 multimodal ICLR-2027 candidates on 4xL40, kill benchmark-shaped ones, pick a winner + sharpen into a method seed",
+  "agentCount": 16,
+  "logs": [],
+  "result": {
+    "perCandidate": [
+      {
+        "id": "C1",
+        "title": "Adaptive-Depth Latent Visual Reasoning with Evidence-Sufficiency Halting",
+        "lenses": [
+          {
+            "axis": "novelty_and_scooping",
+            "score": 0.3,
+            "verdict": "weak",
+            "evidence": [
+              "SCOLAR (arxiv:2605.12163, 'Self-Consistent Latent Reasoning', Qwen2.5-VL) verbatim abstract: 'the performance of existing latent visual reasoning methods systematically degrades as the latent sequence grows longer... heavily pooled (>=128x) image embeddings used as supervision targets provide no more signal than meaningless placeholders.' This uses the SAME backbone C1 plans (Qwen2.5-VL), establishes C1's core motivation, AND already performs the latent-vs-meaningless-placeholder confound that C1 pitches as its novel 'second contribution'. It also directly contradicts C1's premise that ambiguous images should 'think longer' in latent space.",
+              "arxiv:2511.21581 'Learning When to Stop: Adaptive Latent Reasoning via Reinforcement Learning' learns a per-instance, difficulty-driven halting policy over latent reasoning steps via RL (Llama-3.1-8B, text-only). This is C1's exact mechanism; C1 is essentially its multimodal port with an evidence-sufficiency dressing.",
+              "arxiv:2606.15099 (Think-Less-Act-Early / AVA-VLA) already does adaptive early-exit over LATENT reasoning steps driven by state confidence, with a 6x speedup, in vision-language-action models. Author lists it as merely 'adjacent' (VLA action models) but the halting-over-latent-steps mechanism is close-overlap, not adjacent.",
+              "arxiv:2603.24224 (RVLM, Recursive Vision-Language Models with Adaptive Depth) confirmed abstract: a lightweight controller (RRouter) 'predicts the optimal budget from task-complexity features, then monitors progress and terminates early when reasoning stalls' in a VLM. Same high-level thesis (per-instance adaptive depth + learned early stop in VLM); differs in being agentic code-execution on closed Gemini 2.5 Flash.",
+              "arxiv:2606.11576 (AVIS, Adaptive Test-Time Scaling for VLMs) predicts a per-sample inference configuration to spend more compute on hard visual instances and less on easy ones. Undercuts novelty of C1's high-level 'easy images exit early, hard images think longer' claim.",
+              "arxiv:2603.15051 ('Thinking in Latents', AdaAnchor) does convergence-based per-example adaptive-compute latent reasoning 'without training a separate halting controller' (text LLM) — an even simpler halting variant already exists.",
+              "arxiv:2606.17678 (VEPA) introduces a 'sufficiency-driven' GRPO objective over question-conditioned visual evidence, overlapping C1's 'visual-evidence-sufficiency signal' framing.",
+              "Independent (non-leading) search corroborated that 2026 latent-visual-reasoning papers already run latent-token-vs-meaningless-padding controls (e.g., LVR padding experiments), and matched latent-vs-text-token controls are standard since Token Assorted (arxiv:2502.03275) — so the 'confound-controlled protocol' contribution is largely established practice, not new."
+            ],
+            "prior_art": [
+              {
+                "ref": "arxiv:2605.12163 (SCOLAR, Self-Consistent Latent Reasoning, Qwen2.5-VL)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2511.21581 (Learning When to Stop: Adaptive Latent Reasoning via RL)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2606.15099 (Think-Less-Act-Early / AVA-VLA)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2603.24224 (RVLM: Recursive Vision-Language Models with Adaptive Depth)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2606.11576 (AVIS: Adaptive Test-Time Scaling for VLMs)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2603.15051 (Thinking in Latents / AdaAnchor)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2606.17678 (VEPA: Visual Evidence Pre-Alignment, sufficiency-driven RL)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2502.03275 (Token Assorted: mixing latent and text tokens)",
+                "relation": "supporting"
+              }
+            ],
+            "risks": [
+              "Premise contested by published result: SCOLAR (2605.12163) shows longer latent visual CoT degrades due to Information Gain Collapse regardless of difficulty, undermining C1's assumption that hard/cluttered images benefit from MORE latent steps. If harder images don't gain from extra latent thinking, the halting head has little to allocate and the core claim collapses.",
+              "Second contribution (confound-controlled protocol: latent vs matched-text vs no-op padding) is not novel — SCOLAR already shows pooled visual latents == meaningless placeholders on the same backbone, and latent-vs-padding / latent-vs-text controls are established in the latent-CoT literature. Reviewers will not credit a re-run of an existing control as a contribution.",
+              "Mechanism is a thin transfer: learned per-instance latent halting via RL already exists in text (2511.21581) and in VLA (2606.15099); C1 = 'do it for VLM with an evidence-sufficiency signal.' A domain port plus a renamed halting signal is a weak delta for ICLR main track.",
+              "The 'evidence-sufficiency signal' is under-differentiated from existing sufficiency-driven visual objectives (VEPA 2606.17678) and confidence-based early-exit (AVA-VLA); unless formally defined and shown superior to a plain confidence/entropy halting signal, it reads as branding.",
+              "Crowded, fast-moving area (>=6 close 2026 papers on adaptive-depth/latent halting in VLM/VLA within months) means additional scoops are likely before the 2026-09-24 deadline; residual novelty is fragile.",
+              "RL-based halting (as in the nearest prior art) collides with the stated hardware risk: RL rollout throughput on PCIe-only 4xL40 is unproven; a non-RL convergence/threshold halting variant would be even closer to AdaAnchor (2603.15051)."
+            ]
+          },
+          {
+            "axis": "Feasibility on 4xL40-48GB (PCIe, no NVLink), 600 GPU-h / 9 weeks",
+            "score": 0.58,
+            "verdict": "acceptable",
+            "evidence": [
+              "Model fit is NOT a blocker. Qwen2.5-VL-3B full FT via FSDP/ZeRO-2/3 sharded across 4x48GB fits comfortably (3B AdamW full-FT ~48-60GB single-GPU, but sharded 4-way + gradient checkpointing is easy). 7B LoRA fits on a single 48GB card (14GB bf16 weights + tiny adapters + activations). PCIe/no-NVLink slows FSDP all-gather, but 3B shards are small so the overhead is tolerable — this is not an 8xA100/NVLink-class workload.",
+              "CRITICAL feasibility de-risker: the halting head does NOT need RL. PonderNet (openreview 1EuxRTe0WN) and ACT provide fully-differentiable, low-variance, unbiased halting losses (geometric-prior KL) that train end-to-end WITHOUT REINFORCE/GRPO rollouts. Confirmed by search: 'PonderNet is fully differentiable ... enables end-to-end training without requiring reinforcement learning-based rollouts.' This entirely sidesteps the stated 'GRPO rollout throughput on PCIe 4xL40 is UNPROVEN' risk — provided the authors do NOT choose a policy-gradient halting formulation.",
+              "CoLT baseline (arxiv:2606.31986) exists with released GitHub code and uses ~3 latent steps, reducing baseline reproduction from a from-scratch build to an adaptation task. Related latent-reasoning training infra is well-documented (Coconut curriculum, LatentCoT-Horizon / Awesome-Latent-CoT repos).",
+              "Per-run cost anchor: Coconut/CODI 3B-8B latent training ~24h on 8xA100 (~192 GPU-h) for text; smaller-scale runs 36-83 GPU-h (arxiv:2606.31986-era refs). At 3B on 4xL40 a single multimodal latent-SFT run realistically lands ~20-40 GPU-h given heavy Qwen2.5-VL image-token counts and multi-stage curriculum passes.",
+              "BUDGET RISK — run-matrix explosion. The confound-control protocol is the cost driver: ~6 conditions (direct / explicit-CoT / fixed-latent CoLT / no-op-padding / matched-text-token / adaptive-halt) x 2 backbones (3B FT, 7B LoRA) x 3 seeds ~= 36 runs, plus fixed-length latent-step sweeps (1/2/4/8) needed to justify 'adaptive beats fixed'. At 20-30 GPU-h/run this is ~800-1000+ GPU-h, exceeding the 600 cap. Author's 430h estimate is only reachable with disciplined scoping (single primary backbone for the full grid, seeds only on headline tables).",
+              "ENGINEERING breadth risk (consumes the 9 weeks more than GPU hours): the stack requires (1) VLM latent-reasoning training with hidden-state feedback + Coconut-style curriculum on Qwen2.5-VL, (2) reproducing CoLT's dual forward/backward decoder supervision, (3) PonderNet halting head + a novel 'visual-evidence-sufficiency' signal, and (4) a matched-compute confound harness (no-op padding + matched text tokens with careful FLOP bookkeeping). Four nontrivial subsystems in ~9 weeks is tight but not fatal."
+            ],
+            "prior_art": [
+              {
+                "ref": "PonderNet (openreview 1EuxRTe0WN) / ACT — differentiable, no-rollout halting",
+                "relation": "supporting"
+              },
+              {
+                "ref": "CoLT arxiv:2606.31986 (released code, ~3 latent steps) — planned baseline",
+                "relation": "supporting"
+              },
+              {
+                "ref": "Coconut (arxiv:2412.06769-lineage) + LatentCoT-Horizon repo — training-cost anchors",
+                "relation": "supporting"
+              },
+              {
+                "ref": "PonderLM-3 arxiv:2603.02023 'Adaptive Token-Wise Pondering with Differentiable Masking'",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "AdaAnchor adaptive halting for latent reasoning (stabilized anchor stop)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "Think-Less-Act-Early arxiv:2606.15099 (early-exit latent reasoning in VLA)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "Conformal Thinking arxiv:2602.03814 (risk-controlled compute budget for reasoning)",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Run-matrix x seeds x 2-backbone confound grid plausibly exceeds 600 GPU-h; the 430h author estimate requires cutting to one primary backbone for the full grid and seeds only on headline results.",
+              "If authors instead formulate halting as a policy-gradient/GRPO objective (the topic search noted halting controllers 'often integrated with PPO/GRPO RL loops'), the PCIe-only 4xL40 rollout-throughput risk becomes real and the study likely slips. Must commit to a PonderNet-style differentiable halting up front.",
+              "Engineering surface (VLM latent feedback + CoLT dual-decoder repro + evidence-sufficiency signal + matched-compute harness) is broad for 9 weeks; a slip in any one subsystem cascades. Highest-variance item is a working, matched-FLOP confound harness that reviewers will actually trust.",
+              "Qwen2.5-VL image-token counts inflate per-sample sequence length and activation memory more than the text-Coconut anchors imply, pushing per-run hours toward the high end and shrinking the ablation budget.",
+              "Not a feasibility blocker but budget-relevant: differentiable adaptive halting over latent reasoning is already crowded (PonderLM-3, AdaAnchor), so extra runs may be needed to defend novelty against reviewers, further straining the 600h cap."
+            ]
+          },
+          {
+            "axis": "benchmark-trap + ICLR reviewer simulation (expected acceptance-worthiness)",
+            "score": 0.34,
+            "verdict": "weak",
+            "evidence": [
+              "NOT a benchmark-trap: the contribution is a mechanism (a halting head + evidence-sufficiency signal that varies latent-step count per instance) plus a falsifiable claim (adaptive latent thinking beats matched-compute alternatives). Remove the results table and a testable mechanism/hypothesis still stands. So it is NOT fatal on the benchmark/eval-paper criterion.",
+              "CORE-MECHANISM NOVELTY IS SEVERELY THREATENED. Adaptive per-instance halting is a well-established mechanism: PonderNet (arxiv:2107.05407) learns an explicit distribution over stopping times regularized toward a geometric prior, and Graves' ACT precedes it; 'Differentiable Adaptive Computation Time for Visual Reasoning' (arxiv:2004.12770) already applied ACT-style halting to visual reasoning. The proposal is PonderNet/ACT halting relocated onto latent visual steps.",
+              "The paper's central premise -- 'EVERY multimodal latent-reasoning method uses a FIXED latent length' -- is factually false against 2026 literature. Coconut (arxiv:2412.06769) itself tested a learned binary halting classifier over latent thoughts (found comparable to constant, chose constant for simplicity), so learned latent halting is in the seminal work. Monet (arxiv:2511.21395) 'learns to dynamically interleave text with latent thinking, autonomously deciding when to emit a token to initiate visual reasoning.' DMLR (arxiv:2512.12623) uses confidence-guided latent policy-gradient with dynamic visual injection. This overclaim is exactly what R3 will attack.",
+              "NEAR-SCOOP the authors MISCATEGORIZE as distant prior art: 'Think Less, Act Early' / AVA-VLA (arxiv:2606.15099) implements 'an Early-Exit Strategy that adaptively terminates reasoning based on state confidence' over RL-optimized latent reasoning trajectories. State-confidence early-exit over latent steps IS the proposed evidence-sufficiency halting mechanism; the only delta is domain (embodied VLA action vs VQA). The authors list this as merely 'early-exit in VLA action models' -- reviewers will see the mechanism is the same.",
+              "The confound-control protocol (latent steps vs matched-count text tokens vs no-op padding, matched compute/data) is the MORE defensible contribution but is (a) already being done -- matched latent-token-budget studies show 'current dual designs mostly add compute rather than qualitatively improving reasoning' (System 1/2 latent comm arxiv:2510.00494; Latent Thoughts Tuning arxiv:2602.10229) -- and (b) a protocol/analysis contribution, which pushes the paper toward the eval/analysis flavor that the benchmark-trap rule warns against.",
+              "Adaptive VLM compute allocation is a crowded 2026 space: AVIS (arxiv:2606.11576) predicts per-sample test-time compute config; AdaptVision (arxiv:2512.03794) adaptive visual-token acquisition; the LVR-lineage survey note explicitly states 'recent work enables adaptive reasoning through explicit think-or-direct decisions and step-wise budget allocation, extending adaptive reasoning to MLLMs.' The 'adaptive compute for easy vs hard images' motivation is not novel.",
+              "FEASIBILITY/RL RISK compounds the review problem: the two closest methods (AVA-VLA 2606.15099, DMLR 2512.12623) train the halting/confidence signal with RL/policy-gradient because hard halting is non-differentiable. If this proposal needs RL to learn the halting head, that hits the flagged 'RL rollout on PCIe-only 4xL40 is UNPROVEN' risk. If instead they use PonderNet-style differentiable halting to avoid RL, the mechanism reads even more transparently as 'PonderNet on latent visual reasoning.'",
+              "REVIEWER SIMULATION (ICLR 2027, 1-10 scale). R1 (5, borderline): 'Solid confound-control protocol, but the mechanism is incremental -- adaptive halting = PonderNet, latent halting already in Coconut and AVA-VLA; the delta over AVA-VLA is just VLA->VQA.' R2 (4, weak reject): 'Feels like an analysis/ablation paper dressed as a method; the evidence-sufficiency signal is underspecified -- what exactly makes it more than a confidence threshold?' R3 (3-4, reject): 'Motivating claim that all latent methods are fixed-length is demonstrably wrong; novelty overclaimed; missing comparison to AVA-VLA, Monet, DMLR as adaptive baselines, not just fixed-length CoLT.' Expected outcome: clear borderline-reject."
+            ],
+            "prior_art": [
+              {
+                "ref": "arxiv:2606.15099 (Think Less, Act Early / AVA-VLA) -- adaptive early-exit over latent reasoning driven by state confidence; same mechanism, VLA domain; authors wrongly list as distant",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2412.06769 (Coconut) -- already tested a learned halting classifier over latent thoughts, directly refuting the 'all fixed-length' premise",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2107.05407 (PonderNet) -- the halting-head/geometric-prior mechanism the proposal reuses",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arxiv:2004.12770 (Differentiable ACT for Visual Reasoning) -- ACT-style adaptive halting already applied to visual reasoning",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2512.12623 (DMLR, Dynamic Multimodal Latent Reasoning) -- confidence-guided dynamic latent reasoning, contradicts 'fixed-length' framing",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2511.21395 (Monet) -- MLLM autonomously decides when to initiate latent visual reasoning (dynamic, not fixed)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2606.11576 (AVIS) -- per-sample adaptive test-time compute allocation for VLMs (explicit reasoning)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2606.31986 (CoLT) -- verified real, genuinely fixed-length (~3 latent steps); valid baseline",
+                "relation": "supporting"
+              },
+              {
+                "ref": "arxiv:2510.00494 / arxiv:2602.10229 -- matched latent-token-budget confound studies already exist, undercutting the 'novel protocol' claim",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2504.15895 (Dynamic Early Exit in Reasoning Models) -- early exit for explicit reasoning; adjacent adaptive-compute prior",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Not a benchmark-trap, so it clears the fatal bar -- but that only makes it eligible, not accept-worthy. The mechanism is derivative (PonderNet/ACT halting + Coconut latent + AVA-VLA state-confidence early exit), and reviewers well-read in 2026 latent-reasoning will identify this immediately.",
+              "The paper's headline premise ('every method uses fixed latent length') is falsifiable and FALSE per Coconut, DMLR, Monet, AVA-VLA. A single knowledgeable reviewer sinks the framing; this is the top rejection lever.",
+              "'Evidence-sufficiency signal' is doing all the novelty work but is underspecified. Unless it is a genuinely new, theoretically-grounded, image-specific sufficiency estimator (not just a confidence/entropy threshold, which AVA-VLA and 'Think Just Enough' arxiv:2510.08146 already use), reviewers collapse it to 'confidence-gated halting.'",
+              "The most defensible piece (confound-control protocol) is analysis-flavored and partially pre-existing, so leaning on it drifts the paper toward the eval/analysis category the task warns against.",
+              "Baseline set is stacked to favor the method: comparing only against fixed-length CoLT + explicit-CoT + direct-answer, while omitting adaptive latent baselines (AVA-VLA-style confidence early-exit, Monet, DMLR). Reviewers will demand these and the 430h budget likely cannot absorb re-implementing RL-trained adaptive baselines on PCIe 4xL40.",
+              "If the halting head requires RL to train (as the two nearest works do), the flagged unproven-RL-throughput risk becomes a real feasibility threat within 9 weeks / 600 GPU-h.",
+              "REPOSITIONING PATH (to raise the score, not a guarantee): drop the false 'all fixed' framing; position explicitly as the first controlled study of whether adaptive latent halting transfers from VLA (AVA-VLA) to open-ended visual reasoning, with a novel, formally-defined visual-evidence-sufficiency estimator as the actual mechanism, benchmarked against adaptive (not just fixed) baselines. Even then, expect an uphill novelty fight."
+            ]
+          },
+          {
+            "axis": "Falsifiability & Mechanism Soundness (mechanism plausibility + clean-win probability vs baseline)",
+            "score": 0.32,
+            "verdict": "weak",
+            "evidence": [
+              "FALSIFIABLE, YES — but the core claim is the weak half of a two-part hypothesis. 'Instance-adaptive latent depth beats FIXED latent depth' decomposes into (a) accuracy win and (b) compute saving. The entire adaptive-computation literature (PonderNet arxiv:2107.05407; ACT; the emergentmind 'Adaptive-Length Latent Reasoning' topic; arxiv:2602.01070 'What If We Allocate Test-Time Compute Adaptively') consistently finds these methods TIE the best fixed strategy on accuracy and win only on average compute. PonderNet's own framing: efficiency is 'accuracy-conditional' — same accuracy, fewer steps. So the most likely empirical outcome is a TIE vs a compute-matched CoLT at its best fixed length, i.e. an efficiency paper, not a mechanism win.",
+              "PREMISE IS UNDER PUBLISHED THREAT. arxiv:2605.18445 'What's Holding Back Latent Visual Reasoning?' shows two failure modes in exactly the CoLT-style setup this proposal builds on: (1) LATENT BYPASS — replacing generated latents with uninformative dummy tokens leaves performance 'largely unchanged, in some cases slightly exceeds standard inference'; (2) LATENT REPRESENTATION COLLAPSE — generated latents converge to near-identical vectors dissimilar from oracle tokens. If the backbone already bypasses its latent steps, there is no real 'visual thinking' to halt on, and an evidence-sufficiency halting head is regressing on noise. This directly attacks mechanism plausibility, not just novelty.",
+              "THE 'EVIDENCE-SUFFICIENCY SIGNAL' IS UNDER-SPECIFIED AND LIKELY COLLAPSES TO CONFIDENCE/ENTROPY HALTING, which is saturated: HALO arxiv:2607.08775 uses a 'learned-gain token score' from logit deltas for monotonic latent halting (text); 'Think Just Enough' arxiv:2510.08146 uses sequence entropy as a confidence halting signal; PEAR arxiv:2510.08026 uses phase entropy reward; S-GRPO inserts early-exit with decaying reward. Unless the 'visual evidence sufficiency' signal is concretely distinct from generic per-step confidence, the mechanism reduces to 'entropy halting on latent visual tokens' = incremental.",
+              "CHEAPEST KILL #1 (inference-only, <5 GPU-hrs, run week 1): ORACLE UPPER-BOUND PROBE. Take CoLT at K latent steps, early-decode the answer at each intermediate step k=1..K, plot accuracy-vs-k and compute the per-instance ORACLE best-k accuracy (the ceiling of ANY halting policy). If oracle-best-k is not meaningfully above best-fixed-K, no halting head can beat fixed on accuracy — the accuracy-win claim is dead before any training. If accuracy is monotone/saturating in k, it is purely an efficiency story (tie). This single cheap experiment settles clean-win probability.",
+              "CHEAPEST KILL #2 (<1 day): LATENT-BYPASS SANITY CHECK from arxiv:2605.18445 on the chosen Qwen2.5-VL backbone — swap latent steps for mean/dummy tokens. If accuracy is unchanged, the latent steps carry no signal on this backbone and adaptive halting over them is vacuous. Given the published bypass finding, non-trivial probability this kills the premise on the exact backbone in the plan.",
+              "SECOND CONTRIBUTION (confound-controlled protocol) IS LARGELY SCOOPED. arxiv:2512.21218 (Latent Implicit Visual Reasoning) already runs the demanded isolation: 'latents-only / unused-latents' matched-capacity ablation and a latents-removed condition (83.61 vs 79.51 latents-only; 83.61->76.23 removed). HALO uses AR-NTP-style 'forward pass without gradient' capacity controls. Matched-text-token vs latent-token ablations are standard (Token Assorted arxiv:2502.03275). So 'the protocol reviewers demanded' is now table stakes, not a novel mechanism — weak as a headline contribution.",
+              "REALISTIC BEST CASE = accuracy-neutral, ~1.2-1.5x fewer average latent steps + a confound protocol that most likely returns a NEGATIVE/weak-positive answer ('latent visual thinking barely beats matched compute/params'). A rigorous negative result is ICLR-viable but the proposal is framed as a positive (adaptive BEATS fixed), which the prior evidence makes the less likely outcome. RL-based halting (S-GRPO / Think-Less-Act-Early style) on PCIe-only 4xL40 is also flagged unproven in the brief; if the halting head needs RL, the 430-GPU-hr estimate is optimistic."
+            ],
+            "prior_art": [
+              {
+                "ref": "arxiv:2605.18445 What's Holding Back Latent Visual Reasoning? (latent bypass + representation collapse; threatens the 'more latent steps = more visual thinking' premise the whole method rests on)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2512.21218 Latent Implicit Visual Reasoning (already runs latents-only/unused-latents/matched-capacity confound ablations = the proposal's contribution 2)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2607.08775 HALO: Hybrid Adaptive Latent Reasoning (learned monotonic halting over latent refinement with logit-gain score; text LLM — same mechanism, different modality)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2603.15051 Thinking in Latents / AdaAnchor (per-example adaptive latent compute via convergence-based halting under shared max-step budget; text)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2606.15099 Think-Less-Act-Early (RL early-exit on the latent reasoning stream in VLA, uncertainty-driven halt; multimodal)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2107.05407 PonderNet + arxiv:2602.01070 (adaptive halting ties accuracy, wins compute — the evidence that clean accuracy-win is unlikely)",
+                "relation": "supporting"
+              },
+              {
+                "ref": "arxiv:2510.08146 Think Just Enough (entropy-as-confidence halting) + arxiv:2510.08026 PEAR (phase-entropy halting reward) — the likely collapse target of the 'evidence-sufficiency' signal",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2606.00562 DeepLatent: Parallel Latent Visual Reasoning (fixed-budget latent visual reasoning backbone class)",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Most-likely outcome is a statistical TIE on accuracy vs a compute-matched CoLT, converting an ICLR 'new mechanism' claim into an efficiency result — which is weak for main track and brushes against the 'not a benchmark/efficiency' spirit of the rules.",
+              "Premise may be false on the chosen backbone: published 2026 evidence (2605.18445) shows CoLT-style latents get bypassed/collapse; if so the halting head has no real signal and the whole method is vacuous.",
+              "Contribution 2 (confound protocol) is already implemented by LIVR/HALO/Token-Assorted; reviewers will read it as good hygiene, not novelty.",
+              "'Evidence-sufficiency signal' has no concrete definition distinct from per-step confidence/entropy; without one, the method is 'entropy halting on latent visual tokens' = incremental over 2607.08775 / 2510.08146.",
+              "If the halting policy needs RL to train (as in Think-Less-Act-Early), the RL rollout throughput on PCIe-only 4xL40 is unproven and the 430-GPU-hr budget is likely optimistic.",
+              "GOOD NEWS FOR THE AUTHORS: the two cheapest kill experiments (oracle best-k probe; latent-bypass swap) are inference-only, run in week 1 for <10 GPU-hrs total, and cleanly decide whether to proceed — the direction fails fast and cheap, which de-risks the calendar even though failure probability is non-trivial."
+            ]
+          }
+        ],
+        "refute": {
+          "strongest_kill_shot": "The method's load-bearing premise — that harder/cluttered images benefit from MORE latent visual steps, giving a halting head something meaningful to allocate — is contradicted by published 2026 results on the exact substrate C1 builds on. \"What's Holding Back Latent Visual Reasoning?\" (2605.18445) shows CoLT-style latents get BYPASSED (swap them for dummy/mean tokens and accuracy is unchanged or slightly better) and COLLAPSE to near-identical vectors; SCOLAR (2605.12163), on C1's own Qwen2.5-VL backbone, shows latent visual CoT degrades monotonically as it grows longer due to Information-Gain Collapse, REGARDLESS of instance difficulty. If latent steps carry no per-instance signal and longer never helps, there is nothing for an evidence-sufficiency halting head to allocate — the adaptive-depth mechanism is vacuous on the chosen backbone, independent of any novelty question.",
+          "survives": false,
+          "residual_novelty": 0.12,
+          "residual_feasibility": 0.6,
+          "notes": "The kill-shot is a mechanism/premise kill, not merely a scooping kill, which is why it is fatal: it voids the method even granting novelty. It is reinforced, not replaced, by three converging objections that each independently would wound the paper: (1) FALSE HEADLINE — \"every multimodal latent method uses fixed latent length\" is demonstrably wrong (Coconut already tested a learned latent-halting classifier; DMLR and Monet are dynamic); one informed reviewer sinks the framing. (2) MECHANISM ALREADY DONE — state-confidence early-exit over latent reasoning steps is AVA-VLA/Think-Less-Act-Early (2606.15099, multimodal), \"Learning When to Stop\" (2511.21581, text RL), HALO (2607.08775), AdaAnchor (2603.15051); the halting head itself is PonderNet/ACT (2107.05407, 2004.12770 already applied ACT to visual reasoning). C1 = PonderNet-on-latent-visual, a domain port. (3) SECOND CONTRIBUTION SCOOPED — the confound protocol (latent vs matched-text vs no-op padding) is table stakes: SCOLAR already ran latent-vs-placeholder on the same backbone, LIVR (2512.21218) ran latents-only/unused-latents/removed matched-capacity ablations, and matched latent-vs-text controls are standard since Token Assorted (2502.03275).\n\nEven the best-case empirical outcome is weak: the adaptive-computation literature (PonderNet, 2602.01070) consistently finds adaptive halting TIES the best fixed strategy on accuracy and wins only on average compute — so the likely result is an efficiency paper (~1.2-1.5x fewer steps, accuracy-neutral), on a latent substrate the literature says carries no signal. The \"evidence-sufficiency signal\" doing all the novelty work is undefined and collapses to entropy/confidence halting absent a formal, image-specific estimator shown superior to a plain threshold.\n\nResidual feasibility stays ~0.6 because the kill is scientific, not computational: PonderNet-style differentiable halting sidesteps the unproven-RL-on-PCIe-4xL40 risk, 3B full-FT/7B-LoRA fit, and — usefully — the two decisive experiments (oracle best-k probe; latent-bypass swap) are inference-only, <10 GPU-h, runnable in week 1. That is the one honest path: run them first. If they pass on Qwen2.5-VL (latents carry signal AND oracle-best-k meaningfully exceeds best-fixed-K), the proposal could be salvaged as the first controlled VLA->VQA transfer study with a formally-defined sufficiency estimator and adaptive (not just fixed-length) baselines — but the cited evidence makes failure the modal outcome, and even success faces an uphill novelty fight in a >=6-close-paper crowd before the deadline. Verdict: borderline-reject to reject; does not survive as a publishable ICLR main-track paper as framed."
+        }
+      },
+      {
+        "id": "C2",
+        "title": "Interventional Perception-vs-Reasoning Error Accounting for Multimodal RLVR",
+        "lenses": [
+          {
+            "axis": "novelty-and-scooping",
+            "score": 0.18,
+            "verdict": "weak",
+            "evidence": [
+              "The load-bearing 'novel mechanism' — comparing an MLLM on the raw image vs. a gold/ground-truth caption to attribute per-instance failures to perception vs reasoning — is already an established diagnostic. Multiple 2026 papers state it explicitly; the search on caption-substitution returned the summary line: 'This methodology provides an effective way to diagnose whether MLLM errors stem from perception failures or reasoning failures by comparing model performance on images versus ground-truth captions.'",
+              "CapPO — 'Perception-Consistency MLLMs Reasoning via Caption-Regularized Policy Optimization' (arxiv:2509.21854) — is a near-direct scoop of the FULL pipeline: it (a) uses image-vs-caption behavioral divergence as a perception diagnostic, and (b) adds exactly the 'perception-preserving constraint' C2 promises to discover — 'a caption-based consistency regularization, which minimizes the divergence between responses conditioned on raw images and those conditioned on captions' plus a 'KL-weighted advantage estimation scheme' inside GRPO. C2's 'accounting says a constraint is missing, so we add it' arc is already executed here.",
+              "The would-be headline longitudinal finding ('RL fixes reasoning, not perception') is already published. 'Bridging Perception and Reasoning: Token Reweighting for RLVR' (arxiv:2603.25077) reports 'After training, reasoning errors decreased significantly, while perception errors remained largely unaddressed.' PAPO (arxiv:2507.06448, the author's own baseline; ICLR 2026 poster) already quantifies 67% of errors as perceptual and 30.5% perception-error reduction from its intervention.",
+              "The second reviewer question C2 wants to answer — 'does text-heavy RL erode visual grounding?' — is also already answered. Search surfaced a documented 'grounding collapse' where 'image-text RLVR reduces image sensitivity to 39.8% despite improving accuracy' and a named phenomenon 'modality-specific reasoning collapse' in RL-finetuned VLMs (Ground What You See, arxiv:2601.06224; medical grounding, arxiv:2603.03437; RL-finetuned VLM robustness/CoT analysis, arxiv:2602.12506).",
+              "CaptionQA (arxiv:2511.21025, 'Is Your Caption as Useful as the Image Itself?') directly studies caption-as-image-substitute utility — the exact identifiability lever C2 rests on — as a standalone contribution, undercutting the claim that oracle-caption substitution is a fresh methodological idea.",
+              "PAPO's masked-image KL, Perception-R1's visual perception reward (arxiv:2506.07218), PEARL's verifiable perception checklist (CVPR 2026), PRCO Observer/Solver evidence-caption coevolution (arxiv:2603.28618), PRPO token-level advantage reshaping (arxiv:2606.08708), and CPPO contrastive perception loss (arxiv:2601.00501) mean the 'add a perception-preserving RL constraint' design space already has 6+ concurrent entrants — C2's proposed fix lands in a saturated field."
+            ],
+            "prior_art": [
+              {
+                "ref": "CapPO: Perception-Consistency MLLMs via Caption-Regularized Policy Optimization (arxiv:2509.21854)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "Bridging Perception and Reasoning: Token Reweighting for RLVR in Multimodal LLMs (arxiv:2603.25077)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "PAPO: Perception-Aware Policy Optimization (arxiv:2507.06448) — the author's own planned baseline",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "CaptionQA: Is Your Caption as Useful as the Image Itself? (arxiv:2511.21025)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "Ground What You See / grounding-collapse + modality-specific reasoning collapse (arxiv:2601.06224; arxiv:2603.03437)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "Seeing with You: Perception-Reasoning Coevolution / PRCO (arxiv:2603.28618)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "PEARL: Perceptual-Evidence Anchored Reinforced Learning (CVPR 2026)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "On Robustness and CoT Consistency of RL-Finetuned VLMs (arxiv:2602.12506)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "Perception-R1 (arxiv:2506.07218); PRPO (arxiv:2606.08708); CPPO (arxiv:2601.00501)",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Mechanism-level scoop: CapPO (2509.21854) already pairs the image-vs-caption divergence diagnostic with a caption-consistency GRPO regularizer, which is essentially C2's entire 'diagnose then add the missing perception-preserving constraint' contribution. A reviewer who knows this paper can reject on novelty alone.",
+              "The two 'reviewers repeatedly ask' motivating questions (what fraction of errors are perception; does RL erode grounding) are already answered in print (Token Reweighting 2603.25077; PAPO; grounding-collapse papers), so the longitudinal study risks being confirmatory rather than a new scientific claim — brushing against the 'no analysis/benchmark-only' hard rule.",
+              "The claimed 'identifiable' decomposition is weaker than advertised: gold captions/detections/scene-graphs are lossy and question-dependent proxies for perception (a caption can leak or omit the exact attribute a question needs), so oracle-substitution accuracy conflates caption-completeness with model perception — CaptionQA (2511.21025) exists precisely because this substitution is imperfect. The formal 'identifiability' framing may not survive scrutiny.",
+              "Residual novelty is thin and mostly presentational (multi-oracle {caption, detection, scene-graph} triangulation + a formal causal/identifiability writeup + per-checkpoint trajectories). None of these is clearly a 'new mechanism'; they are a more rigorous packaging of decompositions others already run, which is a hard sell for ICLR main-track over strong-reject risk.",
+              "To out-contribute PAPO/CapPO/Token-Reweighting/PEARL the paper would need a genuinely new intervention that beats them, but the search shows the perception-preserving-constraint design space is already crowded with 6+ 2026 methods — differentiation on both novelty AND SOTA within 9 weeks / 450 GPU-h is optimistic."
+            ]
+          },
+          {
+            "axis": "Feasibility on 4xL40-48GB (PCIe, no NVLink), ~600 GPU-h / 9 weeks",
+            "score": 0.7,
+            "verdict": "acceptable",
+            "evidence": [
+              "Scale is favorable: the planned model is Qwen2.5-VL-3B. The direct baseline PAPO (arxiv:2507.06448, html v3) trained the 3B model on only 2x H100-80GB and the 7B on 4x H100, with a modest RL recipe: ViRL39K = 38.8K multimodal QA, n=5 rollouts/prompt, rollout batch 384, 2 epochs, lr 1e-6. This is a small-footprint RL study, not an 8xA100 job.",
+              "The headline 'no-NVLink' risk is largely NEUTRALIZED at 3B scale. A 3B VLM (~6GB weights) fits entirely on ONE L40-48GB, so tensor parallelism is unnecessary for rollout; GRPO can use data-parallel vLLM (one replica per GPU) which needs no fast interconnect. Multiple 2026 multi-GPU guides confirm the PCIe TP penalty (0.70-0.78x scaling, heavy AllReduce) only bites for TP on 70B+ models (willitrunai.com/blog/multi-gpu-llm-inference-guide; servermo vLLM guide). NCCL weight-sync from trainer to vLLM replicas over PCIe is tree-based and one-shot per step (medium.com Kaige verl async-RL writeup), not a bottleneck at this scale.",
+              "Memory fits: LoRA on 3B is trivial in 48GB. Full-FT 3B needs ZeRO-2/3 sharding of Adam states (~36GB fp32 optimizer + grads) across the 4 cards plus gradient checkpointing for long multimodal sequences; documented Qwen2.5-VL-3B GRPO runs use ZeRO-3 + BF16 + grad-checkpointing on 4-GPU nodes (HF 'Engineering Handbook for GRPO+LoRA with verl'; EasyR1/verl). Colocating vLLM with a full-FT trainer on 48GB is tight and may require CPU offload of optimizer states, slowing throughput.",
+              "Time budget is plausible but thin. 3B GRPO is ~8-10h wall on 4x A100-80GB; L40 delivers roughly 0.4-0.6x A100/H100 training throughput (no FP8, lower memory bandwidth), so one PAPO-equivalent run ~= 16-24h wall x 4 GPUs = ~65-95 GPU-h. A defensible study = {plain GRPO, PAPO reproduction, proposed perception-preserving variant} x 2-3 seeds = 6-9 training runs = ~400-600 GPU-h just for training, before any ablation. The author's 450 GPU-h estimate leaves near-zero margin under the 600 cap.",
+              "The interventional accounting / longitudinal decomposition is the CHEAP part: oracle-perception substitution (replace image with gold caption/detection/scene-graph) and per-checkpoint error decomposition are pure inference/probing on a 3B model, and checkpoint saving during GRPO is free. This is the feasibility-friendly core of the proposal and aligns with the hardware profile (inference/probing-heavy studies are cheap here).",
+              "Hidden cost: producing 'gold' perception oracles at ViRL39K scale. Gold captions/detections from a strong oracle (e.g., Qwen2.5-VL-72B or GPT-4o) is heavy one-time inference; running 72B locally on 4x L40 requires TP+PCIe (the one place NVLink absence hurts) or paid API. Scene-graph gold realistically requires datasets with existing SG annotations (GQA/Visual Genome), constraining the eval set."
+            ],
+            "prior_art": [
+              {
+                "ref": "PAPO arxiv:2507.06448 (3B trained on 2x H100; direct feasibility anchor and baseline)",
+                "relation": "supporting"
+              },
+              {
+                "ref": "PRCO / 'From Seeing to Thinking: Decoupling Perception and Reasoning' arxiv:2605.20177 (dual-role RLVR disentangling perception vs reasoning)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "Perception-Consistency via Caption-Regularized Policy Optimization arxiv:2509.21854",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "Seeing with You: Perception-Reasoning Coevolution for Multimodal Reasoning arxiv:2603.28618",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "HF 'Engineering Handbook for GRPO+LoRA with verl' + EasyR1/verl (documents 3B GRPO on 4-GPU nodes)",
+                "relation": "supporting"
+              }
+            ],
+            "risks": [
+              "Budget margin is dangerously thin: 450 GPU-h estimate vs 600 cap means one or two failed/unstable GRPO runs (VLM RL is notoriously finicky) blows the budget. Only ~1.3x headroom over the point estimate.",
+              "Full-FT + colocated vLLM on 48GB may force optimizer CPU offload, cutting throughput 2-3x and pushing per-run hours up; if the authors need full-FT (LoRA often underperforms in RLVR) the time estimate could be optimistic.",
+              "The 'add a perception-preserving constraint' arm is a second RL method requiring its own tuning and seeds — easy to under-budget; each extra method x seed is ~65-95 GPU-h.",
+              "Gold-oracle generation for detections/scene-graphs at 39K scale needs either a 72B oracle (the one workload that DOES need PCIe TP on this box and runs slowly without NVLink) or external API cost, plus non-trivial pipeline engineering that eats calendar time in a 9-week window.",
+              "Longitudinal per-checkpoint decomposition multiplies eval passes; cheap per-pass but the combinatorial eval matrix (checkpoints x oracle-modality x benchmark) can quietly consume more inference hours than budgeted."
+            ]
+          },
+          {
+            "axis": "benchmark-trap + ICLR reviewer simulation (expected main-track acceptance-worthiness)",
+            "score": 0.19,
+            "verdict": "weak",
+            "evidence": [
+              "BENCHMARK-TRAP TEST: The contribution is a measurement instrument (interventional perception-vs-reasoning error accounting) plus one bolted-on mechanism. Strip the results table and what remains is a diagnostic decomposition + the empirical claim 'RL fixes reasoning, not perception.' The only genuine mechanism (the 'perception-preserving constraint the accounting says is missing') is the escape hatch from being a pure analysis paper -- and that mechanism is already published (CapPO/MoCA/PAPO). So the differentiating contribution collapses to confirmatory measurement. This is analysis-paper-shaped, borderline fatal.",
+              "DIRECT SCOOP #1 -- MoCA, 'Bad Seeing or Bad Thinking? Rewarding Perception for Vision-Language Reasoning' (arXiv:2605.14054). Uses a 'Blindfolded Reasoner Test': a text-only LLM proxy judges whether the VLM's extracted visual description alone suffices, 'withholding the image' -- this IS the oracle-perception intervention the proposal claims as novel. It then adds Modality-Aware Credit Assignment to route RL penalties to perception vs reasoning -- i.e. exactly the 'add a perception-preserving constraint the accounting says is missing' step. Both legs of C2 are present in one paper.",
+              "DIRECT SCOOP #2 -- PRCO, 'Seeing with You: Perception-Reasoning Coevolution' (arXiv:2603.28618). Already reports the headline longitudinal finding C2 wants to discover: 'GRPO reduces reasoning errors much more than perception errors' (base-vs-trained diagnostic on WeMath, Fig.1). It also decouples perception/reasoning with role-specific rewards (Observer/Solver) and reports per-category reductions (perception -39.2%, reasoning -23.8%). The 'what does RL actually change' claim is thus already in the literature.",
+              "OVERLAP -- CapPO, 'Perception-Consistency MLLM Reasoning via Caption-Regularized Policy Optimization' (arXiv:2509.21854, Sep 2025). Minimizes divergence between responses conditioned on raw images vs captions, 'anchoring reasoning to semantically faithful visual content,' plus KL-weighted advantage. This is precisely the caption-substitution perception-preserving constraint C2 proposes as its novel final mechanism. Published ~10 months before the ICLR 2027 deadline.",
+              "OVERLAP -- VISTA, 'Unbiased Visual Reasoning with Controlled Visual Inputs' (arXiv:2512.22183). Restricts reasoning to a verifiable perception-query interface and reports a human perception/reasoning error attribution (56% perception, 28% reasoning) plus GRPO training of the reasoner. Same 'controlled visual input' intervention family and same decomposition framing.",
+              "IDENTIFIABILITY CLAIM IS FALSE AS STATED. C2 claims oracle captions give an 'IDENTIFIABLE per-instance decomposition.' Replacing an image with a gold caption/scene-graph is a lossy, task-agnostic transform: a caption failure can mean the caption omitted the needed detail (a measurement artifact), not that reasoning is intact. The intervention changes the input distribution and conflates 'perception' with 'caption-format reasoning.' Reviewers will attack the causal-identifiability claim directly; the estimand is confounded by caption completeness, not a clean do()-operator.",
+              "CROWDED SUBFIELD. Additional close neighbors found: VTPerception-R1 (arXiv:2509.24776, explicit visual+textual perceptual grounding), SRPO 'Structured Role-Aware Policy Optimization' (arXiv:2605.07274, separate perception/reasoning segments), Perception-R1 (arXiv:2506.07218 / OpenReview KttCXdjj4w), 'From Seeing to Thinking' (arXiv:2605.20177), CVPR2026 'Perceptual-Evidence Anchored Reinforced Learning.' The perception-vs-reasoning-in-RLVR niche is saturated as of mid-2026."
+            ],
+            "prior_art": [
+              {
+                "ref": "MoCA / 'Bad Seeing or Bad Thinking?' arXiv:2605.14054",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "PRCO / 'Seeing with You: Perception-Reasoning Coevolution' arXiv:2603.28618",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "CapPO arXiv:2509.21854 (caption-regularized policy optimization)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "PAPO arXiv:2507.06448 (author's own baseline)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "VISTA arXiv:2512.22183 (controlled visual inputs)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "VTPerception-R1 arXiv:2509.24776",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "SRPO arXiv:2605.07274",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "Perception-R1 arXiv:2506.07218 / OpenReview:KttCXdjj4w",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "'From Seeing to Thinking' arXiv:2605.20177",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Reviewer 1 (area chair, harsh) -> score 3/10. Top rejection reasons: (a) Scooped -- MoCA (2605.14054) already pairs a blindfolded-reasoner decomposition with a perception-aware RL credit mechanism; PRCO (2603.28618) already reports 'GRPO reduces reasoning errors more than perception errors.' (b) The 'identifiable' decomposition is causally unsound: gold-caption substitution confounds perception with caption completeness.",
+              "Reviewer 2 (methods) -> score 4/10. Top rejection reasons: (a) The only real mechanism (caption/perception-preserving constraint) is incremental over PAPO/CapPO and likely won't beat them; the paper is 80% diagnostic. (b) No new formulation -- oracle-perception ablation is a standard analysis tool, not a contribution.",
+              "Reviewer 3 (empirical, borderline) -> score 5/10. 'Longitudinal checkpoint accounting is mildly interesting, but the central finding is already published (PRCO), the intervention is confounded, and the added constraint isn't shown to be SOTA.' Weak accept at best, likely reject after rebuttal.",
+              "MECHANISM VERDICT: This is NOT a genuine new mechanism. It is a measurement/attribution framework whose one mechanistic add-on is pre-empted by CapPO, PAPO, and MoCA. Under ICLR main-track standards (mechanism/theory/falsifiable claim, not analysis), it reads as an analysis paper -- the exact category the hard rules disfavor.",
+              "To escape rejection the authors would need a decomposition that is provably identifiable (e.g., counterfactual/mediation formalism with an estimand robust to caption incompleteness) AND a mechanism empirically dominating CapPO+PAPO -- neither is in the current framing, and both are heavy lifts in 9 weeks.",
+              "FEASIBILITY SIDE-RISK (secondary to this axis): GRPO rollout throughput for Qwen2.5-VL-3B on PCIe-only 4xL40 is unproven; longitudinal accounting across many checkpoints multiplies rollout cost. The 450-GPU-hr estimate is optimistic if multi-seed RL + per-checkpoint oracle-intervention evals are required for statistical claims about 'what RL changes.'"
+            ]
+          },
+          {
+            "axis": "Falsifiability & Mechanism Soundness (mechanism plausibility + clean-win probability vs baseline)",
+            "score": 0.25,
+            "verdict": "weak",
+            "evidence": [
+              "FALSIFIABILITY IS GENUINELY GOOD (the one real strength): the two headline hypotheses are clean falsifiable claims. 'RL fixes reasoning errors far more than perception errors' and 'text-heavy RL erodes visual grounding' are both directly testable by tracking the decomposition across checkpoints, and each has an obvious null. A cheap early kill-test also exists (see below). This is why the axis is not fatal.",
+              "BUT THE CENTRAL MECHANISM CLAIM IS LIKELY FALSE AS STATED. The proposal calls the oracle-caption/detection/scene-graph substitution an 'IDENTIFIABLE per-instance decomposition' of error into perception vs reasoning. It is not identifiable, only a lossy proxy. Replacing an image with a gold caption swaps the entire input modality (image tokens -> text tokens) AND changes the information set: a caption injects a curated subset of visual facts and omits others. If the model fails on the image but succeeds on the caption, you cannot attribute this to 'perception' cleanly, because (a) the caption may hand the model a derived fact it would otherwise have to compute, and (b) the model reasons over a distribution (long text) it was never RL-trained on. Different oracle types (caption vs detection vs scene-graph) have different coverage and WILL disagree on the per-instance perception/reasoning label, so the decomposition is not well-defined per instance.",
+              "CHEAPEST KILL EXPERIMENT (<5 GPU-hours): on base Qwen2.5-VL-3B, run all three oracle substitutions (gold caption / gold detections / gold scene-graph) on a few hundred instances and measure per-instance agreement of the induced perception-vs-reasoning label. Because the three oracles carry different information, they will disagree substantially — which directly falsifies 'identifiable per-instance decomposition' and collapses the paper's core methodological claim. The fact that the kill-test is this cheap reflects how fragile the premise is.",
+              "PRIOR ART ALREADY SHOWS THE SUBSTITUTION IS NON-IDENTIFIABLE. 'Caption This, Reason That: VLMs Caught in the Middle' (arXiv:2505.21538) does exactly image->caption substitution and finds performance swings wildly with caption quality/coverage — gold captions match humans, model captions are useless — i.e., the 'reasoning-only' measurement is a strong function of caption coverage, not a clean perception isolation.",
+              "CLEAN-WIN PROBABILITY IS LOW; HIGH TIE RISK. The proposed final contribution ('add a perception-preserving constraint the accounting says is missing') re-derives an already-published method. CapPO (arXiv:2509.21854, Caption-Regularized Policy Optimization) already computes two GRPO policies — one conditioned on the raw image, one on the caption — and minimizes their KL as a perception-preserving constraint, exactly the 'missing constraint' the accounting would point to. PAPO (2507.06448) already adds a KL implicit-perception term. There is no articulated mechanism by which an 'accounting-guided' constraint beats CapPO's caption-KL or PAPO's implicit-perception KL; the likely outcome is a statistical tie at 3B on shared benchmarks. Reported baseline gains are already modest (CapPO +6.0% math / +2.4% general over GRPO; PAPO 4.4-17.5%), leaving little headroom for a clean win.",
+              "THE DIAGNOSTIC FINDING IS ALREADY REPORTED. Multiple 2026 papers already state 'GRPO reduces reasoning errors much more than perception errors' via GRPO on Qwen2.5-VL with fine-grained error categorization (surfaced verbatim in search over PRPO arXiv:2606.08708 / From-Seeing-to-Thinking 2605.20177). The proposal's promised longitudinal 'discovery' is therefore largely pre-scooped as a static finding; adding checkpoints is incremental, not a new mechanism.",
+              "FEASIBILITY THREATENS THE WIN EXPERIMENT SPECIFICALLY. The clean-win claim requires head-to-head GRPO RL runs vs PAPO AND CapPO, plus multiple checkpointed GRPO runs for the longitudinal study. Reference methods (PAPO, CapPO) train on 8xH100; here it is 4xL40 48GB PCIe with NO NVLink and unproven multimodal RLVR rollout throughput. The 450 GPU-hour estimate is optimistic for base+PAPO+CapPO+new-method RL runs plus ablations and seeds; the risk lands precisely on the experiments needed to demonstrate a win rather than a tie."
+            ],
+            "prior_art": [
+              {
+                "ref": "arXiv:2605.14054 'Bad Seeing or Bad Thinking? Rewarding Perception for Multimodal Reasoning' (MoCA, Modality-Aware Credit Assignment; ICML 2026 Oral)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arXiv:2509.21854 CapPO: Caption-Regularized Policy Optimization (image-vs-caption KL perception-preserving constraint on GRPO)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arXiv:2505.21538 'Caption This, Reason That: VLMs Caught in the Middle' (image->caption substitution to separate perception/reasoning; shows non-identifiability)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arXiv:2512.21329 'Your Reasoning Benchmark May Not Test Reasoning: Revealing Perception Bottleneck' (two-stage image->NL-description decomposition)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arXiv:2507.06448 PAPO (implicit-perception-loss GRPO; author-acknowledged baseline)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arXiv:2605.20177 'From Seeing to Thinking: Decoupling Perception and Reasoning' (staged post-training; reports GRPO fixes reasoning>perception)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arXiv:2606.08708 PRPO: Perception-Reinforced Policy Optimization (perception errors dominate failures within reasoning trajectories)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arXiv:2604.24583 Perception-centric Process Reward Models (CVPR 2026; per-claim perception-error identification for RL)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arXiv:2511.18437 PEARL: Perceptual-Evidence Anchored Reinforced Learning",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Identifiability claim is the paper's differentiator AND its weakest point: a hostile reviewer kills the 'IDENTIFIABLE decomposition' framing immediately (modality-shift + caption-coverage confounds). Downgrading it to an honest 'proxy' erases the delta over MoCA (2605.14054), which already used a blindfolded-reasoning proxy and got ICML 2026 Oral.",
+              "Novelty of the final method is near-zero: the 'missing perception-preserving constraint' is CapPO's caption-KL / PAPO's implicit-perception KL already in the literature. The paper risks being a re-derivation dressed as motivated-by-accounting.",
+              "High probability the new method TIES PAPO/CapPO rather than cleanly beating either — no mechanism argues otherwise, and headroom over GRPO is already small (single-digit points).",
+              "The promised longitudinal 'what RL changes' finding is largely pre-reported ('GRPO fixes reasoning>>perception'), so even a clean study reads as confirmatory, not a new scientific claim.",
+              "RL feasibility: multimodal GRPO + PAPO + CapPO head-to-head + checkpointed longitudinal runs on 4xL40 PCIe (no NVLink) with unproven rollout throughput; 450h likely underestimates the win-demonstration experiments, and those are exactly the acceptance-critical ones.",
+              "Three oracle types (caption/detection/scene-graph) requiring gold annotations constrains datasets to those with scene-graphs/detections (e.g., GQA/VG-derived), narrowing scope and inviting 'does this generalize to math/chart VQA' reviewer pushback."
+            ]
+          }
+        ],
+        "refute": {
+          "strongest_kill_shot": "Full two-leg scoop: MoCA (arXiv:2605.14054, ICML 2026 Oral) already pairs the oracle-perception diagnostic (Blindfolded Reasoner Test — judge from the extracted visual description with the image withheld) with the exact \"perception-preserving constraint the accounting says is missing\" (Modality-Aware Credit Assignment routing RL penalties to perception vs reasoning); CapPO (2509.21854) independently does the same with image-vs-caption KL in GRPO. C2's entire \"diagnose → discover missing constraint → add it\" arc is already executed. The one claimed differentiator — that oracle substitution yields an IDENTIFIABLE per-instance decomposition — is causally false (caption/detection/scene-graph substitution confounds perception with oracle completeness and modality shift; a <5 GPU-h test shows the three oracles disagree per-instance), and the only honest repair, downgrading to a \"proxy,\" erases the delta over MoCA's already-published blindfolded proxy. The headline longitudinal finding (\"RL fixes reasoning, not perception\") is also already in print (PRCO 2603.28618, Token-Reweighting 2603.25077, the author's own PAPO baseline).",
+          "survives": false,
+          "residual_novelty": 0.1,
+          "residual_feasibility": 0.68,
+          "notes": "Kill-shot is fatal and interlocking, not repairable. Both legs (diagnostic + perception-preserving RL constraint) are pre-empted by a single paper (MoCA, Oral) and again by CapPO; the longitudinal claim is a pre-published static finding. The sole novelty lever, formal \"identifiability,\" is either false (caption-completeness/modality-shift confound, cheaply falsifiable) or, once softened to \"proxy,\" collapses onto MoCA's blindfolded-reasoner proxy — no branch is both true and novel. Residual novelty (~0.1) is purely presentational: multi-oracle {caption,detection,scene-graph} triangulation + causal writeup + per-checkpoint trajectories, none a new mechanism, landing in a 6+-entrant saturated subfield (PAPO/CapPO/MoCA/PRCO/PEARL/PRPO/CPPO). Feasibility is decent (~0.68): 3B single-card data-parallel vLLM neutralizes the no-NVLink PCIe risk and the accounting is cheap inference, but the 450/600 GPU-h margin is thin for a base+PAPO+CapPO+new-method head-to-head with seeds, and a clean win over CapPO/PAPO is unlikely (single-digit headroom, high tie risk). Feasibility cannot rescue a scooped, confirmatory contribution. Simulated reviewer scores 3-5/10; strong-reject risk on novelty alone from any reviewer who knows MoCA or CapPO. Not publishable at ICLR main track in current framing."
+        }
+      },
+      {
+        "id": "C3",
+        "title": "Commitment Points: When Multimodal Reasoning Locks In a Hallucination, and Cheap Deferral at the Lock-In Step",
+        "lenses": [
+          {
+            "axis": "novelty-and-scooping",
+            "score": 0.18,
+            "verdict": "weak",
+            "evidence": [
+              "arxiv:2603.27201 'Understanding and Mitigating Hallucinations in Multimodal Chain-of-Thought Models' is a direct scoop of the core claim. It finds MCoT hallucinations are generated at specific 'associative reasoning steps' it terms 'divergent thinking', then 'localizes divergent thinking steps and intervenes in the decoding process' ONLY at those steps rather than uniformly, reporting it 'outperforms existing methods by a large margin.' This is exactly the proposal's pitch: temporally locate the step where the chain commits to a hallucination and intervene only there, beating uniform decoding. Explicitly distinguishes MCoT hallucination causes from generic visual-attention decay in LVLMs.",
+              "arxiv:2604.10219 (V-STAR, 'Cognitive Pivot Points and Visual Anchoring') is a second near-exact scoop AND uses one of the proposal's exact models (Qwen2.5-VL-7B). It defines 'Cognitive Pivot Points / Cognitive Bifurcation Points' as high-entropy transition moments where '>70% of errors occur immediately after', shows 'intermediate-layer visual attention can collapse to near zero, forming an Attention Drop that precedes hallucination' (i.e. an attractor-like lock-in), and intervenes at exactly those points via targeted visual re-anchoring (HVAR) + forced reflection (FRM). This is the 'commitment point + attractor + targeted re-grounding' story the proposal claims as novel, already in a multimodal reasoning setting.",
+              "The proposal's claim that attractor/commitment dynamics are TEXT-only (arxiv:2604.15400) and unaddressed for multimodal CoT is false as of mid-2026: V-STAR already ports the attention-collapse/bifurcation ('attractor drift') framing to multimodal reasoning, and search surfaced attractor-based hallucination framings (concept attractors arxiv:2601.11575; visual->text attractor drift discussions).",
+              "The 'deferral / abstention at the lock-in step' angle is also occupied: arxiv:2604.14799 'Knowing When Not to Answer: Evaluating Abstention in Multimodal Reasoning Systems' and arxiv:2606.16667 'Look Again Before You Abstain: Budgeted Conformal Evidence Acquisition' already do three-way answer/abstain/acquire-evidence for VLMs, and conformal selective-prediction with bounded hallucination rate (arxiv:2502.06884).",
+              "Adjacent contemporaneous work further crowds the space: arxiv:2510.10285 (Functional Attention Control for MLRM hallucination), arxiv:2603.15557 ('Anatomy of a Lie' multi-stage hallucination tracing in VLMs), arxiv:2605.27906 (Reasoning-Conditioned Preference Optimization), arxiv:2604.03179 (role of hallucination in RL post-training of multimodal reasoners).",
+              "Residual novelty is thin: the only differentiators left are (a) a measured side-effect profile (refusal-rate/OOD-accuracy/overhead) and (b) deferral vs. re-grounding as the specific action. (a) is an evaluation contribution, which the hard rules forbid as the main contribution; (b) is a small delta over V-STAR's re-anchoring + the abstention line."
+            ],
+            "prior_art": [
+              {
+                "ref": "arxiv:2603.27201 (Understanding and Mitigating Hallucinations in Multimodal Chain-of-Thought Models)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arxiv:2604.10219 (V-STAR: Cognitive Pivot Points and Visual Anchoring, on Qwen2.5-VL-7B)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arxiv:2510.10285 (Mitigating Hallucination in Multimodal Reasoning via Functional Attention Control)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2604.14799 (Knowing When Not to Answer: Abstention in Multimodal Reasoning Systems)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2603.15557 (Anatomy of a Lie: Multi-Stage Diagnostic Framework for Tracing VLM Hallucinations)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2606.16667 (Look Again Before You Abstain: Budgeted Conformal Evidence Acquisition for VLMs)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2605.27906 (Reasoning-Conditioned Preference Optimization for MLRM hallucination)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2604.03179 (Role of Hallucination in Reinforcement Post-Training of Multimodal Reasoning Models)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2601.11575 (Concept Attractors in LLMs)",
+                "relation": "supporting"
+              },
+              {
+                "ref": "arxiv:2607.07507 (HIVE: Post-Hallucination Reasoning), cited by authors",
+                "relation": "supporting"
+              }
+            ],
+            "risks": [
+              "Two independent mid-2026 papers (2603.27201 and V-STAR/2604.10219) already deliver the headline scientific claim: locate the temporal step where multimodal CoT commits to a hallucination and intervene ONLY there, beating uniform decoding. A hostile reviewer will cite either as prior art and mark the contribution incremental.",
+              "V-STAR uses Qwen2.5-VL-7B and hallucination benchmarks, i.e. the proposal's own model/eval setting, so a head-to-head is unavoidable and the paper would be positioned as a weaker/cheaper variant of an existing RL-trained method.",
+              "The authors' central novelty premise ('attractor/commitment is TEXT-only, no temporal multimodal-CoT treatment exists') is factually stale and will be trivially refuted in review, undermining framing credibility.",
+              "The genuinely distinctive parts (side-effect profiling: refusal-up/OOD-down/overhead) read as an evaluation/measurement contribution, which the task's Rule 1 explicitly disqualifies as the primary contribution.",
+              "To recover novelty the paper would need a mechanistic causal claim about the commitment step that is demonstrably NOT captured by V-STAR's high-entropy attention-drop account or 2603.27201's divergent-thinking localization — a narrow and risky wedge to establish in 9 weeks."
+            ]
+          },
+          {
+            "axis": "Feasibility on 4xL40-48GB (PCIe, no NVLink), ~600 GPU-h / 9 weeks",
+            "score": 0.82,
+            "verdict": "strong",
+            "evidence": [
+              "Model scale is trivially within budget. LLaVA-1.5-7B and Qwen2.5-VL-7B are both 7B; bf16 weights ~14GB fit comfortably on ONE L40-48GB. No model is sharded, so the PCIe/no-NVLink limitation is irrelevant here — every job is single-GPU and the 4 GPUs are used for embarrassingly-parallel data sharding, not tensor/pipeline parallelism. This removes the single biggest failure mode this hardware has.",
+              "The study is inference/probing-heavy, not RL. There are NO GRPO/PPO rollouts, so the flagged 'RL rollout throughput on PCIe 4xL40 UNPROVEN' risk does not apply to C3 at all. The proposed intervention (targeted re-grounding/deferral at the commitment step) is training-free at inference. Any learned component is at most a linear probe / small commitment-step classifier on cached activations — minutes of GPU time.",
+              "Even if LoRA fine-tuning were added, a 7B LoRA run (weights ~14GB + tiny adapter params + optimizer state only over adapters + activations) fits on a single 48GB L40 with room to spare; 13B LoRA is within the stated feasible envelope. So there is a large headroom margin versus the 48GB ceiling.",
+              "Compute budget estimate for the science: commitment analysis = bifurcation resampling + step/window activation patching. Rough order: ~500 prompts x ~30 resamples ~15k CoT generations (~12 GPU-h) + step-window patching ~500 prompts x ~30 steps of patched decodes (~10-15 GPU-h). Baselines (VCD/ICD/DeP-class + Token-Guard self-check) and method eval over POPE/CHAIR/MMHal-Bench/MME are pure inference, a few GPU-h each. Side-effect passes (refusal rate, OOD accuracy) and 3 seeds add little because everything is inference. Total realistically ~150-250 GPU-h, well under 600. Author's 150 GPU-h estimate is plausible, not optimistic.",
+              "Prior-art scan confirms the mechanistic basis exists and is reusable rather than blocking: arxiv:2604.15400 (attractor/commitment, TEXT only — 44.3% of prompts bifurcate at first token, activation-patching asymmetry 87.5% corrupt vs 33.3% recover) gives a validated methodology to port. arxiv:2601.02170 (streaming hallucination detection in long CoT) and arxiv:2512.04643 (SEASON, temporal contrastive decoding for video) show temporal framings are tractable at 7B scale on modest hardware.",
+              "The real risk is DEV-TIME, not GPU-hours: step-wise activation patching that patches an activation at generation step t and continues decoding requires careful KV-cache surgery (invalidate/recompute cached keys/values for patched positions). Qwen2.5-VL's dynamic-resolution / variable visual-token count and window attention in the visual encoder make patch positions non-uniform across prompts, complicating a standardized commitment-step definition. Search found LightKV/Dynamic-LLaVA style KV-cache tooling but nothing off-the-shelf for step-targeted patching — this is bespoke engineering."
+            ],
+            "prior_art": [
+              {
+                "ref": "arxiv:2604.15400 (Hallucination as Trajectory Commitment: Asymmetric Attractor Dynamics, TEXT)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2604.17982 (Mitigating Multimodal Hallucination via Phase-wise Self-reward)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2601.02170 (Streaming Hallucination Detection in Long Chain-of-Thought Reasoning)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2602.21441 (Causal Decoding for Hallucination-Resistant Multimodal LLMs)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2512.04643 (SEASON: Temporal Hallucination in Video LLMs via Self-Diagnostic Contrastive Decoding)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2604.12424 (Decoding by Perturbation, MLLM hallucination) / VCD/ICD baseline class",
+                "relation": "supporting"
+              }
+            ],
+            "risks": [
+              "Implementation complexity dominates the 9-week clock, not compute. Correct step-wise activation patching during autoregressive generation with a live KV cache (patch at step t, continue decoding) is fiddly and easy to get subtly wrong; a buggy cache invalidation silently corrupts the central scientific claim. Budget 2-3 weeks of the 9 just for the patching harness on TWO different VLM architectures.",
+              "Qwen2.5-VL's dynamic resolution, variable visual-token count, and window attention make a standardized, cross-prompt 'commitment step' index hard to define and align — the analysis may end up clean only on LLaVA-1.5 (fixed 576 visual tokens) and messy on Qwen, weakening the 'general mechanism' story.",
+              "Ground-truth for WHERE the chain locks in requires labeling the hallucination onset step in each CoT (human or automatic via an LLM judge). This annotation pipeline is unbudgeted labor and, if automatic, introduces judge noise into the core commitment-step measurement.",
+              "The compute is cheap enough that reviewers will expect breadth (more models, more benchmarks, robust seeds/ablations) — cheap-per-run means scope creep is the way this blows past 9 weeks even while staying under 600 GPU-h.",
+              "Shared pku-server contention: 150-250 GPU-h is fine on paper, but a shared box means wall-clock, not GPU-h, is the binding constraint; single-GPU jobs mean you can only run 4 concurrently and long patching sweeps could queue behind labmates."
+            ]
+          },
+          {
+            "axis": "benchmark-trap + ICLR reviewer simulation (is it a genuine, novel mechanism or an eval paper in disguise?)",
+            "score": 0.2,
+            "verdict": "weak",
+            "evidence": [
+              "BENCHMARK-TRAP CHECK: Not *purely* a benchmark/eval paper. It genuinely proposes a mechanism ('temporal commitment step' where a multimodal CoT locks into a hallucination) + a falsifiable claim (targeted intervention at that step beats uniform decoding at lower overhead). If you delete the results table, a mechanistic/causal claim survives. So it does NOT collapse to a leaderboard paper -> NOT fatal on the benchmark-trap criterion specifically. The killer is elsewhere: the mechanism is already published.",
+              "NEAR-PERFECT SCOOP the author omitted: arxiv:2604.10219 'Cognitive Pivot Points and Visual Anchoring: Unveiling and Rectifying Hallucinations in Multimodal Reasoning Models' (updated 2026-05-28). It identifies temporal 'cognitive bifurcation / pivot points' where multimodal reasoning commits to hallucination ('cognitive inertia', 'snowballing hallucination', '>70% of errors emerge immediately after these high-uncertainty logical pivots'), frames it as attractor-like inertia, AND intervenes ONLY there (Forced Reflection Mechanism = trajectory editing that triggers re-grounding/re-verification against visual input around the high-entropy pivot). Uses Qwen2.5-VL-7B. This is essentially the proposed paper: temporal commitment in multimodal CoT + commitment-targeted re-grounding.",
+              "SECOND SCOOP the author omitted: arxiv:2603.27201 'Understanding and Mitigating Hallucinations in Multimodal Chain-of-Thought Models' — finds fabricated text is 'primarily generated in associative reasoning steps (divergent thinking)', LOCALIZES those steps, and 'intervenes in the decoding process' only at them vs uniformly. Directly anticipates the 'identify the step, intervene only there' core.",
+              "THIRD SCOOP on the efficiency/side-effect angle: arxiv:2606.29847 'See Only When Needed: Context-Aware Attention Intervention' uses predictive entropy as a training-free trigger to intervene ONLY at high-risk tokens explicitly to 'avoid over-correction' and reduce overhead — i.e., targeted-beats-uniform with a measured trade-off. Also arxiv:2604.12115 'HTDC: Hesitation-Triggered Differential Calibration' (hesitation/uncertainty-triggered targeted decoding) and arxiv:2602.21441 'Causal Decoding for Hallucination-Resistant MLLM' (the 'causal story' angle). The proposal's selling points — targeted > uniform, lower overhead, measured side effects — are already staked out.",
+              "The author's stated differentiator 'None does TEMPORAL commitment during multimodal CoT + a commitment-targeted intervention' is FALSE as of mid-2026. Their cited prior art (2604.15400 text-only attractor, 2605.13156 static dual-pathway, 2606.08777 static counterfactual) is cherry-picked to be static/text-only; the temporal+multimodal papers that scoop it (2603.27201, 2604.10219) are conspicuously absent from the prior-art list.",
+              "REVIEWER SIM (ICLR 2027 main track). R1 (well-read skeptic), score 3: 'Central claim anticipated by Cognitive Pivot Points (2604.10219) and 2603.27201; the cited related work omits them. Novelty insufficient, reject.' R2 (methods), score 4: 'Entropy/hesitation-triggered targeted intervention with overhead + side-effect analysis already exists (2606.29847, 2604.12115). What is the delta beyond re-labeling the trigger a commitment step and calling the action deferral? Marginal.' R3 (generous), score 5: 'Causal framing and measured refusal/OOD side-effect profile are refreshing, but incremental given the 2026 landscape; borderline.' Expected avg ~3.7 => reject.",
+              "GENUINE MECHANISM? Yes in kind (commitment/attractor dynamics is a real mechanistic, falsifiable claim), but NOT novel — it is a mechanism that has already been demonstrated for multimodal CoT. What remains for this paper is an incremental method + a measurement study, which is exactly the eval-adjacent residue the benchmark-trap lens warns about even though it is not literally a benchmark paper."
+            ],
+            "prior_art": [
+              {
+                "ref": "arxiv:2604.10219 Cognitive Pivot Points and Visual Anchoring (updated 2026-05-28)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arxiv:2603.27201 Understanding and Mitigating Hallucinations in Multimodal Chain-of-Thought Models",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arxiv:2606.29847 See Only When Needed: Context-Aware Attention Intervention (entropy-triggered, targeted, overhead-aware)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2604.12115 HTDC: Hesitation-Triggered Differential Calibration",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2602.21441 Causal Decoding for Hallucination-Resistant MLLM",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2604.15400 Hallucination as Trajectory Commitment (text-only attractor, author-cited)",
+                "relation": "supporting"
+              },
+              {
+                "ref": "arxiv:2605.27906 Reasoning-Conditioned Preference Optimization for MLRM hallucination",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2606.00622 MM-Snowball: hallucination snowballing in multimodal multi-turn",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Novelty is effectively pre-empted: the exact triad (temporal commitment step in multimodal CoT + attractor/inertia framing + targeted-only re-grounding at that step) is delivered by 2604.10219, with 2603.27201 covering step-localized decoding intervention. The author's 'no one has done this' claim will not survive Reviewer 1's first Google Scholar pass.",
+              "The remaining delta ('deferral' instead of re-grounding/reflection; 'measured side-effect profile') is a thin wrapper — 2606.29847 and 2604.12115 already do uncertainty-triggered targeted intervention with overhead/quality analysis. A reviewer will ask for the head-to-head against these, not just against uniform visual-contrastive-decoding, and the proposal's baseline set (uniform VCD + Token-Guard) is a strawman that omits the real 2026 targeted-intervention competitors.",
+              "Reframing risk: to differentiate, the paper would lean harder on the 'commitment analysis as scientific finding' — but that finding is the part most thoroughly scooped, so leaning on it worsens the novelty gap rather than closing it.",
+              "Feasibility caveat (secondary): if the targeted intervention needs any preference-optimization / RL-style trajectory editing (as V-STAR/FRM in 2604.10219 do at training time), RL-rollout throughput on PCIe-only 4xL40 is the stated hardware risk; an inference-only deferral variant is cheap but is then even closer to the entropy-triggered decoding baselines and harder to distinguish."
+            ]
+          },
+          {
+            "axis": "Falsifiability & Mechanism Soundness (mechanism plausibility + clean-win probability vs. baseline)",
+            "score": 0.2,
+            "verdict": "weak",
+            "evidence": [
+              "The core hypothesis IS falsifiable and, unfortunately for novelty, appears already TRUE and already demonstrated in multimodal. V-STAR (arxiv:2604.10219, 'Cognitive Pivot Points and Visual Anchoring: Unveiling and Rectifying Hallucinations in Multimodal Reasoning Models', May 2026) identifies discrete 'cognitive bifurcation points' in the multimodal reasoning chain where >70% of hallucinations emerge (entropy spikes at transition tokens), attributes them to visual-semantic-anchoring failure in intermediate layers (11-20), and intervenes ONLY at those points via re-grounding (HVAR) + forced reflection (FRM). SOTA on Qwen2.5-VL-7B across 40+ benchmarks with NO inference overhead. This scoops the proposal's 'scientific finding' (temporal commitment step), its 'targeted-only intervention beats uniform at low overhead' claim, AND its exact base model.",
+              "PSRD (arxiv:2604.17982, 'Mitigating Multimodal Hallucination via Phase-wise Self-reward', Apr 2026) already reports that 'visual hallucination exhibits phase-wise dynamic patterns, peaking at the onset of EACH semantic phase' and does online targeted correction on LLaVA-1.5-7B, -50% hallucination, beating post-hoc methods across 5 benchmarks / 4 LVLMs. This both (a) pre-empts the temporal-dynamics finding and (b) contradicts the proposal's single-'commitment-point'/attractor framing: hallucination recurs at every phase onset, not one lock-in. A single-point deferral is therefore likely the WRONG mechanism.",
+              "Focus Matters (arxiv:2604.03556) independently establishes a three-phase (diffusion/focus/rediffusion) structure and shows intervention only during the 'focus' phase reduces hallucination with negligible overhead on LLaVA-1.5-7B/13B AND Qwen2.5-VL — again the exact targeted-low-overhead niche the proposal claims, on the exact baseline models.",
+              "The proposal's own motivating citation undermines its premise. HIVE (arxiv:2607.07507) headline finding: hallucinated captions OFTEN IMPROVE accuracy on vision-language tasks; effects are modality-dependent, not uniformly contaminating. If locking in a hallucination sometimes helps downstream reasoning, then deferral/abstention at the commitment step can HURT accuracy — a direct, cheap falsification path the authors have not addressed.",
+              "The planned baseline set (visual contrastive decoding + Token-Guard self-checking) is outdated for ICLR 2027. Reviewers will demand comparison to V-STAR (2604.10219), PSRD (2604.17982), Focus Matters (2604.03556), ClueTracer (2602.02004, training-free targeted multimodal suppression), and entropy-aware MLRM decoding (2603.13366). All are targeted, low-overhead methods already occupying the 'beat uniform at a fraction of overhead' claim. Beating VCD is table stakes; the realistic outcome vs. V-STAR/PSRD is a TIE, not a clean win.",
+              "The text-only prior (arxiv:2604.15400, asymmetric attractor / early trajectory commitment: step-0 residual predicts hallucination r=0.776, 87.5% vs 33.3% asymmetric patching) is confirmed as claimed, and First-Hallucination-Tokens (arxiv:2507.20836) supports first-token detectability. So the phenomenon is real (mechanism plausible) — but the multimodal port is now the crowded part, not the open part.",
+              "Cheapest kill experiment (<10 GPU-hours): on Qwen2.5-VL-7B, reproduce V-STAR-style entropy-spike pivot detection during CoT. If pivots are (a) already well-characterized (they are) and (b) recur at each phase onset rather than a single lock-in (PSRD/Focus Matters say yes), the 'commitment analysis is THE scientific finding' pillar collapses. Second kill test: apply deferral at detected commitment steps and measure OOD/VQA accuracy — HIVE predicts accuracy may DROP, falsifying the 'targeted deferral is a clean improvement' thesis."
+            ],
+            "prior_art": [
+              {
+                "ref": "arxiv:2604.10219 (V-STAR: Cognitive Pivot Points and Visual Anchoring)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arxiv:2604.17982 (PSRD: Phase-wise Self-reward Decoding for multimodal hallucination)",
+                "relation": "scoops-it"
+              },
+              {
+                "ref": "arxiv:2604.03556 (Focus Matters: Phase-Aware Suppression for VLM hallucination)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2607.07507 (HIVE: Post-Hallucination Reasoning) — cited as motivation but its finding that hallucinations often help contradicts the premise",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2602.02004 (ClueTracer: training-free targeted hallucination suppression in multimodal reasoning)",
+                "relation": "close-overlap"
+              },
+              {
+                "ref": "arxiv:2603.13366 (Thinking in Uncertainty: entropy-aware decoding for multimodal reasoning models)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2605.13156 (Dual-Pathway Circuits of Object Hallucination in VLMs)",
+                "relation": "adjacent"
+              },
+              {
+                "ref": "arxiv:2604.15400 (Hallucination as Trajectory Commitment, text-only attractor dynamics)",
+                "relation": "supporting"
+              },
+              {
+                "ref": "arxiv:2507.20836 (First Hallucination Tokens Are Different)",
+                "relation": "supporting"
+              },
+              {
+                "ref": "arxiv:2605.05953 (Hallucination as an Anomaly: per-step probabilistic-circuit dynamic intervention, text-only)",
+                "relation": "adjacent"
+              }
+            ],
+            "risks": [
+              "Triple-scoop on the core contribution: V-STAR (2604.10219) already delivers the temporal-commitment finding + targeted intervention + zero overhead on the SAME model (Qwen2.5-VL-7B); PSRD and Focus Matters cover the LLaVA-1.5-7B case. The 'commitment analysis is the scientific finding' pillar is not novel as of mid-2026.",
+              "Mechanistic premise is likely mis-specified: prior work shows hallucination recurs at EACH phase/pivot (recurring high-entropy nodes), not a single attractor 'lock-in.' A one-shot deferral at 'the' commitment step is probably strictly weaker than V-STAR/PSRD's per-node reactivation.",
+              "Premise-vs-evidence conflict: HIVE (the author's own motivation) shows hallucinated semantics frequently AID downstream VLM accuracy, so deferral at the commitment step risks lowering OOD/VQA accuracy — the exact side effect the proposal claims to fix.",
+              "Clean-win probability against an honest 2027 baseline set is low: differentiation reduces to 'deferral/abstain instead of re-grounding' — a thin sliver that reads as an incremental variant of V-STAR, and abstention typically trades accuracy for calibration (weaker headline numbers).",
+              "Even a positive result would likely be framed by reviewers as 'multimodal port of 2604.15400 + a decoding intervention already dominated by V-STAR/PSRD' — an incremental-combination rejection risk regardless of execution quality."
+            ]
+          }
+        ],
+        "refute": {
+          "strongest_kill_shot": "Total novelty pre-emption by V-STAR (arxiv:2604.10219, \"Cognitive Pivot Points and Visual Anchoring,\" updated 2026-05-28), which already delivers the proposal's exact headline triad on the proposal's own base model. V-STAR (a) identifies discrete temporal \"cognitive bifurcation / pivot points\" in a MULTIMODAL reasoning chain where >70% of hallucinations emerge (entropy spikes at transition tokens), (b) frames this as attractor-like \"cognitive inertia\" with intermediate-layer visual-attention collapse preceding lock-in, and (c) intervenes ONLY at those points via targeted re-grounding (HVAR) + forced reflection (FRM), reporting SOTA on Qwen2.5-VL-7B across 40+ benchmarks at near-zero overhead. This is C3's \"commitment step + attractor + targeted-only intervention beats uniform at a fraction of overhead,\" on C3's exact model. C3's central novelty premise — that commitment/attractor dynamics are TEXT-only (2604.15400) and untreated for multimodal CoT — is therefore factually false as of mid-2026, and the prior-art list that omits V-STAR and 2603.27201 (\"divergent thinking\" step-localized decoding intervention) will not survive Reviewer 1's first literature pass. A head-to-head against V-STAR/PSRD is unavoidable and C3 is positioned as a weaker, cheaper variant.",
+          "survives": false,
+          "residual_novelty": 0.1,
+          "residual_feasibility": 0.78,
+          "notes": "Kill-shot is fatal to novelty, not to feasibility — hence survives=false despite a technically buildable project. All four lenses independently converge on the same scoop (2604.10219 V-STAR, 2603.27201 divergent-thinking, 2604.17982 PSRD, 2604.03556 Focus Matters), so this is not a single-reviewer risk but a consensus reject on Rule-1 grounds.\n\nResidual novelty (~0.1): after the scoop, the only differentiators are (a) deferral/abstention instead of re-grounding — a thin action-swap over V-STAR's re-anchoring and the existing abstention line (2604.14799, 2606.16667), and (b) a measured side-effect profile (refusal-up/OOD-down/overhead) — which is an evaluation/measurement contribution explicitly disqualified as a primary contribution. Leaning harder on \"commitment analysis as THE scientific finding\" worsens the gap because that is the most thoroughly scooped part.\n\nTwo compounding weaknesses beyond the scoop: (1) Mechanism likely mis-specified — PSRD and Focus Matters show hallucination recurs at EACH phase/pivot onset, not a single attractor \"lock-in,\" so a one-shot deferral at \"the\" commitment step is plausibly strictly weaker than per-node reactivation. (2) Premise-vs-evidence conflict — C3's own motivating citation HIVE (2607.07507) finds hallucinated semantics frequently AID downstream VLM accuracy, so deferral at the commitment step risks LOWERING OOD/VQA accuracy, a cheap <10-GPU-h falsification the authors have not addressed. Realistic outcome vs an honest 2027 baseline set is a TIE, not a clean win.\n\nResidual feasibility (~0.78): high and largely independent of the kill-shot. 7B models fit on one L40; study is inference/probing-heavy with no RL rollouts (the flagged PCIe risk does not apply); ~150-250 GPU-h is well under 600. The real constraint is dev-time: bespoke step-wise activation patching with live KV-cache surgery across two VLM architectures (2-3 wks), Qwen2.5-VL dynamic-resolution/variable-token count making a standardized cross-prompt commitment-step index hard to define, and an unbudgeted hallucination-onset annotation pipeline. Feasible to build, but feasibility cannot rescue a pre-empted contribution."
+        }
+      }
+    ],
+    "ranking": {
+      "ranked": [
+        {
+          "id": "C1",
+          "novelty": 0.58,
+          "feasibility": 0.85,
+          "publishability": 0.55,
+          "overall": 0.65,
+          "one_line": "REPAIRED (substrate pivot): abandon dead adaptive-latent-depth; instead give a mechanistic, training-free, per-instance-gated fix for the verified self-reflection 'illusion' (2605.15864) — the visual-attention surge is gated by token role/provenance, and restoring the user-role profile on a few heads recovers the self-vs-user accuracy gap without global-steering collateral damage."
+        },
+        {
+          "id": "C3",
+          "novelty": 0.12,
+          "feasibility": 0.78,
+          "publishability": 0.2,
+          "overall": 0.34,
+          "one_line": "Commitment-point hallucination deferral — fully pre-empted by V-STAR (2604.10219) on the same Qwen2.5-VL model (temporal pivot + attractor framing + targeted-only intervention), plus mechanism mis-spec (recurs per-pivot, not single lock-in) and a HIVE premise conflict; consensus reject, kill-shot not reparable."
+        },
+        {
+          "id": "C2",
+          "novelty": 0.1,
+          "feasibility": 0.68,
+          "publishability": 0.19,
+          "overall": 0.3,
+          "one_line": "Perception-vs-reasoning RLVR accounting — both legs (blindfolded-reasoner diagnostic + perception-preserving RL constraint) scooped by MoCA (ICML 2026 Oral, 2605.14054) and again by CapPO (2509.21854); the sole differentiator, 'identifiable' decomposition, is causally false; interlocking scoop, not reparable."
+        }
+      ],
+      "winner_id": "C1",
+      "winner_rationale": "All three refute passes returned survives=false, so the decision rule reduces to: which kill-shot is clearly reparable? C2 and C3 are killed by strong single papers that executed the exact contribution on the exact setting (MoCA ICML-Oral for C2; V-STAR for C3) — verified real via search, non-reparable, and their residual novelty is presentational only. C1's kill is different in kind: a PREMISE kill (opaque visual latents collapse/get bypassed, so adaptive latent-DEPTH has nothing to allocate), and premise kills are reparable by changing the substrate rather than the ambition. The repair keeps C1's DNA — per-instance, evidence-sufficiency-gated allocation of visual computation with a formal signal and causal confound control — but swaps the dead substrate (latent CoT depth, verified saturated: Monet/DMLR/ILVR/SCOLAR/2605.18445) for one whose per-instance headroom is VERIFIED real and large: explicit visual re-engagement. 2605.15864 shows a ~50pp self-vs-user re-look gap that the field has only diagnosed. My provenance-search returned no prior work explaining the asymmetry mechanistically or fixing it training-free/per-instance, and the nearest neighbors are either global-and-always-on (CAST/DMAS) or RL-based (V-STAR, 2607.02490) — the latter directly exposed to the unproven PCIe-4xL40 rollout risk that this repair sidesteps entirely. C1-repaired is thus the only candidate that simultaneously (1) neutralizes its own kill-shot with a substrate whose signal provably exists, (2) states a falsifiable mechanism (Rule-1 compliant, not a benchmark), (3) is inference/probing + activation-steering only (no RL) so it fits 4xL40/600h with a week-1 GO/NO-GO, and (4) can win on ACCURACY via a collateral-free comparison against global steering, escaping the efficiency-paper trap. Honest caveat: the neighborhood is crowded, so this is the highest-probability bet among three compromised options, not a slam dunk — hence a week-1 kill-gate is mandatory.",
+      "sharpened_problem_statement": "Recent 2026 evidence establishes that VLM self-reflection is largely an illusion: models emit \"let me look at the image again,\" but their attention to visual tokens does not surge and their answers stay anchored to text — VisualSwap shows accuracy dropping up to 60% and thinking models ~3x more vulnerable (2605.15864). Yet the identical instruction delivered as a USER turn does surge visual attention and restores accuracy to ~85%, and the field frames this only as \"a failure of control, not capability,\" offering a user-prompt workaround but no explanation of WHY the same content behaves differently by source and no internal fix. Existing training-free interventions (CAST 2605.04641, DMAS 2602.21704) boost visual attention globally and indiscriminately (risking HIVE-style collateral loss where language priors are correct), while the grounded-re-look methods that work (V-STAR 2604.10219, 2607.02490) require RL. We claim the re-examination surge is gated by token PROVENANCE/role — a small set of role-conditioned attention heads down-weight visual keys during assistant-role (self-generated) decoding, which also explains why more \"thinking\" makes it worse — and that restoring the user-role attention profile on exactly those heads, only on instances a cheap gate flags as illusion-bound and swap-sensitive, recovers most of the self-vs-user accuracy gap without the collateral loss global steering incurs. This converts C1's falsified \"adaptive latent depth on hard images\" into a causally-validated, training-free control mechanism on a substrate whose per-instance headroom is independently verified and large.",
+      "core_hypothesis": "In VLMs, the visual-attention surge that produces genuine re-examination is gated by the trigger tokens' role/provenance (user-provided vs self-generated), is localized to a small identifiable set of attention heads, and can be restored training-free at self-reflection steps to recover externally-prompted accuracy on swap-sensitive instances without degrading swap-invariant ones.",
+      "method_seed": "INPUTS: an open VLM (Qwen2.5-VL-7B primary; Qwen3-VL thinking/instruct as the strongest illusion testbed; LLaVA-1.5-7B with fixed 576 visual tokens for clean head attribution; a second family — InternVL2.5-8B or LLaVA-OneVision-7B — for generality), image+question, and the decoded reasoning trace. MECHANISM STUDY (no learning, week 1): with the re-look instruction's CONTENT held fixed, measure per-head visual-attention mass under three matched conditions — (a) self-generated mid-decoding, (b) injected as a user turn, (c) injected as assistant-role at a turn boundary — to dissociate ROLE/provenance from position/turn-boundary; identify the head set whose visual-attention responds to role, yielding the falsifiable \"role-conditioned visual-routing heads\" claim. LEARNED COMPONENT: a lightweight per-instance gate g(x) — a small supervised probe (no RL, tiny external classifier) on cheap pre-trigger features (current visual-attention profile on the identified heads vs the empirically-measured user-triggered reference profile, plus answer-logit margin) that predicts whether the instance is in the illusory-inertia regime AND swap-sensitive. TRAINING SIGNAL: self-supervised oracle labels from a training split — run user-role re-look vs no re-look and label \"benefits\" where external re-look flips the answer to correct or where VisualSwap detection succeeds only with re-engagement; g(x) learns to predict this from internal features; threshold calibrated to a target intervention budget. INFERENCE-TIME BEHAVIOR: during decoding, at re-look/self-reflection steps, evaluate g(x); if it fires, apply a training-free provenance-restoring intervention on exactly the identified heads (rescale their visual-key attention to the measured user-role profile, or role/positional-spoof the trigger span) for the continuation; otherwise decode normally — zero added parameters, no user in the loop, targeted (not global), gated (not always-on).",
+      "primary_claim": "A training-free, per-instance-gated provenance-restoring intervention on a small set of role-conditioned attention heads recovers the majority of the self-vs-user visual-re-examination accuracy gap (documented by 2605.15864) on swap-sensitive instances — approaching the user-prompt oracle upper bound — WITHOUT the collateral accuracy loss on swap-invariant instances that global visual-attention steering (CAST 2605.04641, DMAS 2602.21704) incurs, and without RL; this establishes the illusion as a role-gated control failure rather than a capability limit.",
+      "recommended_models": [
+        "Qwen2.5-VL-7B-Instruct (primary; matches 2605.15864 family, single-L40 inference)",
+        "Qwen3-VL instruct + thinking variants (strongest illusion signal; thinking ~3x more vulnerable per 2605.15864)",
+        "LLaVA-1.5-7B (fixed 576 visual tokens -> clean, stable per-head attribution; addresses the dynamic-token confound flagged for Qwen)",
+        "InternVL2.5-8B or LLaVA-OneVision-7B (second architecture family for a cross-model generality claim)",
+        "Qwen2.5-VL-3B (optional; full-FT-feasible variant, though the gate is a tiny external probe so full-FT is not required)"
+      ],
+      "recommended_datasets": [
+        "VS-Bench / VisualSwap image-swap protocol (2605.15864) — the causal control for genuine vs illusory re-examination",
+        "POPE (object-existence hallucination) split into swap-sensitive vs swap-invariant slices",
+        "MMVP (fine-grained perception where vision is decisive)",
+        "HallusionBench (vision vs language-prior conflict)",
+        "GQA / A-OKVQA / TextVQA (general VQA; slice by swap-sensitivity to measure both recovery and collateral)",
+        "MME (broad sanity + overhead measurement)"
+      ],
+      "top_risks": [
+        "Crowded neighborhood: reviewers will demand head-to-heads with 2605.15864 (diagnosis), CAST/DMAS/VLI/Spectral-QK (training-free visual-attention steering), V-STAR and 2607.02490 (RL grounded re-look), and Look-Back 2507.03019 (implicit re-focusing). Novelty rests ENTIRELY on the provenance MECHANISM + gated targeting being demonstrably superior to generic steering; a weak mechanism story collapses this into 'yet another attention-steering hallucination paper.'",
+        "Confound: the surge may track POSITION/recency/turn-boundary rather than user-vs-assistant ROLE, narrowing or invalidating the 'provenance' framing (still salvageable as turn-boundary gating, but weaker and less novel).",
+        "Partial recovery: restoring the user-role attention profile internally may not reproduce the external-prompt upper bound (the user turn's KV context may matter beyond role), downgrading the headline from 'recovers most of the gap' to a partial result.",
+        "HIVE-style collateral: intervening where language priors were already correct can LOWER accuracy on swap-invariant instances; the gate must be precise enough that the net joint win over global steering survives — otherwise it ties.",
+        "Head-localization generality: the effect may be clean on LLaVA-1.5 (fixed tokens) but diffuse/messy on Qwen dynamic-resolution/variable-token models, jeopardizing the cross-architecture 'general mechanism' claim (the same fragility flagged against C3)."
+      ],
+      "kill_conditions": [
+        "ROLE-vs-POSITION test (week 1, <10 GPU-h, GO/NO-GO): in the 3-condition matched-content design, if the visual-attention surge tracks turn-boundary/position rather than user-vs-assistant role, the provenance mechanism is mis-attributed — detect immediately and either reframe to positional/turn-boundary gating or stop.",
+        "Head-localization check (week 1-2): if no small head set carries the role effect (it is model-wide/diffuse), the targeted training-free fix is likely indistinguishable from global steering (CAST/DMAS) and loses its differentiator — detect via per-head causal attribution before building the gate.",
+        "VisualSwap internal-trigger validation (week 1-2, inference-only): if the internal provenance-restoring intervention fails to raise VisualSwap detection / accuracy toward the user-prompt oracle, the core claim is dead — this is the single cheapest decisive experiment; run it first.",
+        "Collateral-free-win head-to-head (by week 4): if the gated intervention cannot beat global steering on the JOINT metric (recover swap-sensitive AND preserve swap-invariant), the clean-win claim degrades to a tie/efficiency result — abort or reframe.",
+        "Scoop re-check (week 1 close-read): if 2607.02490 ('Visually Grounded Self-Reflection via RL'), Look-Back (2507.03019), or a newer preprint already delivers a training-free role/provenance mechanism + per-instance-gated fix validated by swap-detection, novelty collapses — read these end-to-end before committing."
+      ]
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Refute"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 3,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "novelty:C1",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "af979572ca30980bb",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393481941,
+      "queuedAt": 1784393478849,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "novelty_and_scooping",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393730921,
+      "tokens": 35143,
+      "toolCalls": 17,
+      "durationMs": 248980,
+      "resultPreview": "{\"axis\":\"novelty_and_scooping\",\"score\":0.3,\"verdict\":\"weak\",\"evidence\":[\"SCOLAR (arxiv:2605.12163, 'Self-Consistent Latent Reasoning', Qwen2.5-VL) verbatim abstract: 'the performance of existing latent visual reasoning methods systematically degrades as the latent sequence grows longer... heavily pooled (>=128x) image embeddings used as supervision targets provide no more signal than meaningless p…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "feas:C1",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a7e934ca8831206e6",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393485091,
+      "queuedAt": 1784393478849,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Feasibility on 4xL40-48GB (PCIe, no NVLink), 600 GPU-h / 9 …",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393653515,
+      "tokens": 28522,
+      "toolCalls": 8,
+      "durationMs": 168424,
+      "resultPreview": "{\"axis\":\"Feasibility on 4xL40-48GB (PCIe, no NVLink), 600 GPU-h / 9 weeks\",\"score\":0.58,\"verdict\":\"acceptable\",\"evidence\":[\"Model fit is NOT a blocker. Qwen2.5-VL-3B full FT via FSDP/ZeRO-2/3 sharded across 4x48GB fits comfortably (3B AdamW full-FT ~48-60GB single-GPU, but sharded 4-way + gradient checkpointing is easy). 7B LoRA fits on a single 48GB card (14GB bf16 weights + tiny adapters + activ…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "bench:C1",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "af6909a6d15e2f3b6",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393483541,
+      "queuedAt": 1784393478849,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "benchmark-trap + ICLR reviewer simulation (expected accepta…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393686474,
+      "tokens": 32244,
+      "toolCalls": 14,
+      "durationMs": 202933,
+      "resultPreview": "{\"axis\":\"benchmark-trap + ICLR reviewer simulation (expected acceptance-worthiness)\",\"score\":0.34,\"verdict\":\"weak\",\"evidence\":[\"NOT a benchmark-trap: the contribution is a mechanism (a halting head + evidence-sufficiency signal that varies latent-step count per instance) plus a falsifiable claim (adaptive latent thinking beats matched-compute alternatives). Remove the results table and a testable …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "falsify:C1",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a7e0c0bde8b67e386",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393487411,
+      "queuedAt": 1784393478849,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Falsifiability & Mechanism Soundness (mechanism plausibilit…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393664759,
+      "tokens": 29363,
+      "toolCalls": 11,
+      "durationMs": 177348,
+      "resultPreview": "{\"axis\":\"Falsifiability & Mechanism Soundness (mechanism plausibility + clean-win probability vs baseline)\",\"score\":0.32,\"verdict\":\"weak\",\"evidence\":[\"FALSIFIABLE, YES — but the core claim is the weak half of a two-part hypothesis. 'Instance-adaptive latent depth beats FIXED latent depth' decomposes into (a) accuracy win and (b) compute saving. The entire adaptive-computation literature (PonderNet…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "novelty:C2",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ae5ae1146d8fa3f6f",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393483294,
+      "queuedAt": 1784393478854,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "novelty-and-scooping",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393647442,
+      "tokens": 31500,
+      "toolCalls": 12,
+      "durationMs": 164148,
+      "resultPreview": "{\"axis\":\"novelty-and-scooping\",\"score\":0.18,\"verdict\":\"weak\",\"evidence\":[\"The load-bearing 'novel mechanism' — comparing an MLLM on the raw image vs. a gold/ground-truth caption to attribute per-instance failures to perception vs reasoning — is already an established diagnostic. Multiple 2026 papers state it explicitly; the search on caption-substitution returned the summary line: 'This methodolog…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "feas:C2",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a52f52c1645048089",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393487674,
+      "queuedAt": 1784393478854,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Feasibility on 4xL40-48GB (PCIe, no NVLink), ~600 GPU-h / 9…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393621564,
+      "tokens": 26089,
+      "toolCalls": 8,
+      "durationMs": 133888,
+      "resultPreview": "{\"axis\":\"Feasibility on 4xL40-48GB (PCIe, no NVLink), ~600 GPU-h / 9 weeks\",\"score\":0.7,\"verdict\":\"acceptable\",\"evidence\":[\"Scale is favorable: the planned model is Qwen2.5-VL-3B. The direct baseline PAPO (arxiv:2507.06448, html v3) trained the 3B model on only 2x H100-80GB and the 7B on 4x H100, with a modest RL recipe: ViRL39K = 38.8K multimodal QA, n=5 rollouts/prompt, rollout batch 384, 2 epoc…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "bench:C2",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a828f8e7986c17399",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393488302,
+      "queuedAt": 1784393478854,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "benchmark-trap + ICLR reviewer simulation (expected main-tr…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393673775,
+      "tokens": 29940,
+      "toolCalls": 11,
+      "durationMs": 185473,
+      "resultPreview": "{\"axis\":\"benchmark-trap + ICLR reviewer simulation (expected main-track acceptance-worthiness)\",\"score\":0.19,\"verdict\":\"weak\",\"evidence\":[\"BENCHMARK-TRAP TEST: The contribution is a measurement instrument (interventional perception-vs-reasoning error accounting) plus one bolted-on mechanism. Strip the results table and what remains is a diagnostic decomposition + the empirical claim 'RL fixes reas…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 8,
+      "label": "falsify:C2",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "aebccc574e8a489fb",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393485473,
+      "queuedAt": 1784393478854,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Falsifiability & Mechanism Soundness (mechanism plausibilit…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393643479,
+      "tokens": 26451,
+      "toolCalls": 8,
+      "durationMs": 158005,
+      "resultPreview": "{\"axis\":\"Falsifiability & Mechanism Soundness (mechanism plausibility + clean-win probability vs baseline)\",\"score\":0.25,\"verdict\":\"weak\",\"evidence\":[\"FALSIFIABILITY IS GENUINELY GOOD (the one real strength): the two headline hypotheses are clean falsifiable claims. 'RL fixes reasoning errors far more than perception errors' and 'text-heavy RL erodes visual grounding' are both directly testable by…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 9,
+      "label": "novelty:C3",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a5a320da5dd07857f",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393632995,
+      "queuedAt": 1784393478858,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "novelty-and-scooping",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393753650,
+      "tokens": 25911,
+      "toolCalls": 8,
+      "durationMs": 120655,
+      "resultPreview": "{\"axis\":\"novelty-and-scooping\",\"score\":0.18,\"verdict\":\"weak\",\"evidence\":[\"arxiv:2603.27201 'Understanding and Mitigating Hallucinations in Multimodal Chain-of-Thought Models' is a direct scoop of the core claim. It finds MCoT hallucinations are generated at specific 'associative reasoning steps' it terms 'divergent thinking', then 'localizes divergent thinking steps and intervenes in the decoding …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 10,
+      "label": "feas:C3",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a447bc0c380e45880",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393657231,
+      "queuedAt": 1784393478858,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Feasibility on 4xL40-48GB (PCIe, no NVLink), ~600 GPU-h / 9…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393792915,
+      "tokens": 26558,
+      "toolCalls": 7,
+      "durationMs": 135683,
+      "resultPreview": "{\"axis\":\"Feasibility on 4xL40-48GB (PCIe, no NVLink), ~600 GPU-h / 9 weeks\",\"score\":0.82,\"verdict\":\"strong\",\"evidence\":[\"Model scale is trivially within budget. LLaVA-1.5-7B and Qwen2.5-VL-7B are both 7B; bf16 weights ~14GB fit comfortably on ONE L40-48GB. No model is sharded, so the PCIe/no-NVLink limitation is irrelevant here — every job is single-GPU and the 4 GPUs are used for embarrassingly-p…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 11,
+      "label": "bench:C3",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ae942f40cdb17ecf2",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393657683,
+      "queuedAt": 1784393478858,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "benchmark-trap + ICLR reviewer simulation (is it a genuine,…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393817054,
+      "tokens": 25925,
+      "toolCalls": 8,
+      "durationMs": 159371,
+      "resultPreview": "{\"axis\":\"benchmark-trap + ICLR reviewer simulation (is it a genuine, novel mechanism or an eval paper in disguise?)\",\"score\":0.2,\"verdict\":\"weak\",\"evidence\":[\"BENCHMARK-TRAP CHECK: Not *purely* a benchmark/eval paper. It genuinely proposes a mechanism ('temporal commitment step' where a multimodal CoT locks into a hallucination) + a falsifiable claim (targeted intervention at that step beats unifo…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 12,
+      "label": "falsify:C3",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ad6beec570321b110",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393661733,
+      "queuedAt": 1784393478858,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Falsifiability & Mechanism Soundness (mechanism plausibilit…",
+      "promptPreview": "You are adversarially vetting a proposed ICLR 2027 paper direction. Be a hostile, well-read reviewer, not a cheerleader.\n\nHARDWARE/BUDGET: 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout…",
+      "lastProgressAt": 1784393885306,
+      "tokens": 33998,
+      "toolCalls": 14,
+      "durationMs": 223573,
+      "resultPreview": "{\"axis\":\"Falsifiability & Mechanism Soundness (mechanism plausibility + clean-win probability vs. baseline)\",\"score\":0.2,\"verdict\":\"weak\",\"evidence\":[\"The core hypothesis IS falsifiable and, unfortunately for novelty, appears already TRUE and already demonstrated in multimodal. V-STAR (arxiv:2604.10219, 'Cognitive Pivot Points and Visual Anchoring: Unveiling and Rectifying Hallucinations in Multim…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 13,
+      "label": "refute:C2",
+      "phaseIndex": 2,
+      "phaseTitle": "Refute",
+      "agentId": "a84d557b486eaf30a",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393686052,
+      "queuedAt": 1784393679768,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Full two-leg scoop: MoCA (arXiv:2605.14054, ICML 2026 Oral)…",
+      "promptPreview": "You are the harshest possible ICLR reviewer. Below is candidate C2 and four hostile-lens reports on it. Deliver the single strongest TRUE kill-shot, then judge honestly whether it survives to be a publishable paper.\n\nCANDIDATE C2: Interventional Perception-vs-Reasoning Error Accounting for Multimodal RLVR\nTHESIS: Multimodal RLVR papers (Perception-R1, Revisual-R1, CFPO) report aggregate gains; rev…",
+      "lastProgressAt": 1784393724398,
+      "tokens": 25873,
+      "toolCalls": 1,
+      "durationMs": 38346,
+      "resultPreview": "{\"strongest_kill_shot\":\"Full two-leg scoop: MoCA (arXiv:2605.14054, ICML 2026 Oral) already pairs the oracle-perception diagnostic (Blindfolded Reasoner Test — judge from the extracted visual description with the image withheld) with the exact \\\"perception-preserving constraint the accounting says is missing\\\" (Modality-Aware Credit Assignment routing RL penalties to perception vs reasoning); CapP…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 14,
+      "label": "refute:C1",
+      "phaseIndex": 2,
+      "phaseTitle": "Refute",
+      "agentId": "a39a21d8c1b72433d",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393738680,
+      "queuedAt": 1784393735618,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "The method's load-bearing premise — that harder/cluttered i…",
+      "promptPreview": "You are the harshest possible ICLR reviewer. Below is candidate C1 and four hostile-lens reports on it. Deliver the single strongest TRUE kill-shot, then judge honestly whether it survives to be a publishable paper.\n\nCANDIDATE C1: Adaptive-Depth Latent Visual Reasoning with Evidence-Sufficiency Halting\nTHESIS: Every multimodal latent-reasoning method (CoLT arxiv:2606.31986, DLWM arxiv:2606.15160, …",
+      "lastProgressAt": 1784393785806,
+      "tokens": 26344,
+      "toolCalls": 1,
+      "durationMs": 47126,
+      "resultPreview": "{\"strongest_kill_shot\":\"The method's load-bearing premise — that harder/cluttered images benefit from MORE latent visual steps, giving a halting head something meaningful to allocate — is contradicted by published 2026 results on the exact substrate C1 builds on. \\\"What's Holding Back Latent Visual Reasoning?\\\" (2605.18445) shows CoLT-style latents get BYPASSED (swap them for dummy/mean tokens and…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 15,
+      "label": "refute:C3",
+      "phaseIndex": 2,
+      "phaseTitle": "Refute",
+      "agentId": "a18c8097989054ac4",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393896835,
+      "queuedAt": 1784393891485,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Total novelty pre-emption by V-STAR (arxiv:2604.10219, \"Cog…",
+      "promptPreview": "You are the harshest possible ICLR reviewer. Below is candidate C3 and four hostile-lens reports on it. Deliver the single strongest TRUE kill-shot, then judge honestly whether it survives to be a publishable paper.\n\nCANDIDATE C3: Commitment Points: When Multimodal Reasoning Locks In a Hallucination, and Cheap Deferral at the Lock-In Step\nTHESIS: Hallucination mitigation intervenes UNIFORMLY at de…",
+      "lastProgressAt": 1784393930105,
+      "tokens": 25465,
+      "toolCalls": 1,
+      "durationMs": 33270,
+      "resultPreview": "{\"strongest_kill_shot\":\"Total novelty pre-emption by V-STAR (arxiv:2604.10219, \\\"Cognitive Pivot Points and Visual Anchoring,\\\" updated 2026-05-28), which already delivers the proposal's exact headline triad on the proposal's own base model. V-STAR (a) identifies discrete temporal \\\"cognitive bifurcation / pivot points\\\" in a MULTIMODAL reasoning chain where >70% of hallucinations emerge (entropy …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 16,
+      "label": "final-ranking",
+      "phaseIndex": 3,
+      "phaseTitle": "Synthesize",
+      "agentId": "a8685d1a1fb5149da",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784393935514,
+      "queuedAt": 1784393930107,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "C1",
+      "promptPreview": "You are the senior advisor making the final call on which multimodal direction to pursue for ICLR 2027, on 4x NVIDIA L40 48GB, PCIe (NO NVLink), shared lab box (pku-server), ~600 GPU-hours planning budget, deadline 2026-09-24 (~9 weeks). No pretraining from scratch. Feasible: full fine-tune <=3B, LoRA/adapters <=13B, inference/probing-heavy studies cheap. RL rollout throughput on PCIe-only 4xL40 i…",
+      "lastProgressAt": 1784394593260,
+      "tokens": 73808,
+      "toolCalls": 16,
+      "durationMs": 657746,
+      "resultPreview": "{\"ranked\":[{\"id\":\"C1\",\"novelty\":0.58,\"feasibility\":0.85,\"publishability\":0.55,\"overall\":0.65,\"one_line\":\"REPAIRED (substrate pivot): abandon dead adaptive-latent-depth; instead give a mechanistic, training-free, per-instance-gated fix for the verified self-reflection 'illusion' (2605.15864) — the visual-attention surge is gated by token role/provenance, and restoring the user-role profile on a few…"
+    }
+  ],
+  "totalTokens": 503134,
+  "totalToolCalls": 145
+}

@@ -1,0 +1,1588 @@
+{
+ "fetched_at": "2026-07-18T16:20:00+08:00",
+ "queries_run": [
+  "arxiv: cat:cs.CV AND abs:\"visual tokens\" (recent)",
+  "arxiv: cat:cs.CV AND abs:hallucination AND abs:\"vision-language\" (recent)",
+  "arxiv: abs:\"multimodal reasoning\" AND abs:\"reinforcement learning\" (recent)",
+  "arxiv: abs:\"latent reasoning\" AND cat:cs.CV (recent)",
+  "arxiv: id_list 10 key papers (abstracts)",
+  "openreview: term in {vision-language, hallucination, multimodal reasoning, visual tokens} group=ICLR.cc/2026/Conference source=forum",
+  "openreview: 10 paper-specific reply searches (Official_Review mining)",
+  "semantic_scholar: 7 queries ALL 429 rate-limited — citation counts UNAVAILABLE, noted",
+  "workflow wf_73561b51-160: adversarial verification, 145 tool calls, 16 agents; scoop evidence for C1/C2/C3",
+  "workflow wf_b5d5141e-eb6: stage2 scoop/baseline/mechanism/feasibility verification"
+ ],
+ "notes": "S2 unavailable this session (429). All entries verified via arXiv Atom API or OpenReview api2 (HTTP 200 cached under .cache/).",
+ "papers": [
+  {
+   "canonical_id": "arxiv:2607.00461",
+   "title": "Multimodal Continuous Reasoning via Asymmetric Mutual Variational Learning",
+   "authors": [
+    "Shijie Li",
+    "Yilin Gao",
+    "Siyuan Yang",
+    "Tieyuan Chen",
+    "Chaofan Gan",
+    "Zhihao He",
+    "Zicheng Zhao",
+    "Yuyu Guo"
+   ],
+   "year": 2026,
+   "published": "2026-07-01",
+   "venue": "arXiv preprint",
+   "abstract": "Multimodal Large Language Models (MLLMs) are often constrained by a language-space bottleneck, forcing complex visual reasoning into discrete tokens which can lose perceptual nuance. A promising alternative is continuous latent reasoning, where the goal is to discover implicit reasoning pathways that bridge the multimodal query and the final answer. However, this introduces a severe train-inference mismatch: a training-time posterior, conditioned on the ground-truth answer, can exploit answer-dependent shortcuts. Standard variational training then forces the inference-time prior to mimic a posterior that has access to information unavailable at test time, leading to poor performance. To address this, we propose Asymmetric Mutual Variational Learning (AMVL), a framework that resolves this mismatch via a bidirectional calibration objective. A forward KL divergence trains the target-agnosti",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.00461v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.00461",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.31986",
+   "title": "CoLT: Teaching Multi-Modal Models to Think with Chain of Latent Thoughts",
+   "authors": [
+    "Lianyu Hu",
+    "Shengqian Qin",
+    "Zeqin Liao",
+    "Qing Guo",
+    "Liang Wan",
+    "Wei Feng",
+    "Yang Liu"
+   ],
+   "year": 2026,
+   "published": "2026-06-30",
+   "venue": "arXiv preprint",
+   "abstract": "Chain-of-thought (CoT) reasoning has enabled multi-modal large language models (MLLMs) to tackle complex visual reasoning tasks by generating explicit intermediate reasoning steps in natural language. However, this text-based reasoning paradigm is inherently slow at inference time with even thousands of tokens and fundamentally constrained by the expressiveness of natural language. In this paper, we propose CoLT, (Chain of Latent Thoughts), a novel framework that teaches multi-modal models to reason through a chain of latent thought representations instead of verbose text tokens, which can perform thinking with as few as 3 steps. Naively forcing the model to think with latent states easily produces meaningless semantics and makes training unstable. To effectively regulate the latent reasoning process, we introduce a lightweight external decoder that provides step-level supervision for ea",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.31986v2",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.31986",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.26535",
+   "title": "From Hallucination to Grounding: Diagnosing Visual Spatial Intelligence via CRISP",
+   "authors": [
+    "Zhixing Li",
+    "Yinan Yu"
+   ],
+   "year": 2026,
+   "published": "2026-06-25",
+   "venue": "arXiv preprint",
+   "abstract": "Current VLM evaluations often conflate language priors with genuine spatial reasoning. To address this, we introduce CRISP, a novel structural-diagnostic evaluation paradigm that assesses visual spatial intelligence through consistency, the alignment between implicit perception and explicit reasoning. Unlike traditional black-box QA, CRISP utilizes metric 3D Scene Graphs and an oracle intervention protocol to decouple latent reasoning capabilities from perceptual bottlenecks. This granular diagnosis uncovers a systematic perception-reasoning disconnect. Crucially, we reveal that while proprietary models possess robust latent reasoning engines, they suffer from inaccurate metric estimation and a critical failure to leverage their implicit structural representations. Conversely, open-source models remain fundamentally bottlenecked by their lack of multi-hop compositional reasoning. By shif",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.26535v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.26535",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.15160",
+   "title": "DLWM: Diverse Latent World Models for Efficient Multimodal Reasoning",
+   "authors": [
+    "David Huang",
+    "Lianlei Shan"
+   ],
+   "year": 2026,
+   "published": "2026-06-13",
+   "venue": "arXiv preprint",
+   "abstract": "Reasoning capabilities of multimodal large language models (MLLMs) have improved considerably in recent years. Existing approaches typically rely on explicit chain-of-thought or continuous latent-space trajectories to enhance multi-step reasoning. However, these methods generally assume that an input admits a single latent interpretation and unfold reasoning along a fixed path or under a uniform computation budget. In real-world multimodal settings, visual observations are often subject to occlusion, blur, viewpoint variation, or semantic ambiguity, giving rise to multiple plausible interpretations. A uniform reasoning strategy not only limits the model's ability to explore multiple hypotheses but also incurs high memory usage and rollout cost. We present DLWM (Diverse Latent World Models), a multimodal reasoning framework that combines latent-space reasoning with reinforcement learning.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.15160v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.15160",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.15099",
+   "title": "Think Less, Act Early: Reinforced Latent Reasoning with Early Exit in Vision-Language-Action Models",
+   "authors": [
+    "Dianqiao Lei",
+    "Lianlei Shan"
+   ],
+   "year": 2026,
+   "published": "2026-06-13",
+   "venue": "arXiv preprint",
+   "abstract": "Existing Vision-Language-Action (VLA) models predominantly rely on explicit Chain-of-Thought (CoT) reasoning to bridge perception and action. While effective, this paradigm suffers from high computational costs and error propagation in multi-step tasks. In this paper, we propose Adaptive Variable Alignment VLA (AVA-VLA), a novel Latent Reasoning VLA framework that models reasoning as a sequence of unobservable latent variables, bypassing the need for explicit text generation. However, latent trajectories are inherently susceptible to noise interference and misalignment with downstream objectives. To address this, we introduce a Reinforcement Learning-based Denoising mechanism that treats latent state generation as a sequential decision process, optimizing reasoning trajectories via task-level rewards. Furthermore, we incorporate an Early-Exit Strategy that adaptively terminates reasoning",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.15099v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.15099",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.13061",
+   "title": "LaME: Learning to Think in Latent Space for Multimodal Embedding via Information Bottleneck",
+   "authors": [
+    "Peixi Wu",
+    "Biao Yang",
+    "Feipeng Ma",
+    "Bosong Chai",
+    "Bo Lin",
+    "Wei Yuan",
+    "Fan Yang",
+    "Tingting Gao"
+   ],
+   "year": 2026,
+   "published": "2026-06-11",
+   "venue": "arXiv preprint",
+   "abstract": "Reasoning-driven universal multimodal embedding has advanced rapidly by introducing Chain-of-Thought (CoT) reasoning into the embedding pipeline. Despite the strong performance across both general and complex tasks, this paradigm suffers from two core limitations: (i) autoregressive CoT reasoning incurs high computational cost, making it impractical for low-latency retrieval; and (ii) embedding performance is heavily coupled with CoT annotation quality, making large-scale training unreliable. These raise fundamental questions: Is textual CoT the optimal form of reasoning for embedding, and can effective embedding reasoning be accomplished in latent space? To this end, we propose LaME (Latent Reasoning Multimodal Embedding), which formulates embedding-oriented latent reasoning as a weakly supervised information bottleneck. LaME employs K learnable reason tokens as a fixed-capacity bottlen",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.13061v2",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.13061",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.13500",
+   "title": "Attention-Free and Lightweight Token Reduction for Efficient Vision-Language Models",
+   "authors": [
+    "Xuanyi Hao",
+    "Zuoyuan Zhang",
+    "Zhibo Wang",
+    "Xiaoyi Pang",
+    "Jiahui Hu",
+    "Jiacheng Du",
+    "Shuguo Zhuo"
+   ],
+   "year": 2026,
+   "published": "2026-07-15",
+   "venue": "arXiv preprint",
+   "abstract": "Vision-Language Models (VLMs) have achieved strong performance in multimodal understanding, yet remain challenging to deploy on resource-constrained edge devices due to the substantial computational overhead of processing numerous visual tokens. Token reduction is a promising direction for accelerating VLMs inference, but existing approaches either rely on attention maps that are incompatible with modern acceleration frameworks or depend on computationally intensive pairwise similarity comparisons, which undermine scalability and negate their practical benefits in deployment. In this paper, we propose an attention-free and lightweight token reduction framework as a plug-and-play module for VLMs, which preserves both important and diverse tokens to produce a compact visual representation. First, to enable attention-free importance estimation, we adopt an information-theoretic perspective ",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.13500v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.13500",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.12756",
+   "title": "VisCo: Leveraging Large Language Models as Intrinsic Encoders for Visual Token Compression",
+   "authors": [
+    "Yupeng Zheng",
+    "Kai Zou",
+    "Bin Liu",
+    "Nenghai Yu"
+   ],
+   "year": 2026,
+   "published": "2026-07-14",
+   "venue": "arXiv preprint",
+   "abstract": "Vision-language models (VLMs) process large numbers of visual tokens, resulting in substantial inference latency and memory overhead. This has motivated extensive research on visual token compression. While training-free strategies rely on heuristic metrics and suffer significant performance degradation under high compression ratios, many training-based methods introduce external compression modules that force the VLM backbone to adapt, incurring substantial retraining cost and compromising VLMs' priors. Effective visual token compression hinges on strong information encoding, a capability already present in pretrained VLMs but underutilized by existing approaches. Motivated by this, we propose VisCo, a training-efficient self-compression framework that reuses the pretrained VLM itself as an intrinsic compressor. VisCo is a parameter-sharing autoencoder that compresses visual information",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.12756v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.12756",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.10640",
+   "title": "Spectral Heat Flow for Conservative Token Condensation in Vision-Language Models",
+   "authors": [
+    "Zhaoyang Li",
+    "Yanjun Li",
+    "Wangkai Li",
+    "Yujia Chen",
+    "Tianzhu Zhang"
+   ],
+   "year": 2026,
+   "published": "2026-07-12",
+   "venue": "arXiv preprint",
+   "abstract": "Vision-Language Models (VLMs) are costly at inference time because they must process long sequences of visual tokens. Existing token pruning methods often degrade under high compression by blindly discarding information, breaking spatial structure or collapsing diversity. We propose SpecFlow, a training-free framework that shifts the paradigm from destructive pruning to conservative condensation, strictly enforcing spatial coverage and statistical conservation to ensure stability. Treating visual tokens as nodes in a $k$NN graph, SpecFlow (i) computes a stable importance field via spectral heat flow to preserve structural coherence, (ii) allocates budgets via adaptive spatial partitioning to guarantee coverage, and (iii) aggregates discarded information into coreset sinks to maintain statistical conservation. The method is plug-and-play, requires no fine-tuning, and is compatible with Fl",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.10640v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.10640",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.09520",
+   "title": "Seeing is Free, Speaking is Not: Uncovering the True Energy Bottleneck in Edge VLM Inference",
+   "authors": [
+    "Junfei Zhan",
+    "Haoxun Shen",
+    "Mingang Guo",
+    "Zixuan Huang",
+    "Tengjiao He"
+   ],
+   "year": 2026,
+   "published": "2026-07-10",
+   "venue": "arXiv preprint",
+   "abstract": "Vision-Language Models (VLMs) are the perceptual backbone of embodied AI, but their energy footprint on edge hardware remains poorly understood. Existing efficiency efforts focus predominantly on reducing visual tokens, implicitly treating visual processing as the dominant energy cost. We overturn this implicit assumption through the first systematic energy profiling of on-device VLM inference, spanning five models across three architecture families, four input resolutions, and two hardware platforms (NVIDIA RTX 3070 and Jetson Orin NX). Our analysis yields three findings. First, average inference power is a model-intrinsic constant, invariant to input resolution, image complexity, and prompt type, with less than 5% variation across all conditions. This means that all energy variation across inputs must arise from variation in inference time, not from variation in power draw. Second, eac",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.09520v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.09520",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.09080",
+   "title": "GeoTrace: Geometry-Aware Trajectory Token Compression for Video Large Language Models",
+   "authors": [
+    "Guohuan Xie",
+    "Mengqi Lei",
+    "Chuan Shi",
+    "Wei Bao",
+    "Yue Gao",
+    "Siqi Li"
+   ],
+   "year": 2026,
+   "published": "2026-07-10",
+   "venue": "arXiv preprint",
+   "abstract": "Although Video Large Language Models (Video LLMs) have shown strong performance in video understanding, their efficiency is still limited by the large number of visual tokens. Existing video token compression methods typically rely on frame-wise saliency or heuristic token merging, which can over-focus on locally salient regions and produce ambiguous fused features. To address these issues, we propose GeoTrace, a training-free spatiotemporal token compression framework that decomposes video evidence into exact skeleton tokens and traceable residual event tokens. Specifically, Contextual Farthest-Point Anchoring (CFPA) preserves salient, context-consistent, and high-coverage skeleton tokens, while Trajectory-Constrained Residual Condensation (TCRC) compresses residual tokens through one-to-one temporal trajectories and constrained near-manifold condensation, producing traceable event toke",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.09080v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.09080",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.07507",
+   "title": "HIVE: Understanding Post-Hallucination Reasoning in Vision Language Models",
+   "authors": [
+    "Feng He",
+    "Zhenting Wang",
+    "Qifan Wang",
+    "Qiang Guan",
+    "Dongfang Liu",
+    "Ruixiang Tang",
+    "Qiankun Li"
+   ],
+   "year": 2026,
+   "published": "2026-07-08",
+   "venue": "arXiv preprint",
+   "abstract": "Hallucinations in vision language models (VLMs) are commonly treated as semantic errors, yet they often arise from partial or ambiguous visual evidence. Prior work mainly focuses on detecting or suppressing hallucinations at generation time, leaving the subsequent reasoning stage largely unexplored. In this work, we study Post Hallucination Reasoning (PHR), the stage in which hallucinated semantics enter the model's inference context and influence downstream predictions. To systematically investigate PHR, we introduce HIVE, Hallucination Inference and Verification Engine, an evaluation infrastructure that enables controlled comparisons between faithful and hallucinated captions. Across nine tasks and nine models, we observe structured modality dependent patterns: hallucinated captions often improve accuracy on vision language tasks, while text only tasks exhibit limited or unstable effec",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.07507v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.07507",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.04163",
+   "title": "SeeMe: Mitigating Hallucinations in Large Vision-Language Models through Effective Visual Token Engineering",
+   "authors": [
+    "Kai Tang",
+    "Jinhao You",
+    "Bohua Zhang",
+    "Yichen Guo",
+    "Yiding Sun",
+    "Dongxu Zhang",
+    "Chenxi Li",
+    "Xiande Huang"
+   ],
+   "year": 2026,
+   "published": "2026-07-05",
+   "venue": "arXiv preprint",
+   "abstract": "Large Vision-Language Models (LVLMs) have achieved remarkable progress in visual understanding tasks such as image captioning and visual question answering. However, they remain susceptible to hallucinations, generating content that is inconsistent with the actual visual input. Existing methods primarily intervene at the decoding stage, while overlooking a critical source of hallucinations: irrelevant or noisy visual tokens that mislead the decoding process. To address this issue, we propose SeeMe, a training-free framework that introduces the concept of feature engineering from traditional machine learning into LVLMs. SeeMe restructures visual tokens through a three-stage token engineering process to suppress hallucination sources while preserving informative visual evidence. Experiments on MME, POPE, and AMBER benchmarks across four LVLMs demonstrate that SeeMe consistently reduces hal",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.04163v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.04163",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.01191",
+   "title": "Perceive-to-Reason: Decoupling Perception and Reasoning for Fine-Grained Visual Reasoning",
+   "authors": [
+    "Hongxing Li",
+    "Xiufeng Huang",
+    "Dingming Li",
+    "Wenjing Jiang",
+    "Zixuan Wang",
+    "Haolei Xu",
+    "Hanrong Zhang",
+    "Haiwen Hong"
+   ],
+   "year": 2026,
+   "published": "2026-07-01",
+   "venue": "arXiv preprint",
+   "abstract": "Fine-grained visual reasoning remains challenging for vision-language models, especially when small but critical visual cues are buried in high-resolution images. Existing approaches rely on repeated cropping or test-time visual search to introduce local evidence, but they typically do not explicitly distinguish perception from reasoning. In this paper, we propose Perceive-to-Reason (P2R), a unified framework that formulates fine-grained visual reasoning as a two-stage process: the model first localizes question-relevant evidence as a Perceiver, and then answers the question as a Reasoner based on the annotated image and cropped regions. To better align training with this decoupled formulation, we further introduce Perception-Reasoning Alternating GRPO (PRA-GRPO), a role-aware reinforcement learning strategy that alternates between perception-focused and reasoning-focused updates using o",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.01191v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.01191",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.23206",
+   "title": "CFPO: Counterfactual Policy Optimization for Multimodal Reasoning",
+   "authors": [
+    "Zhangyuan Yu",
+    "Wanran Sun",
+    "Guangjing Yang",
+    "Xiaohu Wu",
+    "Qicheng Lao"
+   ],
+   "year": 2026,
+   "published": "2026-06-22",
+   "venue": "arXiv preprint",
+   "abstract": "Large Vision-Language Models (LVLMs) have demonstrated remarkable capabilities in multimodal reasoning. However, prevailing reinforcement learning (RL) paradigms lack explicit counterfactual enhancement and causal learning mechanisms. This fundamental deficiency results in severe grounding failures, manifesting as a tendency to ignore visual evidence in favor of language priors or exhibiting hallucination drift during long chain-of-thought reasoning. To address this root cause, we propose CounterFactual Policy Optimization (CFPO), a novel framework that enforces causal consistency between visual perception and textual reasoning. CFPO introduces a cross-modal counterfactual enhancement mechanism, which regularizes the policy by maximizing the discrepancy between the model's predictions and those from a counterfactual state where critical visual cues are suppressed. This approach seamlessl",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.23206v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.23206",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2607.13931",
+   "title": "SIVA-RL: Sensitivity-Invariance Visual Alignment for Multimodal Reinforcement Learning",
+   "authors": [
+    "Cheng Tang",
+    "Junzhi Ning",
+    "Min Cen",
+    "Wei Li",
+    "Xinyi Zeng",
+    "Pinxian Zeng",
+    "Rongbin Li",
+    "Qiming Zhu"
+   ],
+   "year": 2026,
+   "published": "2026-07-15",
+   "venue": "arXiv preprint",
+   "abstract": "Reinforcement learning with verifiable rewards (RLVR) drives multimodal reasoning, but answer-level correctness does not guarantee that a vision-language model grounds its predictions in visual evidence. Existing visual-intervention methods contrast policy behavior on original and modified images, yet assign supervision by the type of intervention rather than its observed effect. This assumption fails: identical operators produce heterogeneous outcomes across samples. We propose SIVA-RL, a Sensitivity-Invariance Visual Alignment framework that replaces operator-conditioned regularization with sample-wise, outcome-conditioned supervision. SIVA-RL constructs localized interventions through token-aligned, distance-constrained within-image PatchSwap. A frozen audit policy then scores each clean-intervention pair, and the observed reward drop becomes soft routing weights. Large-drop pairs dri",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.13931v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.13931",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.29984",
+   "title": "Be Faithful When Response: Returning Fluent and Grounded Answers for Vision-Language Models Reinforcement Learning",
+   "authors": [
+    " Peng",
+    " Lee",
+    "Yin Zhang",
+    "Yanglin Zhang",
+    "Haonan Wu",
+    "Zishan Liu",
+    "Ruoxi Zang",
+    "Xin Zhu"
+   ],
+   "year": 2026,
+   "published": "2026-06-29",
+   "venue": "arXiv preprint",
+   "abstract": "Reinforcement Learning (RL) is an important paradigm for improving the reasoning capabilities of Vision-Language Models (VLMs). However, directly applying RL to rollout multimodal reasoning can lead to instability, due to the exploitation of language priors, the neglect of visual evidence, and the generation of reasoning traces that are fluent yet not visually grounded. The question arises: Can initially steer the policy toward visually faithful reasoning regime before applying reinforcement learning? To this end, we propose a Faithful Warm-Start (FWS) strategy that first curates samples with explicit vision-language causal relationships from six general VQA benchmarks to construct the FaithfulQA dataset, where each of the image-question pairs gains a certain degree of visual observations, question requirements, commonsense knowledge, domain knowledge, and the final answer. Subsequently,",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.29984v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.29984",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.29812",
+   "title": "Consistency as Inductive Bias: Learning Cross-View Invariance for Robust Multimodal Reasoning",
+   "authors": [
+    "Xin Zou",
+    "Haolin Deng",
+    "Yibo Yan",
+    "Shuliang Liu",
+    "Kening Zheng",
+    "Zhiwei Jin",
+    "Chen Chen",
+    "Haonan Lu"
+   ],
+   "year": 2026,
+   "published": "2026-06-29",
+   "venue": "arXiv preprint",
+   "abstract": "Inductive biases steer learning toward generalizable solutions by encoding task structure. In this work, we identify a crucial missing bias in MLLMs: cross-view consistency, \\textit{i.e.}, semantically invariant views of the same instance should lead to the same answer. Standard reinforcement learning with verifiable rewards (RLVR) objectives do not impose this constraint, but instead assign pointwise rewards to each visual input. Even with data augmentation (DA), transformed views are typically rewarded independently, providing little signal once within-view rewards saturate. We propose \\textbf{ConsistRoll}, a simple but effective method that injects cross-view consistency into RLVR training by reusing the group-sampling mechanism of GRPO. Specifically, ConsistRoll places original and semantically invariant transformed views in the same generation group, and assigns a joint reward only ",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.29812v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.29812",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "arxiv:2606.19927",
+   "title": "CARE: Competence-Aware Reward Shaping for Adaptive Reasoning Length in Video-MLLMs",
+   "authors": [
+    "Chengwen Liu",
+    "Hao Peng",
+    "Jisheng Dang",
+    "Hong Peng",
+    "Bin Hu",
+    "Tat-Seng Chua"
+   ],
+   "year": 2026,
+   "published": "2026-06-18",
+   "venue": "arXiv preprint",
+   "abstract": "In multimodal video reasoning, reinforcement learning-based methods typically rely on simplistic and inflexible reasoning-length control strategies that fail to adapt to the model's evolving competence. This mismatch may suppress necessary exploration at early stages, while encouraging redundant reasoning and inefficient decoding once the model becomes more competent. In this paper, we propose CARE, a competence-aware reward shaping framework for adaptive reasoning length optimization in multimodal reasoning. Specifically, CARE maintains a smoothed competence estimate via an exponential moving average of pass rates, and uses it to route training into progressive stages that shift the reward preference from exploration-oriented long-form reasoning to efficiency-oriented concise reasoning. To avoid conflating verbosity with intrinsic task complexity, CARE further normalizes reasoning effor",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.19927v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.19927",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_main_search"
+  },
+  {
+   "canonical_id": "openreview:UUAjF4xL0e",
+   "title": "Distributional Vision-Language Alignment by Cauchy-Schwarz Divergence",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Vision-language alignment is crucial for various downstream tasks such as cross-modal generation and retrieval. Previous multimodal approaches like CLIP utilize InfoNCE to maximize mutual information, primarily aligning pairwise samples across modalities while overlooking distributional differences. In addition, InfoNCE has inherent conflict in terms of alignment and uniformity in multimodality, leading to suboptimal alignment with modality gaps. To overcome the limitations, we propose CS-Aligner, a novel framework that performs distributional vision-language alignment by integrating Cauchy-Schwarz (CS) divergence with mutual information. CS-Aligner captures both the global distribution information of each modality and the pairwise semantic relationships. We find that the CS divergence seamlessly addresses the InfoNCE's alignment-uniformity conflict and serves complementary roles with In",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=UUAjF4xL0e",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "alignment-mechanism",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:4LiX5ddGcU",
+   "title": "Unified Vision–Language Modeling via Concept Space Alignment",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "We introduce V-SONAR, a vision–language embedding space extended from the text-only embedding space SONAR (Omnilingual Embeddings Team et al., 2026), which supports 1500 text languages and 177 speech languages. To construct V-SONAR, we propose a post-hoc alignment pipeline that maps the representations of an existing vision encoder into the SONAR space. We thoroughly evaluate V-SONAR and show that its embeddings achieve competitive performance on text-to-video retrieval. Equipped with the OMNISONAR text decoder, V-SONAR further surpasses state-of-the-art vision–language models on video captioning tasks, including DREAM-1K (BLEU 23.9 vs. 19.6) and PE-VIDEO (BLEU 39.0 vs. 30.0). Leveraging V-SONAR, we first demonstrate that the Large Concept Model (LCM; LCM team et al. 2024) operating in SONAR and trained with English text only, can perform both single- and multi-visual concept understandi",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=4LiX5ddGcU",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "alignment-mechanism",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:DuDFytFC5Z",
+   "title": "Rethinking Causal Mask Attention for Vision-Language Inference",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Causal attention has become a foundational mechanism in autoregressive Vision-Language models (VLMs), unifying textual and visual inputs under a single generative framework. However, existing causal mask-based strategies are inherited from large language models (LLMs) where they are tailored for text-only decoding, and their adaptation to vision tokens is insufficiently addressed in the prefill stage. Strictly masking future positions for vision queries introduces overly rigid constraints, which hinder the model’s ability to leverage future context that often contains essential semantic cues for accurate inference. In this work, we empirically investigate how different causal masking strategies affect vision-language inference and then propose a family of future-aware attentions tailored for this setting. We first empirically analyze the effect of previewing future tokens for vision quer",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=DuDFytFC5Z",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "alignment-mechanism",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:KcIDfNX9ew",
+   "title": "All You Need Are Random Visual Tokens? Demystifying Token Pruning in VLLMs",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Withdrawn",
+   "abstract": "Vision Large Language Models (VLLMs) usually incur high computational costs due to their reliance on hundreds of visual tokens to represent images. While token pruning offers a promising solution for accelerating inference, this paper, however, identifies a key observation: in deeper layers (_e.g._, beyond the 20th), existing training-free pruning methods _perform no better than random pruning_. We hypothesize that this degradation is caused by **\"vanishing token information''**, where visual tokens progressively lose their salience with increasing network depth. To validate this hypothesis, we formally quantify a token's information content by measuring the perturbation to the model's output probability upon its removal. Using this proposed metric, our analysis of the information of visual tokens across layers reveals three key findings: (1) As layers deepen, the information of visual t",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=KcIDfNX9ew",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:GYWuixnyvu",
+   "title": "Machine Mental Imagery: Empower Multimodal Reasoning with Latent Visual Tokens",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Withdrawn",
+   "abstract": "Vision-language models (VLMs) excel at multimodal understanding, yet their text-only decoding forces them to verbalize visual reasoning, limiting performance on tasks that demand visual imagination. Recent attempts train VLMs to render explicit images, but the heavy image-generation pre-training often hinders the reasoning ability. Inspired by the way humans reason with mental imagery—the internal construction and manipulation of visual cues—we investigate whether VLMs can reason through interleaved multimodal trajectories without producing explicit images. To this end, we present a Machine Mental Imagery framework, dubbed as \\textbf{\\Model}, which augments VLM decoding with latent visual tokens alongside ordinary text. Concretely, whenever the model chooses to “think visually”, it recasts its hidden states as next tokens, thereby continuing a multimodal trajectory without generating pix",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=GYWuixnyvu",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:bXmsFyuQ0d",
+   "title": "ADATOK: ADAPTIVE VISUAL REPRESENTATION WITH QUALITY-PRESERVING DYNAMIC TOKENS",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Withdrawn",
+   "abstract": "Image tokenization, a cornerstone of modern visual representation, faces a fundamental dilemma posed by content diversity. A fixed number of tokens is inherently suboptimal, causing computational redundancy for simple images and risking information loss for complex ones. While variable-length methods offer a potential solution, they are typically empirical and heuristic, lacking a theoretical mechanism for adaptation. To address this dilemma, we propose \\textbf{AdaTok}, an adaptive visual representation framework with high flexibility for diverse representational needs. Specifically, it incorporates an elastic encoder capable of encoding an image into an arbitrary number of tokens. Building on this, we design a novel token selection strategy: guided by the information bottleneck principle, it enables the model to learn a policy that maximizes representational information under a minimal ",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=bXmsFyuQ0d",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:UDCiCnVGhq",
+   "title": "LaCo: Efficient Layer-wise Compression of Visual Tokens for Multimodal Large Language Models",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "Submitted to ICLR 2026",
+   "abstract": "Existing visual token compression methods for Multimodal Large Language Models (MLLMs) predominantly operate as post-encoder modules, limiting efficiency. % limiting their potential for efficiency gains. To address this limitation, we propose LaCo (Layer-wise Visual Token Compression), a novel framework for effective token compression within the vision encoder's intermediate layers. LaCo introduces two core components: 1) a layer-wise pixel-shuffle mechanism that systematically merges adjacent tokens through space-to-channel transformations, and 2) a residual learning architecture with non-parametric shortcuts that preserves critical visual information during compression. Extensive experiments indicate that LaCo outperforms all existing methods when compressing tokens in the vision encoder's intermediate layers, demonstrating superior effectiveness. In addition, compared to external comp",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=UDCiCnVGhq",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:8lHWG9Isnc",
+   "title": "Visual Tokens Are Not Equal: Alleviating Hallucination in Multimodal Large Language Models via Aligning attention",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Withdrawn",
+   "abstract": "Hallucination remains a significant challenge for Multimodal Large Language Models (MLLMs), hindering their reliability across various tasks. Despite extensive research from various perspectives, the underlying causes remain unclear. In this paper, we conduct empirical analyses and identify a progressive attention shift in the decoding process, where the decoder’s attention over visual tokens gradually diverges from the vision encoder’s. Based on these observations, we infer that this shift systematically reduces the model’s focus on semantically important visual tokens, leading to hallucinations. Building on this finding, we propose Align Attention with Image (AAI), a decoding-time method that explicitly aligns the decoder’s attention over visual tokens with the self-attention of the vision encoder. Specifically, AAI caches the encoder’s visual self-attention and leverages it as a refer",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=8lHWG9Isnc",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "token-efficiency",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:9JjKTp8Jmy",
+   "title": "Soft Tokens, Hard Truths",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "The use of continuous instead of discrete tokens during the Chain-of-Thought (CoT) phase of reasoning LLMs has garnered attention recently, based on the intuition that a continuous mixture of discrete tokens could simulate a superposition of several reasoning paths simultaneously. Theoretical results have formally proven that continuous tokens have much greater expressivity and can solve specific problems more efficiently. However, practical use of continuous tokens has been limited by strong training difficulties: previous works either just use continuous tokens at inference time on a pre-trained discrete-token model, or must distill the continuous CoT from ground-truth discrete CoTs and face computational costs that limit the CoT to very few tokens. This is the first work introducing a scalable method to learn continuous CoTs via reinforcement learning (RL), without distilling from ref",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=9JjKTp8Jmy",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:j84WR5ORsC",
+   "title": "Latent Visual Reasoning",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Multimodal Large Language Models (MLLMs) have achieved notable gains in various tasks by incorporating Chain-of-Thought (CoT) reasoning in language spaces. Recent work extends this direction by leveraging external tools for visual editing, thereby enhancing the visual signal along the reasoning trajectories. Nevertheless, these approaches remain fundamentally constrained: reasoning is still confined to the language space, with visual information treated as static preconditions. We introduce Latent Visual Reasoning (LVR), a new paradigm that enables autoregressive reasoning directly in the visual embedding space. A visual encoder first projects images into visual tokens within a joint semantic space shared with the language model. The language model is then trained to generate latent states that reconstruct key visual tokens critical for answering the query, constituting the process of la",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=j84WR5ORsC",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:7QVxGhSPYy",
+   "title": "Revisit What You See: Disclose Language Prior in Vision Tokens for LVLM Decoding",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Withdrawn",
+   "abstract": "Large Vision–Language Models (LVLMs) achieve strong performance across multimodal tasks by integrating visual perception with language understanding. However, how vision information contributes to the model’s decoding process remains under-explored, as reflected in frequent hallucinations. Through a series of analyses, we found that (i) vision tokens provide meaningful visual information even when when hallucinations occur, and (ii) their semantics are encoded in the textual space and become explicit under appropriate vocabulary constraints. Building on these observations, we propose ReVisiT, a simple training-free decoding method that references vision tokens to guide text generation. Our approach leverages the semantic information embedded within vision tokens by projecting them into the text token distribution. Specifically, ReVisiT dynamically selects the most relevant vision token a",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=7QVxGhSPYy",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:Ii4HBlERix",
+   "title": "Visual Multi-Agent System: Mitigating Hallucination Snowballing via Visual Flow",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Multi-Agent System (MAS) powered by Visual Language Models (VLMs) enables challenging tasks but suffers from a novel failure term, multi-agent visual hallucination snowballing, where hallucinations are seeded in a single agent and amplified by following ones due to the over-reliance on textual flow to relay visual information. Through turn-, layer-, and token-wise attention analyses, we provide detailed insights into the essence of hallucination snowballing regarding the reduction of visual attention allocation. It leads us to identify a subset of vision tokens with a unimodal attention peak in middle layers that best preserve visual evidence but gradually diminish in deeper agent turns, resulting in the visual hallucination snowballing in MAS. Thus, we propose ViF, a lightweight, model-agnostic mitigation paradigm that relays inter-agent messages with Visual Flow powered by the selected",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=Ii4HBlERix",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:LF9bRCLHMW",
+   "title": "v1: Learning to Point Visual Tokens for Multimodal Grounded Reasoning",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "Submitted to ICLR 2026",
+   "abstract": "When thinking with images, humans rarely rely on a single glance: they revisit visual information repeatedly during reasoning. However, existing models typically process images only once and thereafter generate reasoning entirely in text, lacking mechanisms to re-access or ground inference in visual representations. We empirically confirm this: as reasoning chains lengthen, models progressively lose focus on relevant regions. In response, we introduce v1, a lightweight extension that enables active visual referencing through a simple point-and-copy approach. This allows the model to identify relevant image patches and copy their embeddings back into the reasoning stream, ensuring that evolving hypotheses remain grounded in perceptual evidence. Crucially, our pointing strategy lets the MLLM directly select image patches using their semantic representations as keys, keeping perceptual evid",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=LF9bRCLHMW",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:NTo6f6GENJ",
+   "title": "Revisual-R1: Advancing Multimodal Reasoning From Optimized Cold Start to Staged Reinforcement Learning",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Inspired by the remarkable reasoning capabilities of Deepseek-R1 in complex textual tasks, many works attempt to incentivize similar capabilities in Multimodal Large Language Models (MLLMs) by directly applying reinforcement learning (RL). However, they still struggle to activate complex reasoning. In this paper, rather than examining multimodal RL in isolation, we delve into current training pipelines and identify three crucial phenomena: 1) Effective cold start initialization is critical for enhancing MLLM reasoning. Intriguingly, we find that initializing with carefully selected text data alone can lead to performance surpassing many recent multimodal reasoning models, even before multimodal RL.2) Standard GRPO applied to multimodal RL suffers from gradient stagnation, which degrades training stability and performance. 3) Subsequent text-only RL training, following the multimodal RL p",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=NTo6f6GENJ",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:mB3vxfrQZM",
+   "title": "ThinkMorph: Emergent Properties in Multimodal Interleaved Chain-of-Thought Reasoning",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Multimodal reasoning requires iterative coordination between language and vision, yet it remains unclear what constitutes a meaningful interleaved chain of thought. We posit that text and image thoughts should function as complementary, rather than isomorphic, modalities that mutually advance reasoning. Guided by this principle, we build ThinkMorph, a unified model fine-tuned on $\\sim$24K high-quality interleaved reasoning traces spanning tasks with varying visual engagement. ThinkMorph learns to generate progressive text–image reasoning steps that concretely manipulate visual content while maintaining coherent verbal logic. It delivers large gains on vision-centric benchmarks (averaging 34.7% over the base model) and generalizes to out-of-domain tasks, matching or surpassing larger and proprietary VLMs. Beyond performance, ThinkMorph exhibits emergent multimodal intelligence, including ",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=mB3vxfrQZM",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:KttCXdjj4w",
+   "title": "Perception-R1: Advancing Multimodal Reasoning Capabilities of MLLMs via Visual Perception Reward",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Enhancing the multimodal reasoning capabilities of Multimodal Large Language Models (MLLMs) is a challenging task that has attracted increasing attention in the community. Recently, several studies have applied Reinforcement Learning with Verifiable Rewards (RLVR) to the multimodal domain in order to enhance the reasoning abilities of MLLMs. However, these works largely overlook the enhancement of multimodal perception capabilities in MLLMs, which serve as a core prerequisite and foundational component of complex multimodal reasoning. Through McNemar's test, we find that existing RLVR method fails to effectively enhance the multimodal perception capabilities of MLLMs, thereby limiting their further improvement in multimodal reasoning. To address this limitation, we propose Perception-R1, which introduces a novel visual perception reward that explicitly encourages MLLMs to perceive the vi",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=KttCXdjj4w",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:OXPKjZ6iB8",
+   "title": "Revisiting Visual Understanding in Multimodal Reasoning through a Lens of Image Perturbation",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "Submitted to ICLR 2026",
+   "abstract": "Despite the rapid progress of multimodal large language models (MLLMs), the role of visual processing in multimodal reasoning remains underexplored. In a simple yet revealing experiment, we find that language-only models, when augmented with image captions, can sometimes outperform multimodal counterparts consuming raw visual inputs. This indicates that current MLLMs may perceive visual content but fail to effectively integrate it during reasoning. Moreover, even minimal visual perturbations such as small rotations lead to severe performance drops, exposing a fragility in their visual understanding. To address this overlooked bottleneck, we propose a lightweight visual perturbation (VP) framework that strengthens perceptual robustness without architectural changes or additional data. VP introduces three targeted dominance-preserving mixup, random rotation, and distractor concatenation wh",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=OXPKjZ6iB8",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:YM3RcI3q0E",
+   "title": "Hallucination Reduction with CASAL: Contrastive Activation Steering for Amortized Learning",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Large Language Models (LLMs) exhibit impressive capabilities but often hallucinate, confidently providing incorrect answers instead of admitting ignorance. Prior work has shown that models encode linear representations of their own knowledge and that activation steering can reduce hallucinations. These approaches, however, require real-time monitoring and intervention during inference. We introduce Contrastive Activation Steering for Amortized Learning (CASAL), an efficient algorithm that connects interpretability with amortized optimization. CASAL directly bakes the benefits of activation steering into model's weights. Once trained, LLMs answer questions they know while abstaining from answering those they do not. CASAL's light-weight design requires training only a submodule of a single transformer layer and yet reduces hallucination by $\\sim30\\%$-$40 \\%$ across multiple short-form QA ",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=YM3RcI3q0E",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:5fCDEz43ya",
+   "title": "Token-Guard: Towards Token-Level Hallucination Control via Self-Checking Decoding",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "Large Language Models (LLMs) often hallucinate, generating content inconsistent with the input. Retrieval-Augmented Generation (RAG) and Reinforcement Learning with Human Feedback (RLHF) can mitigate hallucinations but require resource-intensive retrieval or large-scale fine-tuning. Decoding-based methods are lighter yet lack explicit hallucination control. To address this, we present \\textbf{Token-Guard}, a token-level hallucination control method based on self-checking decoding. Token-Guard performs internal verification at each reasoning step to detect hallucinated tokens before they propagate. Candidate fragments are further evaluated in a latent space with explicit hallucination risk scoring, while iterative pruning and regeneration dynamically correct detected errors. Experiments on HALU datasets show Token-Guard substantially reduces hallucinations and improves generation accuracy",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=5fCDEz43ya",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:uomCTwGflg",
+   "title": "Attention Contrastive Decoding: Preserving Coherence While Mitigating Hallucinations in Large Vision-Language Models",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Withdrawn",
+   "abstract": "Large Vision-Language Models (LVLMs) exhibit remarkable multimodal capabilities but frequently produce factually inconsistent hallucinations. While Contrastive Decoding (CD) methods offer a training-free approach to hallucination mitigation, they operate at the logits level, compromising output coherence and diversity. Through systematic analysis, we show that logits-level subtraction disrupts intrinsic language generation mechanisms, requiring restrictive penalty mechanisms that further limit diversity. We propose Attention Contrastive Decoding (ACD), which transfers contrastive operations to the attention layer and employs an Adaptive Subtraction Strategy (ASS) to identify and suppress hallucination-prone attention patterns. Experiments demonstrate that ACD generates more coherent content with significantly reduced hallucinations without requiring penalty mechanisms, effectively levera",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=uomCTwGflg",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "openreview:ZURs3YZclt",
+   "title": "HalluGuard: Demystifying Data-Driven and Reasoning-Driven Hallucinations in LLMs",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-09 (ICLR 2026 cycle)",
+   "venue": "ICLR 2026 Poster",
+   "abstract": "The reliability of Large Language Models (LLMs) in high-stakes domains such as healthcare, law, and scientific discovery is often compromised by hallucinations. These failures typically stem from two sources: *data-driven hallucinations* and *reasoning-driven hallucinations*. However, existing detection methods usually address only one source and rely on task-specific heuristics, limiting their generalization to complex scenarios. To overcome these limitations, we introduce the *Hallucination Risk Bound*, a unified theoretical framework that formally decomposes hallucination risk into data-driven and reasoning-driven components, linked respectively to training-time mismatches and inference-time instabilities. This provides a principled foundation for analyzing how hallucinations emerge and evolve. Building on this foundation, we introduce **HalluGuard**, an NTK-based score that leverages",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": null,
+   "s2_paper_id": null,
+   "url": "https://openreview.net/forum?id=ZURs3YZclt",
+   "verified_via": [
+    "openreview:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase2_openreview"
+  },
+  {
+   "canonical_id": "arxiv:2507.06448",
+   "title": "Perception-Aware Policy Optimization for Multimodal Reasoning",
+   "authors": [
+    "Zhenhailong Wang",
+    "Xuehang Guo",
+    "Sofia Stoica",
+    "Haiyang Xu",
+    "Hongru Wang",
+    "Hyeonjeong Ha",
+    "Xiusi Chen",
+    "Yangyi Chen"
+   ],
+   "year": 2025,
+   "published": "2025-07-08",
+   "venue": "arXiv preprint",
+   "abstract": "Reinforcement Learning with Verifiable Rewards (RLVR) has proven to be a highly effective strategy for endowing Large Language Models (LLMs) with robust multi-step reasoning abilities. However, its design and optimizations remain tailored to purely textual domains, resulting in suboptimal performance when applied to multimodal reasoning tasks. In particular, we observe that a major source of error in current multimodal reasoning lies in the perception of visual inputs. To address this bottleneck, we propose PAPO, a novel policy gradient algorithm that encourages the model to learn to perceive while learning to reason. Specifically, we introduce the Implicit Perception Loss in the form of a KL divergence term, which can be seamlessly plugged into mainstream RLVR algorithms such as GRPO and DAPO. Notably, PAPO does not rely on additional data curation, reward models, or stronger teacher mo",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2507.06448v5",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2507.06448",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase4_recheck"
+  },
+  {
+   "canonical_id": "arxiv:2606.05859",
+   "title": "TARPO: Token-Wise Latent-Explicit Reasoning via Action-Routing Policy Optimization",
+   "authors": [
+    "Liting Zhang",
+    "Shiwan Zhao",
+    "Xuyang Zhao",
+    "Zichen Xu",
+    "Jianye Wang",
+    "Qicheng Li"
+   ],
+   "year": 2026,
+   "published": "2026-06-04",
+   "venue": "arXiv preprint",
+   "abstract": "Latent reasoning has emerged as a promising alternative to discrete Chain-of-Thought (CoT) in large language models (LLMs), enabling more expressive reasoning by operating over continuous representations. However, the inherently deterministic nature of continuous representations limits policy exploration in reinforcement learning (RL). To address this, we propose TARPO (Token-Wise Latent-Explicit Reasoning via Action-Routing Policy Optimization), a pure RL framework that adaptively switches between discrete token generation and continuous latent reasoning at each step. TARPO introduces a lightweight action head router that observes the current hidden state and samples a routing decision from a binary mode-selection space, preserving the stochasticity of discrete token sampling from the vocabulary. The LLM backbone and router are jointly optimized end-to-end with a shared group-relative a",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.05859v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.05859",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase4_recheck"
+  },
+  {
+   "canonical_id": "arxiv:2606.02871",
+   "title": "Adaptive Latent Agentic Reasoning",
+   "authors": [
+    "Dongwon Jung",
+    "Peng Shi",
+    "Yi Zhang",
+    "Junshan Zhang",
+    "Muhao Chen"
+   ],
+   "year": 2026,
+   "published": "2026-06-01",
+   "venue": "arXiv preprint",
+   "abstract": "Large reasoning models improve performance by generating extended chain-of-thought (CoT) reasoning, but this behavior becomes inefficient when applied to LLM agents. Current LLM agents often generate verbose textual reasoning at every decision step and allocate reasoning effort nearly uniformly across turns, leading to substantial inefficiency in multi-turn agentic trajectories. We propose Adaptive Latent Agentic Reasoning (ALAR), a dual-mode framework that uses compact latent reasoning for routine turns and selectively escalates to explicit chain-of-thought when deeper deliberation is needed. ALAR learns latent reasoning by using the agent's actions as supervision anchors and is further optimized to use latent reasoning when it is sufficient for task success and reserve explicit CoT for harder decisions. Experiments on agentic search and tool-use benchmarks show that ALAR maintains comp",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.02871v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.02871",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase4_recheck"
+  },
+  {
+   "canonical_id": "arxiv:2605.13156",
+   "title": "Dual-Pathway Circuits of Object Hallucination in Vision-Language Models",
+   "authors": [
+    "Jiaxin Liu",
+    "Ding Zhong",
+    "Yue Wang",
+    "Zhidong Yang",
+    "Zhaolu Kang",
+    "Guangyuan Dong",
+    "Qishi Zhan",
+    "Pengcheng Fang"
+   ],
+   "year": 2026,
+   "published": "2026-05-13",
+   "venue": "arXiv preprint",
+   "abstract": "Vision-language models (VLMs) have demonstrated remarkable capabilities in bridging visual perception and natural language understanding, enabling a wide range of multimodal reasoning tasks. However, they often produce object hallucinations, describing content absent from the input image, which limits their reliability and interpretability. To address this limitation, we propose Dual-Pathway Circuit Analysis, a framework that identifies and characterizes hallucination-related circuits in VLMs for mechanistic understanding and causal probing. We first apply activation patching across five architecturally diverse VLMs to identify a visual grounding pathway that supports correct predictions and a hallucination pathway that drives erroneous outputs. We then introduce Conditional Pathway Analysis (CPA) to characterize pathway-level interactions, revealing that grounding components remain stro",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2605.13156v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2605.13156",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase4_recheck"
+  },
+  {
+   "canonical_id": "arxiv:2606.08777",
+   "title": "How Many Counterfactuals Does It Take? Probing VLM Hallucinations Through Circuits and Causal Effects",
+   "authors": [
+    "Abhivansh Gupta",
+    "Simardeep Singh",
+    "Advika Sinha",
+    "Shreyansh Modi",
+    "Akshat Tomar"
+   ],
+   "year": 2026,
+   "published": "2026-06-07",
+   "venue": "arXiv preprint",
+   "abstract": "Visual Language Models (VLMs) are known to produce hallucinated predictions that are not grounded in visual evidence, yet existing approaches lack a principled understanding of how robust such predictions are under counterfactual perturbations. In this work, we study the sample complexity of counterfactual robustness for hallucinated outputs in VLMs. We define a causal influence metric based on log-probability differences between factual, counterfactual, and activation-patched runs, and use it to characterize the stability of hallucinated predictions. By leveraging circuit discovery techniques (CD-T), we identify model components responsible for these predictions and track their activation differences across counterfactual samples. We then derive empirical bounds on the minimum number of counterfactual samples m required to reliably detect instability in hallucinated outputs, using conce",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.08777v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.08777",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase4_recheck"
+  },
+  {
+   "canonical_id": "arxiv:2606.27596",
+   "title": "Dismantling Pathological Shortcuts: A Causal Framework for Faithful LVLM Decoding",
+   "authors": [
+    "Liu Yu",
+    "Can Chen",
+    "Ping Kuang",
+    "Zhikun Feng",
+    "Fan Zhou",
+    "Gillian Dobbie"
+   ],
+   "year": 2026,
+   "published": "2026-06-25",
+   "venue": "arXiv preprint",
+   "abstract": "Large Vision-Language Models (LVLMs) exhibit sophisticated reasoning but remain susceptible to object hallucination. Deviating from the prevailing attention intensity assumption, we reveal a deeper dynamic structural misalignment: hallucination is triggered at decision-critical steps where specific attention heads, acting as risky mediators, decouple from visual evidence to lock onto language priors. This establishes a pathological shortcut that bypasses visual grounding. To dismantle this, we propose Fox (Faithfulness and Observational-flow via eXpression-rectification), a training-free inference-time framework. Fox diagnoses structural misalignment using a visual attention entropy probe to localize risky mediators unsupervisedly. We then execute a targeted causal intervention via numerical logit saturation to physically sever the shortcut path. Finally, a conflict-gated cooperative dec",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.27596v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.27596",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase4_recheck"
+  },
+  {
+   "canonical_id": "arxiv:2604.15400",
+   "title": "Hallucination as Trajectory Commitment: Causal Evidence for Asymmetric Attractor Dynamics in Transformer Generation",
+   "authors": [
+    "G. Aytug Akarlar"
+   ],
+   "year": 2026,
+   "published": "2026-04-16",
+   "venue": "arXiv preprint",
+   "abstract": "We present causal evidence that hallucination in autoregressive language models is an early trajectory commitment governed by asymmetric attractor dynamics. Using same-prompt bifurcation, in which we repeatedly sample identical inputs to observe spontaneous divergence, we isolate trajectory dynamics from prompt-level confounds. On Qwen2.5-1.5B across 61 prompts spanning six categories, 27 prompts (44.3%) bifurcate with factual and hallucinated trajectories diverging at the first generated token (KL = 0 at step 0, KL &gt; 1.0 at step 1). Activation patching across 28 layers reveals a pronounced causal asymmetry: injecting a hallucinated activation into a correct trajectory corrupts output in 87.5% of trials (layer 20), while the reverse recovers only 33.3% (layer 24); both exceed the 10.4% baseline (p = 0.025) and 12.5% random-patch control. Window patching shows correction requires susta",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2604.15400v1",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2604.15400",
+   "verified_via": [
+    "arxiv:200ok"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase4_recheck"
+  },
+  {
+   "canonical_id": "arxiv:2605.15864",
+   "title": "Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-05-15",
+   "venue": "arXiv preprint",
+   "abstract": "VLMs emit \"let me check the figure again\" but VisualSwap (image-swap probe) + VS-Bench (800 pairs from MathVista/MathVerse/MathVision/MMMU-Pro) show they overwhelmingly miss the swap: visual re-examination is illusory, largely learned textual pattern. Tested on Qwen3-VL, Kimi-VL, ERNIE-VL.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2605.15864v?",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2605.15864",
+   "verified_via": [
+    "arxiv:200ok (abstract read 2026-07-19)"
+   ],
+   "cluster": "self-reflection-illusion",
+   "added_in_phase": "phase4_recheck_workflow"
+  },
+  {
+   "canonical_id": "arxiv:2607.02490",
+   "title": "Visually Grounded Self-Reflection for Vision-Language Models via Reinforcement Learning",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-07-02",
+   "venue": "arXiv preprint",
+   "abstract": "VRRL: RL framework to elicit visually grounded self-reflection; LVLMs fail to attend to visual inputs during reflection, esp. OOD. CLOSEST COMPETITOR to chosen direction but RL-based (chosen direction is training-free + mechanistic).",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2607.02490v?",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2607.02490",
+   "verified_via": [
+    "arxiv:200ok (abstract read 2026-07-19)"
+   ],
+   "cluster": "self-reflection-illusion",
+   "added_in_phase": "phase4_recheck_workflow"
+  },
+  {
+   "canonical_id": "arxiv:2604.10219",
+   "title": "Cognitive Pivot Points and Visual Anchoring: Unveiling and Rectifying Hallucinations in Multimodal Reasoning Models",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-04-11",
+   "venue": "arXiv preprint",
+   "abstract": "RVTD: hallucinations correlate with high-entropy cognitive bifurcation points where model fails to query visual evidence and reverts to language priors. Pre-empts candidate C3 (commitment points).",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2604.10219v?",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2604.10219",
+   "verified_via": [
+    "arxiv:200ok (abstract read 2026-07-19)"
+   ],
+   "cluster": "hallucination",
+   "added_in_phase": "phase4_recheck_workflow"
+  },
+  {
+   "canonical_id": "arxiv:2605.14054",
+   "title": "Bad Seeing or Bad Thinking? Rewarding Perception for Multimodal Reasoning",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-05-13",
+   "venue": "arXiv preprint",
+   "abstract": "Argues root cause of perception-reasoning seesaw is modality-attribution ambiguity; rewards perception in multimodal RL. Pre-empts candidate C2.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2605.14054v?",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2605.14054",
+   "verified_via": [
+    "arxiv:200ok (abstract read 2026-07-19)"
+   ],
+   "cluster": "perception-reasoning",
+   "added_in_phase": "phase4_recheck_workflow"
+  },
+  {
+   "canonical_id": "arxiv:2605.12163",
+   "title": "Self-Consistent Latent Reasoning: Long Latent Sequence Reasoning for Vision-Language Model",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-05-12",
+   "venue": "arXiv preprint",
+   "abstract": "SCOLAR: latent visual reasoning DEGRADES as latent sequence grows (Information Gain Collapse); pooled image embeddings as supervision == meaningless placeholders. Premise-kills original C1 (adaptive latent depth).",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2605.12163v?",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2605.12163",
+   "verified_via": [
+    "arxiv:200ok (abstract read 2026-07-19)"
+   ],
+   "cluster": "latent-reasoning",
+   "added_in_phase": "phase4_recheck_workflow"
+  },
+  {
+   "canonical_id": "arxiv:2606.14703",
+   "title": "Gaze Heads: How VLMs Look at What They Describe",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-06",
+   "venue": "arXiv preprint",
+   "abstract": "A small (<9% of heads) training-free-steerable visual-routing head set recurs across 2B-32B VLMs. Partial-scoop risk for the localization conjunct; differentiated by having NO role dimension and no per-instance gate.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.14703",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.14703",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "mechanism",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2605.04641",
+   "title": "CAST: Caption-guided visual Attention STeering (training-free)",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-05",
+   "venue": "arXiv preprint",
+   "abstract": "Training-free, head-localized (Top-K heads) visual-attention steering, ALWAYS-ON every instance/step; not role/provenance-conditioned, no whether-to-steer gate. Primary global-steering baseline; NO public code -> reimplement.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2605.04641",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2605.04641",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "baseline",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2602.21704",
+   "title": "DMAS: Dynamic Multimodal Activation Steering for Hallucination Mitigation",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-02",
+   "venue": "arXiv preprint",
+   "abstract": "ICLR 2026; training-free dynamic head-subset activation steering, always-on; documents F1 collapse at high strength (the global-steering collateral we target). NO public code -> reimplement.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2602.21704",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2602.21704",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "baseline",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2311.16922",
+   "title": "VCD: Visual Contrastive Decoding",
+   "authors": [],
+   "year": 2023,
+   "published": "2023-11",
+   "venue": "arXiv preprint",
+   "abstract": "Classic reproducible training-free contrastive decoding baseline (public code, DAMO-NLP-SG/VCD); harness validation anchor.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2311.16922",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2311.16922",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "baseline",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2407.21771",
+   "title": "PAI: Paying more Attention to Image (training-free image-attention amplification + text-logit subtraction)",
+   "authors": [],
+   "year": 2024,
+   "published": "2024-07",
+   "venue": "arXiv preprint",
+   "abstract": "Always-on image-attention amplification combating text inertia globally; directly comparable to head-rescaling; public code LALBJ/PAI.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2407.21771",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2407.21771",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "baseline",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2508.03469",
+   "title": "IKOD: visual attention decays with generated-sequence length",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-08",
+   "venue": "arXiv preprint",
+   "abstract": "Evidence for the POSITION/RECENCY confound: visual attention decays monotonically with generated length -> the self-vs-user gap may be image-recency, not role. Central control target.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2508.03469",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2508.03469",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "mechanism",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2506.12609",
+   "title": "VisFlow / Dual-Level Attention Intervention (token + head level)",
+   "authors": [],
+   "year": 2026,
+   "published": "2025-06",
+   "venue": "arXiv preprint",
+   "abstract": "Training-free token+head-level attention intervention; must read fully before locking the per-instance-gate novelty claim.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2506.12609",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2506.12609",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "related",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2606.07647",
+   "title": "TLVS: Token-Level Visual-Sensitivity Steering",
+   "authors": [],
+   "year": 2026,
+   "published": "2026-06",
+   "venue": "arXiv preprint",
+   "abstract": "Per-token adaptive steering strength; potential novelty-erosion for per-instance gating; read in full before locking.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2606.07647",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2606.07647",
+   "verified_via": [
+    "workflow wf_b5d5141e-eb6 retrieval"
+   ],
+   "cluster": "related",
+   "added_in_phase": "stage2_recon"
+  },
+  {
+   "canonical_id": "arxiv:2508.17807",
+   "title": "Attention Debiasing for Token Pruning in Vision Language Models",
+   "authors": [],
+   "year": 2025,
+   "published": "2025-08",
+   "venue": "arXiv preprint",
+   "abstract": "Training-free debiasing of VLM attention: compensates recency bias (attention to later positions/lower image regions) and suppresses attention-sink on padding. SUPPORTING evidence for the recency/sink confound our controls target; not a scoop.",
+   "citation_count": null,
+   "influential_citation_count": null,
+   "doi": null,
+   "arxiv_id": "2508.17807",
+   "s2_paper_id": null,
+   "url": "https://arxiv.org/abs/2508.17807",
+   "verified_via": [
+    "webfetch 2026-07-19"
+   ],
+   "cluster": "mechanism",
+   "added_in_phase": "stage2_stresstest"
+  }
+ ],
+ "openreview_extracts": [
+  {
+   "paper_tag": "ThinkMorph",
+   "negative_quotes": [
+    "Therefore, the claim of Emergent Property 1 lacks sufficient support, as the described behavior is already present in the base model.",
+    "However, this is based on a \"rare (2-5%)\" observation.",
+    "The generalizability of this approach to more open-ended, creative, or dialog-based multimodal tasks remains an open question.",
+    "However, generating N interleaved chains, each containing images, is computationally expensive.",
+    "The paper lacks clarity regarding the differences between experimental settings, especially between *visual reasoning* and *interleaved reasoning* as reported in Table 2.",
+    "In line 344, the authors claim that “interleaved training consistently pushes unified models far beyond their previous limitations.” However, the comparison baseline appears to be the model that was **not** fine-tuned.",
+    "However, there is no detailed discussion of image-only reasoning in the experiments, and the relationship between *image-only reasoning* and *visual reasoning* (as shown in Table 2) remains unclear, making this claim confusing and insufficiently supported.",
+    "The reported GPT-4o result on SAT (28) in Table 3 is significantly lower than in the original paper, which raises concerns about the experimental setup or evaluation protocol.",
+    "It is unclear whether the generated regions are aligned with the true physical structure or whether the model may produce visually plausible but physically incorrect details in the absence of explicit scale or spatial constraints.",
+    "However, the underlying triggering mechanisms are not quantitatively analyzed.",
+    "The computational overhead of interleaved reasoning during inference is not addressed.",
+    "Each instance of image generation requires execution of VAE encoding, diffusion-based denoising, and re-encoding into clean visual tokens, resulting in substantial latency and limiting scalability."
+   ]
+  },
+  {
+   "paper_tag": "CASAL",
+   "negative_quotes": [
+    "It's great that you've shown CASAL doesn't hurt scores on benchmarks like MMLU.",
+    "Evaluating only on LLaMA 3.1 8B makes the setup weaker.",
+    "2, adding more data beyond 1280 does not lower the hallucination rate.",
+    "Does this mean the method does not scale with more data?",
+    "* It seems the refusal rate increased and accuracy dropped after CASAL in OOD generalization, as per Tables 3 and 4.",
+    "For example, in Table 5, training with WorldCuisine-QA using a specific loss compared to the base Qwen 2.5-VL model may show some improvement, but it does not convey much without comparisons to other loss functions.",
+    "Please see weaknesses above; I remain open to adjusting my scores pending a convincing rebuttal addressing the identified weaknesses.",
+    "In causality, identifiability is one of the most important things.",
+    "I wonder why it is the case and how anti-causal relationships ($Y\\rightarrow X$) would affect the proposed framework.",
+    "The probability $\\pi_m,\\pi_c$ for linking $X$ and $Z$ is missing.",
+    "alternative mediator aggregation, anticausal predictors."
+   ]
+  },
+  {
+   "paper_tag": "Token_Guard",
+   "negative_quotes": [
+    "Efficiency concerns: Its three-layer processing adds extra work.",
+    "Edge cases: If inputs are messy and fragmented, does segment scoring fail?",
+    "For LLMs that lack key knowledge (like rare medical terms in PubMedQA), hallucinations come from missing info, not bad decoding—can Token-Guard fix that?",
+    "The definition of latent hallucination scoring is intuitive but not empirically verified; it is unclear whether cosine similarity between hidden states best correlates with factual accuracy.",
+    "The benchmarks are mostly QA-style hallucination datasets, so it remains uncertain how well the method generalizes to open-ended or long-form generation.",
+    "The paper claims that current decoding methods lack token-level hallucination checking mechanism.",
+    "The paper could benefit from providing a thorough examination of failure modes, especially those failed cases after re-generation.",
+    "3) While the paper clearly presents the run-time and output token overheads in Table-3, the memory overheads necessitated by TokenGuard are less clear.",
+    "For the second stage segment score and third stage global iteration, this overhead appears to be potentially even higher since cosine similarities are computed over hidden representations corresponding to these segments.",
+    "For instance, in Stage 3, the chain closest to each cluster centroid is retained, but the memory overhead that occurs prior to this choice is not very clear at all!",
+    "This does not seem well principled apriori, and could be motivated further.",
+    "1) Kindly refer to the questions mentioned in the weaknesses section above."
+   ]
+  },
+  {
+   "paper_tag": "Perception_R1",
+   "negative_quotes": [
+    "Limited analysis of generalization: The model's strong generalization from geometry-only training (Geometry3K) to general-domain benchmarks (like MMMU and MMStar) is a key result, but it is not fully explained.",
+    "Where do the baseline models fail on perception in these tasks?",
+    "What percentage of the baseline's failures on these tasks are due to perception errors, and what percentage of those specific errors does Perception-R1 fix?",
+    "Dependence on a single training data domain: The reliance on Geometry3K, while clearly effective, is a potential limitation.",
+    "Unclear distinction from Perception-R1[1] : both papers appear to address the same problem with similar approaches",
+    "Concern 1: Marginal Improvement Beyond GRPO Baseline.",
+    "The reviewer notes that GRPO is also used in Vision-R1, making it unclear how much of the improvement is attributable to the novel contribution versus the baseline RL algorithm.",
+    "The paper also does not position TTRV against R1‑style VLM RL (MM-EUREKA [2] , Vision-R1 [3], Perception‑R1 [4]).",
+    "- The paper lacks systematic exploration of critical parameters such as the perception reward weight (γ) and judgment thresholds, leaving robustness questions unanswered.",
+    "- Although data-efficient, the additional judging and reward assignment stages may increase computational overhead, which is not quantitatively discussed.",
+    "As shown in Figure 3(b–c), weaker judges introduce reward hacking and degrade performance, but the paper stops short of analyzing why this happens or proposing safeguards (e.g., calibration, ensemble judgment, or confidence filtering).",
+    "However, the presented results do not provide direct evidence that the observed performance gains stem specifically from enhanced perception."
+   ]
+  },
+  {
+   "paper_tag": "Soft_Tokens",
+   "negative_quotes": [
+    "In my opinion, the most compelling use case of the *novel* aspects of this work (a simple technique to operationalize soft prompts to manipulate LLMs) is to manipulate agentic/decision-making LLMs, and this lacks experimental validation.",
+    "I’m concerned that the expressivity of soft tokens may be insufficient for more complex behaviour; no evidence provided to address this, and weaker ASR on safer models (Llama 2) suggests the approach may struggle with more robust models.",
+    "The current evidence doesn't convincingly demonstrate the threat; jailbreaking in some sense is a better example for this type of universal behaviour, but is not the same thing.",
+    "The paper does not analyse group size, which is a crucial hyper parameter of RL training, which affects model entropy and pass@k performance.",
+    "However, could increasing the rollout group size of hard CoT also improve its pass@k?",
+    "As pass@32 is a core claim, not including self-consistency as a baseline or in related work weakens the empirical case for the diversity benefit of soft CoT.",
+    "However, the paper lacks direct experimental comparison with distillation-based soft CoT methods to demonstrate the advantages of the RL approach.",
+    "Have the authors explored generalization to non-math reasoning domains (e.g., code generation, commonsense multi-hop QA or other verifiable questions), do the claimed gains vanish as the underlying structure of reasoning becomes less sequential?",
+    "* Some important details are missing: How many tokens are used in the soft prompts, how is the number chosen, and how does performance vary with respect to the number of tokens used in the soft prompt?",
+    "* How does X-VLA perform under OOD generalization settings?",
+    "* When does X-VLA fail during deployment, and what do the failure modes look like qualitatively?",
+    "* The method introduces $\\tau_1$ as a hyperparameter, but it is unclear how this value was selected in the experiments."
+   ]
+  },
+  {
+   "paper_tag": "Revisual_R1",
+   "negative_quotes": [
+    "(8), the hyperparameters $\\alpha$, $\\beta$, $\\lambda_v$, and $\\lambda_f$ lack sufficient explanation.",
+    "In L375–377, their settings are presented without detailed justification or sensitivity analysis, leaving unclear how these parameters were chosen and how they influence model performance.",
+    "- All baselines are Qwen-VL derivatives; no comparison with other backbone families (e.g., LLaVA-NeXT, InternVL, Flamingo-style).",
+    "Additionally, in lines 42-43, regarding \"The direct application of text-centric RL,\" I believe the methodology presented does not fundamentally depart from existing RL algorithms, such as **GRPO** and **DAPO**.",
+    "While achieving SOTA or radical innovation is not strictly necessary for a publication, the actual results and contributions in this paper deviate from the claims made by the authors, which raises concerns.",
+    "Please clarify the issues mentioned in the Weakness section, as they are not sufficiently explained in the current draft.",
+    "- The paper does not discuss limitations, failure cases, or future work, which makes it difficult for others to follow up.",
+    "Does this imply that the current multimodal RL dataset still lacks sufficient reasoning depth or diversity to support end-to-end training on its own?",
+    "The paper does not specify the training balance between the two RL stages.",
+    "Training cost not analyzed: The computational overhead, training time, and data annotation cost of SRO + PAD are not quantified, which is important for assessing the method's practicality and scalability.",
+    "Dataset contribution ablation missing: The ablation studies focus on MRL/TRL phases and PAD, but the contribution of the GRAMMAR dataset itself (e.g., sample quantity, difficulty levels, multimodal vs.",
+    "Self-constructed dataset and generalizability: The use of a custom dataset, while common in multimodal reasoning research, may limit reproducibility and comparability."
+   ]
+  },
+  {
+   "paper_tag": "Causal_Mask_Attention",
+   "negative_quotes": [
+    "The “with IV” model includes strong cross-modal global attention; if “w/o IV” lacks a capacity-matched global dependency module, the ablation conflates “having IV” with “having any global dependency modeling,” making the comparison unfair.",
+    "The alignment loss ||Zc−V||^2 encourages Zc to align with V; however, if V contains environment or shortcut information, the mask might be \"misled,\" causing the model to treat spurious correlations as causal relationships.",
+    "This could undermine the validity of the causal separation.",
+    "It does not test a setting where the model relies solely on the causal path without any random recombination with shortcut features, so it’s unclear whether the robustness gain comes from the intervention operation or simply from using the causal representation.",
+    "How do you ensure that V does not contain environment or shortcut information that could bias the mask towards spurious correlations?",
+    "Please add a Pure-causal (no recombination) ablation: use only the causal representation for prediction and do not perform any random recombination with shortcut features; keep all other modules and settings the same.",
+    "**No explicit causal discovery**: The causal mask structure is predefined (state $\\rightarrow$ action, RTG $\\rightarrow$ action).",
+    "The method does not learn or adapt causal graphs dynamically, which may limit scalability.",
+    "**Fixed Causal Graph for Supervision** (building on [2+3] above): The supervised attention relies on a predefined causal mask based on the known MDP structure (i.e., $a_t$ depends on $s_t$ and $G_t$).",
+    "While effective, this may be less straightforward to apply in settings where the causal structure is unknown, more complex, or only partially observable (e.g., in POMDPs).",
+    "How sensitive is UCF’s performance to inaccuracies in the causal mask (e.g., if an incorrect parent set is imposed)?",
+    "Could the mask be learned or adapted via causal discovery methods?"
+   ]
+  },
+  {
+   "paper_tag": "Latent_Visual_Reasoning",
+   "negative_quotes": [
+    "It is unclear how the “target latent obtained from pretrained visual features of the vision encoder” is defined.",
+    "While this dataset is useful, it alone is insufficient to demonstrate generalization.",
+    "This small improvement weakens the claim that the method consistently enhances reasoning ability.",
+    "The reliance on a fixed latent reasoning length may restrict flexibility and generalization to variable reasoning complexity.",
+    "- My primary concern is the limited generalizability of the proposed approach.",
+    "It remains unclear whether the capabilities learned on one task can transfer to other domains.",
+    "Specifically, it is unclear which baselines (if any) were granted access to the helper images during fine-tuning.",
+    "This concern is reinforced by Table 4, which shows that the first training stage (latent grounding) has substantially less impact than the second (text-only fine-tuning).",
+    "Moreover, in the third panel, textual clusters already separate the latent cluster from the image embeddings, further weakening the visual-alignment claim.",
+    "While the method excels at visual perception, its applicability to complex visual reasoning tasks remains unclear.",
+    "However, this leaves its performance on more complex visual reasoning tasks as an open question.",
+    "There is a lack of a clear description regarding how to effectively encode the helper image."
+   ]
+  },
+  {
+   "paper_tag": "HalluGuard",
+   "negative_quotes": [
+    "However, this is extremely loose in practice, and an overly simplistic justification for the reasoning-driven term in the final score.",
+    "It is quite unclear from the paper about how this translates to the computational overhead needed to find the final HalluGuard Score in practice.",
+    "However, the paper does not specify what semantic perturbations are used to compute the NTK kernel?",
+    "This appears to be set-apart from the theoretical motivations entirely, and appears to be a complex overhead.",
+    "7) The empirical evaluations shown report only AUROC and AUCPR, however it is crucial to analyze hallucination detection at low False-Positive-Rates (FPR) as well.",
+    "Kindly refer to the questions mentioned in the weaknesses section above.",
+    "Potentially high computational complexity: Computing the NTK matrix and related quantities such as its determinant and condition number may introduce significant computational overhead for very large models or long-sequence generation tasks.",
+    "It is recommended to discuss the scalability of the method or propose approximate computation strategies in the paper.",
+    "The paper does not sufficiently analyze how the choice of Φ affects the results.",
+    "Experimental section could be further enriched: While the experiments are comprehensive, validation on multimodal models or long-text generation tasks (e.g., story writing, long-document summarization) is missing—scenarios where hallucinations are typically more complex.",
+    "Although the experiments are broad, the evaluation largely focuses on detection performance metrics (AUROC, AUPRC), leaving limited insight into causal behavior—whether reducing HALLUGUARD score indeed prevents hallucinations across diverse prompts.",
+    "Could the authors clarify the tightness of this bound—i.e., under what conditions might it become vacuous or fail to predict real hallucination behavior?"
+   ]
+  },
+  {
+   "paper_tag": "Hallucination_Snowballing",
+   "negative_quotes": [
+    "Specifically, it does not explain how conventional single VLM evaluation benchmarks are adapted for the MAS setting.",
+    "Lack of comparison with recent inference-time or training-time hallucination mitigation approaches (e.g., DoLa [ICLR 2024], Integrative Decoding [Cheng et al., ICLR 2025], Mask-DPO [ICLR 2025]) weakens claims of superiority.",
+    "Although the paper claims ViF reduces hallucination propagation, it does not include qualitative or human evaluations to confirm whether the mitigated errors are genuinely perceptual or semantic, limiting the interpretability of improvements.",
+    "The key-norm heuristic used as a substitute for attention may not perfectly capture true token importance, and the paper does not analyze failure cases or potential mismatches between key-norm values and actual visual relevance.",
+    "The framework assumes that hallucination arises primarily from attention degradation, but other causes of hallucination are not addressed, which may limit the generality of the approach.",
+    "The computational overhead and latency introduced by token relaying between agents are not quantified, which could be important for real-time or large-scale multi-agent applications.",
+    "A key concern is that the paper does not clearly establish the causal connection between SAE features and hallucination behavior.",
+    "This narrow range of model types raises concerns about the generalizability of the proposed method across a wide range of LLMs.",
+    "I would appreciate it if you could provide a more detailed explanation of how $\\textbf{Global Explanations}$ are realized, as I find this part unclear.",
+    "For example, there is no clear definition on the NCFR mentioned in Table 1.It is unclear what hat constitutes a “non-counting hallucination” and how such samples are detected.",
+    "Whereas the motivation makes sense and seems promising, the paper lacks discussion on what techniques and architecture was adopted for Table 3.",
+    "However, the toy datasets primarily enforce arbitrary counting rules rather than true physical or causal constraints."
+   ]
+  }
+ ]
+}

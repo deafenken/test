@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-07-18T17:05:00+08:00",
+  "perspectives_used": ["theorist", "engineer", "skeptic", "industry-pm"],
+  "scoring_note": "S2 citation counts unavailable (API 429); novelty judged against literature_pool contents incl. phase4_recheck prior-art fetches. Budget basis: 4xL40-48GB, 600 GPU-h gate, deadline 2026-09-24.",
+  "candidates": [
+    {
+      "id": "C1",
+      "title": "How Much Thinking Does Seeing Need? Adaptive-Depth Latent Visual Reasoning with Evidence-Sufficiency Halting",
+      "pain_point": "Every multimodal latent-reasoning method (CoLT, DLWM, Latent Visual Reasoning) uses a FIXED latent length / uniform computation budget regardless of instance difficulty; reviewers flag this and also that evaluations never isolate 'thinking in latents' from 'extra fine-tuning' (LVR review: the text-only FT stage drives most of the gain). Meanwhile decode-side token generation, not vision encoding, dominates real latency/energy (arxiv:2607.09520).",
+      "key_intuition": "Visual instances carry variable perceptual ambiguity (occlusion/clutter/ambiguity per DLWM), so required latent computation should be instance-dependent: learn a halting head over latent steps driven by an evidence-sufficiency signal, so easy instances exit after 1-2 latent steps and hard ones think longer. Second intuition: with matched-data/matched-compute controls (latent steps vs equivalent extra text tokens vs no-op padding steps), we can finally measure whether latent visual thinking itself helps — the control protocol is a contribution reviewers explicitly asked for.",
+      "expected_baseline": "CoLT (arxiv:2606.31986) fixed-length latent CoT + explicit-CoT and direct-answer baselines on the same backbone (Qwen2.5-VL-3B/7B-LoRA)",
+      "closest_prior_art_and_difference": "TARPO (arxiv:2606.05859) routes latent-vs-explicit per token for TEXT LLM RL; ALAR (arxiv:2606.02871) escalates latent->CoT across AGENT turns; Think-Less-Act-Early (arxiv:2606.15099) early-exits in VLA action models. None does adaptive DEPTH of latent visual reasoning in general VLMs, none grounds halting in visual-evidence sufficiency, and none provides the confound-controlled evaluation protocol.",
+      "novelty_score": 0.68,
+      "novelty_justification": "Substantive-contribution band: new mechanism (evidence-sufficiency halting for latent visual thought) + a controlled protocol the subfield's reviewers demanded. Held below 0.7 because adaptive latent computation exists in adjacent settings (text RL, agents, VLA) — the domain-specific mechanism (perceptual-ambiguity-driven halting) is what keeps it above the 0.4 'X applied to Y' cap.",
+      "feasibility_score": 0.70,
+      "feasibility_justification": "LoRA on Qwen2.5-VL-3B (full) and 7B (LoRA): ~15-25 GPU-h per training run. Main (3 seeds) + 4 ablations (halting off / fixed-depth grid / padding control / text-token control, 3 seeds each at 3B) + eval passes ~= 330 GPU-h x1.3 buffer ~= 430 GPU-h of 600 (72%) — 'tight fit' band, mitigated by doing ablations at 3B only.",
+      "contribution_shape_score": 0.85,
+      "contribution_shape_justification": "Mechanism + falsifiable claims + a methodological protocol; not a benchmark sweep. The controlled-evaluation component is framed as supporting the mechanism, not as an eval paper.",
+      "venue_fit_score": 0.85,
+      "venue_fit_justification": "ICLR's core: representation learning + adaptive computation + honest-measurement story; fits 9 pages; fully open-model reproducible.",
+      "combined_score": 0.7345,
+      "expected_compute_hours": 430,
+      "risk_factors": [
+        "Latent-CoT training recipes are young; reproduction of CoLT-class baseline may take 2-3 debug cycles",
+        "Halting head may collapse to always-max-depth (mitigation: depth-cost penalty, curriculum)",
+        "If latent reasoning fails to beat matched-compute text controls at 3B, headline becomes a (still publishable, but riskier) negative/measurement result",
+        "MazePlanning/spatial suites may be too easy at 7B, too hard at 3B — dataset triage needed in Stage 2"
+      ],
+      "supporting_citations": ["arxiv:2606.31986", "arxiv:2606.15160", "openreview:j84WR5ORsC", "arxiv:2607.00461", "arxiv:2607.09520", "arxiv:2606.05859", "arxiv:2606.02871", "arxiv:2606.15099", "openreview:GYWuixnyvu"]
+    },
+    {
+      "id": "C2",
+      "title": "Where Does RL Actually Help? Interventional Perception-vs-Reasoning Error Accounting for Multimodal RLVR",
+      "pain_point": "Multimodal RLVR papers (Perception-R1, Revisual-R1, CFPO) report aggregate gains; reviewers explicitly ask 'what fraction of baseline failures are perception errors, and which of those does the method fix?' and 'does text-heavy RL degrade visual grounding?' — no paper provides an identifiable error decomposition or longitudinal accounting across RL training.",
+      "key_intuition": "Oracle-perception interventions (swap raw image for ground-truth structured perception: gold captions/detections/scene graphs) give an identifiable per-instance decomposition of failure into perception vs reasoning components. Tracking this accounting across GRPO training checkpoints reveals WHAT RL changes; hypothesis (from PAPO's observation + Revisual reviews): RLVR mostly reshapes reasoning while leaving perception errors intact or worse — then a perception-preserving constraint (grounding-regression penalty) targeted by the accounting recovers the gap.",
+      "expected_baseline": "PAPO (arxiv:2507.06448) implicit-perception-loss GRPO + plain GRPO on Qwen2.5-VL-3B",
+      "closest_prior_art_and_difference": "PAPO observes perception is a major error source and adds a KL loss, but provides no identifiable decomposition estimator, no longitudinal accounting of what RL changes, and no forgetting audit. Perception-R1 (openreview:KttCXdjj4w) rewards perception but reviewers note attribution confusion with GRPO. We contribute the measurement framework + causal findings + a targeted fix validated by the framework.",
+      "novelty_score": 0.62,
+      "novelty_justification": "Meaningful-delta-to-substantive band: the interventional accounting framework and longitudinal findings are new; capped by PAPO already occupying 'perception matters in multimodal RL' and by the fix being a loss-term modification.",
+      "feasibility_score": 0.58,
+      "feasibility_justification": "Diagnosis phase is inference-only over public checkpoints (cheap, ~60 GPU-h). But the longitudinal + intervention phases need our own GRPO runs: 3B model, LoRA, modest rollouts on 4xL40 without NVLink ~= 25-35 GPU-h per run x (2 methods x 3 seeds + 2 ablations) x1.3 ~= 320-390 GPU-h; plus RL training instability risk on tight interconnect. 'Tight fit' with real schedule risk.",
+      "contribution_shape_score": 0.72,
+      "contribution_shape_justification": "Hypothesis-driven intervention study with a mechanism fix; must be kept from drifting into 'an evaluation of RL methods' — the accounting must serve the causal claim and the fix.",
+      "venue_fit_score": 0.80,
+      "venue_fit_justification": "ICLR rewards analysis-plus-fix papers; directly answers questions its own reviewers asked last cycle.",
+      "combined_score": 0.633,
+      "expected_compute_hours": 450,
+      "risk_factors": [
+        "GRPO rollout throughput on 4xL40 (48G, PCIe) for a 3B VLM is unproven — Stage 2 must pilot before committing",
+        "Oracle-perception annotations exist only for some benchmarks (need datasets with gold captions/detections — e.g. COCO-based VQA); dataset triage critical",
+        "If RLVR turns out to fix perception errors too, headline weakens to a nuanced accounting (less exciting, still defensible)",
+        "Crowded fast-moving RLVR space; risk of being scooped between now and September"
+      ],
+      "supporting_citations": ["arxiv:2507.06448", "openreview:KttCXdjj4w", "openreview:NTo6f6GENJ", "arxiv:2606.23206", "arxiv:2607.01191", "openreview:OXPKjZ6iB8", "arxiv:2606.29812"]
+    },
+    {
+      "id": "C3",
+      "title": "Commitment Points: When Multimodal Reasoning Locks In a Hallucination, and Cheap Deferral at the Lock-In Step",
+      "pain_point": "Hallucination mitigation intervenes uniformly at decoding while reviewers note the causal story is missing and side effects (refusal up, OOD accuracy down — CASAL review) and overhead (Token-Guard/HalluGuard reviews) go unmeasured. HIVE (arxiv:2607.07507) shows hallucinated semantics persist and contaminate downstream reasoning, but offers evaluation only — no account of WHEN during a multimodal chain the model commits to a hallucination, nor a mitigation targeted at that step.",
+      "key_intuition": "If hallucinations 'lock in' at identifiable commitment steps (attractor-like dynamics shown for text LLMs in arxiv:2604.15400), then intervening ONLY at detected commitment points (targeted re-grounding / deferral to visual evidence) should beat uniform contrastive-decoding baselines at a fraction of the overhead, with a measurable side-effect profile. The commitment-point analysis doubles as the paper's scientific finding.",
+      "expected_baseline": "Uniform decoding-time mitigations: contrastive/visual-contrastive decoding class + Token-Guard-style self-checking (openreview:5fCDEz43ya) on LLaVA-1.5-7B and Qwen2.5-VL-7B",
+      "closest_prior_art_and_difference": "arxiv:2604.15400 establishes commitment/attractor dynamics for TEXT LLMs; arxiv:2605.13156 and arxiv:2606.08777 do circuit-level causal analysis of VLM hallucination but neither temporal commitment during multimodal CoT nor a commitment-targeted mitigation with side-effect/overhead audit.",
+      "novelty_score": 0.55,
+      "novelty_justification": "Meaningful-delta band: temporal-commitment analysis in VLM reasoning chains + targeted-intervention mechanism is a real step, but the causal-hallucination space is crowded (2605.13156, 2606.08777, 2606.27596, 2604.15400 all within 4 months) — honest cap at 0.55.",
+      "feasibility_score": 0.88,
+      "feasibility_justification": "Inference- and probing-heavy: hidden-state trajectory analysis + training-free intervention on 7B models. ~120-160 GPU-h total incl. side-effect audit suite — 'comfortable' band with wide margin for the 2-month deadline.",
+      "contribution_shape_score": 0.75,
+      "contribution_shape_justification": "Mechanistic finding + targeted method + audit; the audit must stay subordinate to the mechanism to avoid eval-paper drift.",
+      "venue_fit_score": 0.75,
+      "venue_fit_justification": "ICLR likes mechanistic analysis with an actionable method; risk: hallucination-mitigation fatigue among reviewers unless the commitment finding is sharp.",
+      "combined_score": 0.699,
+      "expected_compute_hours": 150,
+      "risk_factors": [
+        "Commitment points may be diffuse rather than sharp in VLMs — the core hypothesis could fail (cheap to discover early, though)",
+        "Crowded space: 4 adjacent papers in last 4 months; differentiation must be maintained against anything newer at submission time",
+        "Training-free interventions have a ceiling; gains may be modest vs strongest decoding baselines"
+      ],
+      "supporting_citations": ["arxiv:2607.07507", "arxiv:2604.15400", "openreview:5fCDEz43ya", "openreview:ZURs3YZclt", "openreview:YM3RcI3q0E", "arxiv:2605.13156", "arxiv:2606.08777", "arxiv:2607.04163"]
+    }
+  ],
+  "kill_filter_log": [
+    "KILLED (reshaped into C3): 'Interventional validation of internal hallucination signals' — direct prior art found in phase4_recheck (arxiv:2605.13156 activation-patching across 5 VLMs; arxiv:2606.08777 causal-influence metric + circuit discovery). Novelty would be ~0.35.",
+    "KILLED: 'Matched-budget audit of visual token importance metrics' (from cluster C4) — contribution is mainly an evaluation sweep; contribution_shape ~0.25, violates hard constraint #8.",
+    "SURVIVED: C1, C2, C3 all pass feasibility>=0.4, novelty>=0.3, venue_fit>=0.4, >=2 grounding papers, domain=multimodal, not-eval-paper."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "template": "iclr2026_conference",
+  "is_fallback": true,
+  "fallback_reason": "ICLR 2027 template not yet published as of fetch date; iclr.cc/Conferences/2027/* returns 404 and ICLR/Master-Template repo's latest entry is iclr2026",
+  "official_source": "https://github.com/ICLR/Master-Template/tree/main/iclr2026",
+  "fetch_method": "gh api repos/ICLR/Master-Template/contents/iclr2026 -> per-file download_url via curl",
+  "fetch_date": "2026-07-18",
+  "files": [
+    "fancyhdr.sty",
+    "iclr2026_conference.bib",
+    "iclr2026_conference.bst",
+    "iclr2026_conference.pdf",
+    "iclr2026_conference.sty",
+    "iclr2026_conference.tex",
+    "math_commands.tex",
+    "natbib.sty"
+  ],
+  "failed_attempts": [
+    {"url": "https://iclr.cc/Conferences/2027/CallForPapers", "result": "HTTP 404"},
+    {"url": "https://iclr.cc/Conferences/2027/Dates", "result": "HTTP 404"},
+    {"url": "https://raw.githubusercontent.com/ICLR/Master-Template/main/iclr2026.zip", "result": "git-LFS pointer, not a valid zip"}
+  ],
+  "action_required_before_stage4": "Re-check Master-Template repo and iclr.cc for the official iclr2027 template; swap in if released and inform the user"
+}

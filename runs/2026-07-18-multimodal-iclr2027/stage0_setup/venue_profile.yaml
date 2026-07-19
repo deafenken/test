@@ -1,0 +1,35 @@
+venue:
+  name: "ICLR 2027"
+  track: "Main Conference"
+  official_url: "https://iclr.cc/"          # 2027 subpages 404 as of 2026-07-18; profile derived from ICLR 2026 official pages
+  cfp_url_used: "https://iclr.cc/Conferences/2026/CallForPapers"
+  author_guide_used: "https://iclr.cc/Conferences/2026/AuthorGuide"
+  template_url: "https://github.com/ICLR/Master-Template (iclr2026/ dir; 2027 not yet published)"
+dates:
+  abstract_deadline: "2026-09-19 (UNCONFIRMED — aggregator; verify when iclr.cc/2027 goes live)"
+  full_paper_deadline: "2026-09-24 (UNCONFIRMED — aggregator)"
+  conference: "2027-04-24 to 2027-04-28, Brazil (UNCONFIRMED)"
+  historical_pattern: "ICLR full-paper deadlines: 2024→Sep 28, 2025→Oct 1, 2026→Sep 24; late-September is a safe planning assumption"
+review_emphasis:
+  - "novel algorithmic/mechanistic contribution with clear insight (not benchmark-chasing)"
+  - "rigorous empirical validation: strong baselines, ablations isolating each component, multiple seeds"
+  - "reproducibility (statement encouraged; code as supplementary)"
+  - "claims proportionate to evidence; falsifiable hypotheses"
+  - "clarity: 9-page main text forces tight scoping"
+avoid_patterns:
+  - "pure evaluation/benchmark papers without a mechanism or insight (hard sell at ICLR main track)"
+  - "incremental deltas on crowded leaderboards without ablation-backed explanation"
+  - "dependence on closed-source APIs that reviewers cannot reproduce"
+  - "overclaiming from small-scale experiments without scaling discussion"
+  - "undisclosed significant LLM contribution (desk rejection risk)"
+format_constraints:
+  page_limit: 9              # main text at submission; 10 at camera-ready
+  references: "unlimited"
+  appendix: "unlimited, after references; reviewers not obliged to read"
+  anonymized: true           # double-blind; identity leak => desk reject
+  style: "iclr (official .sty; 2026 version as interim)"
+  reproducibility_statement: "optional, does not count toward page limit"
+  ethics_statement: "optional, <=1 page, does not count"
+policies:
+  llm_usage: "significant LLM role in ideation/writing must be precisely disclosed; non-disclosure => desk rejection"
+  reciprocal_reviewing: ">=1 author per submission registered to review >=3 papers; authors on 3+ submissions must review 6"

@@ -1,0 +1,156 @@
+# Experiment plan — LOCKED at Stage 2 (pre-registration; integrity rule 6). REVISED against stress test (all 7 must-fixes).
+# Grounded in stage2_method/{verification_workflow_result.json, stress_test_result.json}.
+run_id: 2026-07-18-multimodal-iclr2027
+regime: "training-free (inference + attention/activation probing + activation steering + tiny supervised gate probe). NO RL, NO VLM fine-tuning."
+
+hypotheses:
+  H1_provenance_vs_position_vs_boundary:
+    statement: "The visual-attention surge enabling genuine re-examination is gated by trigger-token PROVENANCE (user vs self-generated), dissociable from absolute image position/recency AND from turn-boundary/sink-token insertion."
+    falsifiable_test: >
+      Matched-content, boundary-matched design (Qwen3-VL-8B-Thinking, >=200 swap-sensitive VisualSwap; byte-identical U;
+      image content = re-encoded I_b; sequence length + image->query distance aligned across cells). On the EVAL split:
+      provenance effect (C2-C3) instance-bootstrap 95% CI excludes 0; boundary control (C3-C1) small (CI includes 0 OR
+      effect < 0.5*(C2-C3)); marker/sink control C0m (user markers, empty U) does NOT reproduce the C2 surge; position
+      sweep PS does not by itself explain the surge. Per-head stats FDR-corrected across ~1150 heads.
+  H2_localization:
+    statement: "A small, split-clean identifiable set of provenance-conditioned visual-routing heads (K<=50, <15% of heads) carries the effect."
+    falsifiable_test: "Head selection + knee-K on a LOCALIZATION split; recovery + size-matched random-head control on a DISJOINT EVAL split (nested CV). K<=50 reaches >=80% full-set recovery, CI-separated from random; head-set stability across folds reported."
+  H3_targeted_fix:
+    statement: "Per-instance-gated restoration of the identified heads' image-mass toward the C2 (role-attributable) target at re-look steps recovers most of the C2 gap on swap-SENSITIVE instances with strictly lower collateral than TUNED global steering."
+    falsifiable_test: "Rec vs C2 ceiling (see metrics) >= threshold on swap-sensitive; collateral delta >= -2pp on swap-invariant + POPE + MME AND non-inferior to no-op; between-method advantage over each baseline's TUNED (recovery,collateral) frontier."
+  H4_gate:
+    statement: "A tiny supervised abstain gate g(x) predicts illusion-bound + swap-sensitive instances, and per-instance gating reduces collateral vs always-on targeted steering."
+    falsifiable_test: "AUROC reported on a held-out SWAPPED VisualSwap split (deployment distribution) AND a non-math OOD set, with bootstrap CI, vs an answer-margin-only baseline gate. PASS iff AUROC clears bar (>=0.70; see S5) OR gated policy Pareto-dominates always-on-targeted."
+
+metrics:
+  primary: >
+    Recovery fraction Rec = (acc_method - acc_self)/(acc_C2 - acc_self), scored against the ROLE-ATTRIBUTABLE C2 ceiling
+    (user-provenance, image far-back) that the training-free fix actually targets. Recency residual (acc_C4 - acc_C2) is
+    reported as a separate scientific quantity, NOT targeted. Domain (-inf, +inf): overshoot (Rec>1) reported as-is, not clipped.
+  headline_reporting: "ABSOLUTE accuracies {acc_self, acc_C2, acc_C4, acc_method} with PAIRED instance-bootstrap 95% CIs; Rec is a secondary normalized summary."
+  minimum_denominator_floor: "If (acc_C2 - acc_self) < 15pp (CI-adjusted), Rec is SUPPRESSED and only absolute accuracies reported. On secondary models with non-positive denominator, Rec undefined -> absolutes only."
+  secondary:
+    - "Collateral accuracy delta (pp) on swap-INVARIANT control + POPE(subsampled) + MME(subsampled), identical intervention"
+    - "Pareto dominance over TUNED global-2x / CAST / DMAS / PAI / TLVS-style per-token in (swap-sensitive recovery, swap-invariant collateral) plane"
+    - "Provenance effect C2-C3 (with C3-C1 boundary control and C0m marker control); FDR-corrected per-head"
+    - "Head-localization curve: split-clean smallest K reaching >=80% full-set recovery vs size-matched random control"
+    - "Gate AUROC on held-out SWAPPED split + non-math OOD set, vs answer-margin-only baseline, with bootstrap CI"
+    - "Downstream activation divergence of the composed intervention from true C2 (honest-scope check for §4.1)"
+    - "Latency/memory overhead: eager-attention capture + head-rescaling vs vanilla decode (MEASURED in W1)"
+  reporting: ["paired instance-bootstrap 95% CI (JOINTLY resampling seed and instance, since the swap-sensitive denominator set shifts across seeds)", "3 seeds for generation-stochastic runs"]
+
+power_and_mde:  # MUST-FIX #5 — pre-registered
+  w1_reporting_gate: "Report measured 8B self-vs-C2 and self-vs-C4 gaps; usable swap-SENSITIVE N (correct pre-swap AND answer changed by swap) and swap-INVARIANT N AFTER conditioning; and the resulting MDE for S1/S2."
+  mde_formula: "two-proportion / paired-difference MDE at alpha=0.05, power=0.8 on the measured usable N per model"
+  n_augmentation_trigger: "If MDE > target effect for S1 or S2 -> augment N via public-source VisualSwap reconstruction (4 source benchmarks) and/or stratified pooling across the reasoning models BEFORE the final eval grid; report pooled and per-model."
+  f3_precondition_moved_to_w1: "Measure global-2x/CAST/DMAS collateral on swap-invariant in W1 (before building P2-P4). If <2pp (near-harmless) -> pre-committed reframe to 'cheapest sufficient targeted fix', do NOT build the collateral-headline apparatus."
+
+datasets:
+  - name: "VisualSwap / VS-Bench"
+    source: "HF ChufanSHI/VisualSwap (arxiv:2605.15864)"
+    split: "800 pairs (4 configs x 200: MathVista_MINI/MathVerse_MINI/MathVision/MMMU_Pro_10c_COT). swap-SENSITIVE (correct pre-swap, answer changed) = recovery; no-swap re-encode = swap-INVARIANT collateral; LOCALIZATION vs EVAL instance splits pre-registered disjoint; held-out SWAPPED split for gate deployment-AUROC."
+    access: "SECURED 2026-07-19: PUBLIC + non-gated parquet (verified 4x200; fields image/question/answer/original_answer)."
+    role: "primary"
+  - name: "MathVista / MathVerse / MathVision / MMMU-Pro (source)"
+    source: "public HF mirrors (lmms-lab / official)"
+    split: "held-out UNSWAPPED source splits for gate proxy-label training (avoids 800-pair math shortcut); VisualSwap N-augmentation reconstruction"
+    access: "public"
+    role: "gate-training-proxy / N-augmentation"
+  - name: "non-math OOD gate-eval set"
+    source: "e.g. POPE-hard / a natural-image swap-style probe (fix exact set in W1)"
+    access: "public"
+    role: "gate anti-shortcut OOD test (all 4 source benchmarks are math/STEM)"
+  - name: "POPE"
+    source: "public HF (lmms-lab/POPE)"
+    split: "subsample <=1000 applied uniformly across ALL methods"
+    access: "public"
+    role: "collateral / CAST-DMAS home-turf sanity"
+  - name: "MME"
+    source: "public HF (lmms-lab/MME)"
+    split: "subsample (fixed count, uniform across methods)"
+    access: "public"
+    role: "general collateral"
+
+baselines:
+  - {name: "Self-reflection probe (no intervention)", paper: "arxiv:2605.15864", type: "lower-bound", must_reproduce: true}
+  - {name: "C2 role ceiling (user, far-back, no re-insert)", paper: "this work (control)", type: "role-attributable ceiling / primary denominator", must_reproduce: true}
+  - {name: "C4 user-turn oracle (image re-inserted)", paper: "arxiv:2605.15864", type: "recency-inclusive oracle (residual reported, not targeted)", must_reproduce: true}
+  - {name: "Global 2x visual-attention amplification (all heads)", paper: "arxiv:2605.15864 Tab.9", type: "primary comparison (TUNED strength on dev)", must_reproduce: true}
+  - {name: "CAST", paper: "arxiv:2605.04641", type: "head-localized always-on (reimplement; TUNE alpha on dev; NO public code)", must_reproduce: true}
+  - {name: "DMAS", paper: "arxiv:2602.21704", type: "dynamic head-subset always-on (reimplement; TUNE alpha/beta; NO public code)", must_reproduce: true}
+  - {name: "PAI", paper: "arxiv:2407.21771", type: "image-attn amplification + text-logit subtraction, always-on (public code; TUNE strength)", must_reproduce: false}
+  - {name: "TLVS-style per-token strength", paper: "arxiv:2606.07647", type: "per-token adaptive strength comparator (no abstain) — isolates gate novelty", must_reproduce: false}
+  - {name: "VCD", paper: "arxiv:2311.16922", type: "contrastive decoding (public code) — harness anchor", must_reproduce: false}
+  baseline_tuning: "MUST-FIX #7: each comparator's strength (global-2x factor, CAST alpha, DMAS alpha/beta, PAI strength, TLVS strength) TUNED on a VisualSwap dev split to its own best point on the (recovery, collateral) plane under a tuning budget MATCHED to the method's; report each baseline's FULL strength sweep, and make the Pareto claim against each baseline's TUNED frontier."
+
+models:
+  primary: ["Qwen3-VL-8B-Thinking", "Qwen2.5-VL-7B-Instruct", "one open reasoning-7B (OpenVLThinker-7B OR VL-Rethinker-7B — verify HF)"]
+  secondary_replication: ["Qwen3-VL-8B-Instruct"]
+  controls: ["LLaVA-1.5-7B (non-reasoning)", "InternVL2.5-8B"]
+  stretch: ["Qwen3-VL-30B-A3B (FP8 sharded; cross-scale only)"]
+  hardware_note: "8B/7B fit single L40 (~16GB bf16). Nothing requires >4xL40; 30B-A3B only via FP8 shard (stretch)."
+
+ablations:
+  - {name: "gate-variable dissociation (C1/C2/C3/C0m + PS)", isolates: "role vs boundary vs sink vs recency", expected_effect: "C2-C3>0, C3-C1~=0, C0m~=C1; else Fallback A"}
+  - {name: "localization vs global (split-clean)", isolates: "the localization component", expected_effect: "targeted >= global recovery at lower collateral; beats random on eval split"}
+  - {name: "head-set-size sweep K in {3,10,30,50,100}", isolates: "how small the sufficient set is", expected_effect: "recovery knee at K<=50"}
+  - {name: "per-instance gate vs always-on-targeted vs always-on-global vs TLVS-per-token", isolates: "the abstain decision", expected_effect: "gated preserves swap-invariant/POPE/MME at matched recovery"}
+  - {name: "steering rule/target", isolates: "per-instance p_hat(x) vs population-mean clamp vs fixed-2x vs additive; independent vs joint/iterative solve", expected_effect: "per-instance + joint gives best recovery-per-collateral; report downstream divergence from true C2"}
+  - {name: "intervention timing (re-look-only vs all-steps)", isolates: "when steering applied", expected_effect: "re-look-only sufficient, lower collateral"}
+  - {name: "gate feature set (internal vs surface vs answer-margin-only)", isolates: "the gate's input", expected_effect: "internal features add AUROC over margin-only baseline"}
+
+seeds: [0, 1, 2]
+seeds_note: "3 seeds; bootstrap JOINTLY resamples seed+instance. If W1 seed-variance is large, escalate to 5 seeds within the 106 GPU-h contingency."
+
+compute_estimate:  # MUST-FIX #6 — arithmetic made explicit; latency to be MEASURED in W1 and phases recomputed
+  budget_gpu_hours: 600
+  parameters_to_measure_in_w1:
+    position_grid_size: 7          # PS grid points (pre-registered); P1 cost scales with this
+    eager_attn_latency_per_gen: "MEASURE on a real Thinking trace in W1; recompute P1/P6 from it before committing"
+    pope_subsample: 1000
+    mme_subsample: 1000
+    swap_sensitive_target_N: ">=200 (augment if MDE fails)"
+  phases:  # totals include 1.3x buffer; assume ~ measured latency; REVISED if W1 latency differs
+    - {phase: "P1 W1 GO/NO-GO: self/C2/C3/C0m/C4 + PS(7) dissociation + latency+MDE+global-2x collateral(F3)", runs: 6, gpu_h_each: 14, gpu_h_total: 84}
+    - {phase: "P2 head localization (split-clean, nested CV, FDR); causal validation", runs: 4, gpu_h_each: 15, gpu_h_total: 60}
+    - {phase: "P3 targeted steering dev + ablations (size, rule/target, timing)", runs: 8, gpu_h_each: 14, gpu_h_total: 112}
+    - {phase: "P4 gate: activation caching (reuses P3) + probe + gated-vs-always-on + swapped/OOD AUROC", runs: 4, gpu_h_each: 8, gpu_h_total: 32}
+    - {phase: "P5 baselines: reimplement+TUNE CAST/DMAS, PAI/TLVS/VCD, global-2x; POPE/MME sanity", runs: 12, gpu_h_each: 10, gpu_h_total: 120}
+    - {phase: "P6 final grid: method vs tuned baselines vs C2/C4, 3 models x 3 seeds, subsampled collateral sets, bootstrap CIs", runs: 6, gpu_h_each: 13, gpu_h_total: 78}
+  total_gpu_hours: 486
+  contingency_gpu_hours: 114
+  fits_budget: true
+  budget_caveat: "fits_budget is CONDITIONAL on the W1-measured eager-attention latency. If P6 exceeds budget once measured, cut the method x model x seed x dataset cross (drop a control model or a collateral set) BEFORE execution, not mid-run."
+
+schedule_weeks:
+  - {week: "W1 (from 2026-07-19; folds Week-0)", milestone: "Secure VisualSwap (DONE); build eager-attn hook+head-capture; measure latency; reproduce self/C2/C4 gaps; run C2/C3/C0m/PS dissociation; measure global-2x collateral (F3); compute MDE", kill_gate: "GO iff self-vs-C2 gap >=15pp AND (C2-C3 CI excludes 0) AND (C3-C1 small) AND (C0m does not reproduce surge). Report MDE + F3 collateral."}
+  - {week: "W2", milestone: "Split-clean head localization (nested CV, FDR); causal validation vs random", kill_gate: "K<=50 provenance-differential set with causal recovery CI-separated from random on EVAL split"}
+  - {week: "W3", milestone: "Targeted steering (per-instance target, re-look steps); size/rule/timing ablations; downstream-divergence check", kill_gate: "targeted recovers >=40% of C2 gap on swap-sensitive (interim); else escalate/Fallback"}
+  - {week: "W4", milestone: "Abstain gate: caching, probe, gated-vs-always-on, swapped+OOD AUROC vs margin-only", kill_gate: "AUROC >=0.70 on swapped split OR gated Pareto-dominates always-on-targeted; else F5 (drop gate)"}
+  - {week: "W5", milestone: "Reimplement + TUNE CAST/DMAS; PAI/TLVS/VCD; POPE/MME home-turf sanity; global-2x tuned frontier", kill_gate: "CAST/DMAS reproduce published-direction effect on POPE; baselines tuned on dev; else caveat"}
+  - {week: "W6", milestone: "Second/third-model replication; collateral on subsampled sets; N-augmentation if MDE failed", kill_gate: "method Pareto-dominates tuned global-2x on >=1 model (recovery vs collateral)"}
+  - {week: "W7", milestone: "Final grid: 3 seeds, joint bootstrap CIs, Pareto plots; optional 30B-A3B-FP8 stretch", kill_gate: "locked S1-S3 met with CIs; else Fallback A/B framing"}
+  - {week: "W8", milestone: "Analysis, figures, ablation tables, writing; document negatives honestly; freeze results", kill_gate: "all pre-registered claims resolved (supported or reported negative)"}
+  - {week: "W9 (to 2026-09-24)", milestone: "Buffer: polish, reviewer-proofing, contingency reruns / 5-seed escalation", kill_gate: "submission-ready; ~114 GPU-h contingency"}
+
+success_criteria:  # PRE-REGISTERED — locked. Reference the C2 ceiling (reconciled with F2).
+  - "S1 (primary): on swap-sensitive VisualSwap, targeted+gated method recovers >=50% of the self->C2 (role-attributable) gap on Qwen3-VL-8B-Thinking, and >=40% on >=1 other reasoning model (Rec vs C2; absolutes headline)."
+  - "S2 (collateral crux, non-inferiority): on swap-INVARIANT + POPE + MME, method delta >= -2pp (non-inferiority margin) AND collateral significantly smaller than each TUNED baseline's frontier at matched recovery (pre-registered between-method test, not raw CI-overlap), at an N whose MDE (pre-registered) covers the target effect."
+  - "S3 (localization): split-clean K<=50 (<15% heads) reaches >=80% full-set recovery on the EVAL split, CI-separated from size-matched random control; head set stable across folds."
+  - "S4 (mechanism headline): provenance effect C2-C3 significant (FDR-corrected) with C3-C1 small and C0m not reproducing the surge; position sweep does not explain it."
+  - "S5 (gate): AUROC >=0.70 on held-out SWAPPED split (CI lower bound >0.5) OR gated Pareto-dominates always-on-targeted; internal features beat answer-margin-only baseline."
+
+failure_criteria:  # PRE-REGISTERED kill switches
+  - "F1 (underpowered at feasible scale): self-vs-C2 gap <15pp on Qwen3-VL-8B-Thinking AND on 30B-A3B-FP8 -> pivot/rescope (Fallback B)."
+  - "F2 (role falsified): C2-C3 CI includes 0, OR C3-C1 explains >=50% of C2-C1, OR C0m reproduces the C2 surge -> mechanism is boundary/sink or recency -> Fallback A (boundary/recency gating) or Fallback B."
+  - "F3 (no collateral headroom): TUNED global-2x collateral <2pp on swap-invariant (measured W1) -> reframe to 'cheapest sufficient targeted fix' BEFORE building P2-P4."
+  - "F4 (localization diffuse): no split-clean K<=50 beats random / recovery needs >50% heads -> drop 'small localized set', keep provenance-gated global steering + gate."
+  - "F5 (gate useless): swapped-split AUROC CI includes 0.5 AND gating gives no collateral benefit -> drop gate, report always-on-at-re-look targeted steering only."
+
+fallbacks:
+  A: "Role falsified but a training-free trigger works: reframe to the winning variable. C3/C0m surge -> turn-boundary/sink-reset fix (boundary marker at re-look, gated). PS drives it -> image-recency fix (re-prefill/re-position visual KV at re-look). Both stay training-free, targeted, gated, still beat global-2x on collateral."
+  B: "Minimum GUARANTEED contribution (pre-committed): the first head-level, matched-content causal dissociation of what drives the re-examination surge (provenance vs position vs boundary vs content) + recency curve + split-clean localization + strongest training-free targeted fix Pareto'd vs global-2x/CAST/DMAS. ICLR-viable as diagnosis+mechanism, strictly deeper than 2605.15864's layer-level analysis, independent of whether role or the fix survives."
+
+scoop_verdict: "NOT scooped (verified W0). TLVS (2606.07647) = per-TOKEN strength, no abstain, calibration-trained, no provenance, general hallucination. VisFlow (2506.12609) = token-TYPE (system/visual/text), not user-vs-self provenance, always-on, first-generation. Neither addresses the re-examination illusion nor per-instance abstain gating conditioned on trigger provenance. Load-bearing novel atom (self-vs-user provenance + abstain gate + re-examination) survives. 2508.17807 = token-pruning debiasing = SUPPORTING evidence for the recency/sink confound."
+
+reproducibility_required_per_run: ["git_commit", "seed", "full_config_yaml", "gpu_model", "library_versions", "model_revision_hash"]

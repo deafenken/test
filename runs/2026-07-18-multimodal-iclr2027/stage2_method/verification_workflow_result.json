@@ -1,0 +1,1011 @@
+{
+  "summary": "De-risk the chosen VLM role-gated re-examination direction: deep-read scoop threats, verify steering baselines exist, assess mechanism plausibility, confirm data/model/compute feasibility on 4xL40, emit a locked experiment-plan skeleton",
+  "agentCount": 8,
+  "logs": [
+    "[stall] agent \"plan-skeleton\" stalled (no progress) after 592s — retrying (1/5)"
+  ],
+  "result": {
+    "recon": [
+      {
+        "topic": "Scoop close-read #1: VRRL (arXiv:2607.02490, 'Visually Grounded Self-Reflection for Vision-Language Models via Reinforcement Learning', Tang, Yin, Durrett) vs. the chosen training-free, head-level, role/provenance-mechanism direction.",
+        "key_findings": [
+          {
+            "finding": "VRRL is entirely an RL/post-training method (two-stage SFT->RL), not a training-free or inference-time intervention. Its two components are Random Turn/Prefix Masking (mask trajectory prefixes to emphasize recovery from wrong intermediate predictions) and Buffered Roll-Ins from an experience replay buffer of failure states; a reward R = max(answer_reward, reflection_reward) when format valid. This is the opposite of the chosen training-free approach.",
+            "evidence": "arxiv:2607.02490 abstract ('we propose a novel reinforcement learning training framework VRRL' ... 'randomly mask trajectory prefixes during training' ... 'buffered roll-ins from an experience replay buffer'); full text via arxiv.org/html/2607.02490 ('Our training pipeline follows a two-stage SFT -> RL recipe').",
+            "confidence": "high"
+          },
+          {
+            "finding": "VRRL does NO attention-head-level analysis and NO quantitative measurement of visual-token attention. It asserts models 'fail to attend to visual inputs during reflection' but supports this only by citing external work (Ma et al., 2026), presenting no original attention-weight/attention-ratio metrics, no head localization, and no visualization of visual-token focus during reflection.",
+            "evidence": "arxiv.org/html/2607.02490 fetch: 'No individual attention head analysis is provided' and 'No quantitative analysis of visual attention'; motivation cites 'LVLMs often fail to attend to relevant visual tokens (Ma et al., 2026)' rather than measuring it.",
+            "confidence": "high"
+          },
+          {
+            "finding": "VRRL never invokes token ROLE or PROVENANCE (user-provided vs self-generated/assistant tokens). It reasons at trajectory/turn granularity (prefix vs suffix), not at the role-of-token level, and does not dissociate role from position. The chosen direction's core mechanism (role-conditioned visual-routing heads) is untouched.",
+            "evidence": "arxiv.org/html/2607.02490 fetch: 'No discussion of token roles or whether tokens are user-provided versus self-generated ... focuses on trajectory-level and turn-level reasoning without token-level categorization.'",
+            "confidence": "high"
+          },
+          {
+            "finding": "VRRL applies its trained policy uniformly with NO per-instance gate deciding whether to intervene on a given example; there is no supervised probe on internal features and no swap-sensitivity classifier.",
+            "evidence": "arxiv.org/html/2607.02490 fetch: 'No per-instance gating mechanism. The model applies the same training procedure uniformly across examples.'",
+            "confidence": "high"
+          },
+          {
+            "finding": "VRRL uses NO VisualSwap/VS-Bench-style image-swap detection. Its evaluation is visual grounding on synthetic tables/charts and spatial navigation (FrozenLake), measuring OOD accuracy under distribution shift, not swap-sensitivity vs swap-invariance.",
+            "evidence": "arxiv:2607.02490 abstract ('visual grounding tasks involving tables and charts, as well as spatial navigation benchmarks'); full-text fetch names 'FrozenLake, a grid-based navigation task' and confirms 'Neither VisualSwap nor image-swap detection is discussed.'",
+            "confidence": "high"
+          },
+          {
+            "finding": "Base models are Qwen2.5-VL-3B and Qwen2.5-VL-7B-Instruct (plus Qwen3-VL-4B-Instruct for navigation), trained with ~15K SFT + ~6K RL examples on visual grounding. These are the same Qwen2.5-VL family the chosen training-free study can probe, so shared model substrate does not create a scoop.",
+            "evidence": "arxiv.org/html/2607.02490 fetch: base models 'Qwen2.5-VL-3B' and 'Qwen2.5-VL-7B-Instruct'; 'Qwen3-VL-4B-Instruct' for spatial navigation; '15K training examples for SFT and 6K for RL'.",
+            "confidence": "medium"
+          },
+          {
+            "finding": "VRRL does NOT compare against or cite activation-steering baselines (CAST arxiv:2605.04641, DMAS arxiv:2602.21704) or any training-free steering; it targets the same symptom (poor visual grounding during reflection) but via a disjoint solution family, leaving the mechanistic 'why' and the training-free 'how' open.",
+            "evidence": "arxiv.org/html/2607.02490 fetch: 'No citations to CAST, DMAS, or other activation steering approaches appear in the paper. The work is entirely training-dependent.'",
+            "confidence": "medium"
+          }
+        ],
+        "scoop_assessment": {
+          "is_scooped": false,
+          "closest_paper": "VRRL, arXiv:2607.02490 (Tang, Yin, Durrett) — 'Visually Grounded Self-Reflection for Vision-Language Models via Reinforcement Learning'",
+          "gap_remaining": "VRRL shares only the high-level PROBLEM (VLMs fail to visually re-ground during self-reflection) but overlaps on ZERO of the five discriminating axes. It leaves fully open: (a) any TRAINING-FREE / inference-time intervention (VRRL is SFT->RL only — directly complementary, since the chosen paper explicitly forbids RL/fine-tuning); (b) attention-HEAD-level localization of the re-look mechanism (VRRL does no head analysis and no quantitative visual-attention measurement at all — it merely cites the failure); (c) the token ROLE/PROVENANCE hypothesis, i.e. that the visual-attention surge is gated by user-provided vs self-generated provenance and dissociable from position via a matched-content 3-condition design (VRRL works at prefix/suffix trajectory granularity, never at role granularity); (d) a tiny per-instance supervised GATE g(x) predicting illusion-bound + swap-sensitive instances (VRRL intervenes uniformly, no probe); (e) VisualSwap/VS-Bench swap-sensitivity vs swap-invariance evaluation (VRRL uses OOD tables/charts + FrozenLake). Crucially VRRL provides NO mechanistic 'why', which is precisely the chosen paper's core contribution. VRRL is best positioned as a related-work contrast ('an RL solution to the same symptom') and even as motivation: it treats the grounding failure as something only training can fix, which the training-free head-level role-gated fix would rebut.",
+          "differentiation_strength": "strong"
+        },
+        "risks": [
+          "VRRL cites 'Ma et al., 2026' for the visual-attention-failure claim — this may be the same phenomenon paper (arxiv:2605.15864) or an adjacent one; if that citation is itself the 'Are VLMs Seeing or Just Saying?' work, reviewers will expect the chosen paper to clearly position against BOTH the phenomenon paper and its RL-based follow-ups like VRRL as the emerging 'solution' cluster.",
+          "Framing risk: VRRL establishes that self-reflection grounding is a recognized, actively-worked problem with an RL solution already published. Reviewers may ask 'why training-free if RL already works?' — the chosen paper must foreground VRRL's collateral cost / lack of mechanism and its 600-GPU-h, no-training constraint as the differentiator, and ideally show the training-free fix approaches VRRL-style gains on swap-sensitive instances without training.",
+          "Could not access a full rendered HTML body with figures/tables directly (ar5iv has no HTML for this ID; findings rest on the arXiv abstract plus the arxiv.org/html summarization). A human should skim the actual analysis section to confirm there is genuinely zero head-level or role-level probing before finalizing the related-work contrast.",
+          "VRRL and the chosen paper share the Qwen2.5-VL family; ensure the chosen paper's mechanism study uses instances/benchmarks (VisualSwap) that VRRL never touched so overlap stays purely at the shared-backbone level, not shared-evaluation level."
+        ],
+        "recommendations_for_plan": [
+          "Cite VRRL (2607.02490) in related work as the closest RL-based solution to the SAME symptom, and explicitly enumerate the five axes it does NOT cover (training-free, head-level, role/provenance, per-instance gate, swap-sensitivity) — this pre-empts the obvious 'already solved by RL' reviewer objection.",
+          "Position the paper's PRIMARY novelty as the mechanistic WHY (role/provenance-gated visual routing heads) that VRRL and the phenomenon paper both leave unexplained; make the matched-content 3-condition (self mid-decode / user-turn / assistant-turn-boundary) dissociation the headline mechanism result since no prior work separates ROLE from POSITION.",
+          "Consider adding VRRL as a conceptual (not necessarily reproduced) point of comparison: argue and, if feasible, show that a training-free head-rescaling fix recovers most of the self-vs-user gap that VRRL spends SFT+RL to achieve — a strong efficiency/mechanism story under the 600 GPU-h budget.",
+          "Resolve the 'Ma et al., 2026' citation in VRRL to check whether it is arxiv:2605.15864; unify the phenomenon-paper + VRRL citations into a single 'recognized problem, no internal mechanism' narrative block.",
+          "Keep evaluation on VisualSwap/VS-Bench (swap-sensitive vs swap-invariant split) as the primary testbed to guarantee zero evaluation overlap with VRRL's tables/charts/FrozenLake, reinforcing differentiation."
+        ]
+      },
+      {
+        "topic": "Scoop close-read #2: training-free, head-localized, role/provenance-gated, per-instance fix for the VLM visual re-examination illusion (ICLR 2027 direction C1-repaired)",
+        "key_findings": [
+          {
+            "finding": "Phenomenon paper arxiv:2605.15864 ('Are VLMs Seeing or Just Saying?', Shi et al., ICML 2026 Oral) is VERIFIED REAL with the exact numbers claimed. Self-vs-user gap on Qwen3-VL-235B-A22B-Thinking: 88.8% base -> 34.1% self-reflection probe -> 85.4% user multi-turn (+51.3pp recovery via user turn). The ~60% drop = ERNIE-4.5-VL-28B-A3B-Thinking 79.9%->19.6% (delta-delta 60.3%). The ~85% recovery = the 85.4% user-turn figure. Thinking-model 3x: Qwen3-VL-32B-Instruct drops 17.9% avg vs its Thinking variant 48.3%, ~3x.",
+            "evidence": "arxiv.org/html/2605.15864 (full text): '88.8% ... 34.1% ... 85.4%'; 'plummets from 79.9% to 19.6%'; 'Instruct drops 17.9% on average, while its Thinking variant drops 48.3%, nearly 3x'",
+            "confidence": "high"
+          },
+          {
+            "finding": "The user-turn ORACLE is a 2-turn protocol: Turn 1 gives image I_a + question Q, model produces reasoning R_a; Turn 2 swaps to image I_b and the USER supplies an explicit instruction U 'Check the image again and re-examine' (Appendix C), i.e. R_multi = M(I_b, [Q, R_a, U]). This is exactly the user-vs-self contrast the chosen direction seeks to close training-free.",
+            "evidence": "arxiv.org/html/2605.15864: 'the user provides a distinct instruction U requesting re-examination: R_multi = M(I_b,[Q,R_a,U])'; Appendix C prompt 'Check the image again and re-examine'",
+            "confidence": "high"
+          },
+          {
+            "finding": "CRITICAL OVERLAP: the phenomenon paper ALREADY includes a training-free internal intervention as a proof-of-concept: under the Probe setting they scale image-token attention weights by 2x during generation, gaining +18.2% for the Thinking variant (Tab. 9). They call it a proof-of-concept and 'leave further exploration to future work.' This is a GLOBAL (all-heads) amplification and is the naive baseline the chosen direction must beat with head-localization + role-gating + per-instance gating.",
+            "evidence": "arxiv.org/html/2605.15864: 'we scale the attention weights allocated to image tokens by a factor of 2x during generation ... the Thinking variant improving by +18.2% ... We view this as a proof-of-concept'",
+            "confidence": "high"
+          },
+          {
+            "finding": "The phenomenon paper's attention analysis is AGGREGATE across all heads, NOT head-level. Their visual attention score S_vis averages over all H heads (1/H sum_h) and reports layer averages (e.g. layers 18-21 for the 8B model). They do NOT localize individual role-conditioned heads and do NOT frame gating by token role/provenance. This leaves the chosen direction's head-localization + provenance-mechanism study genuinely open.",
+            "evidence": "arxiv.org/html/2605.15864: 'S_vis(l)(t) = 1/H sum_{h=1..H} sum_{v in V} A_{t,v}(l,h)' averaged across heads/layers",
+            "confidence": "high"
+          },
+          {
+            "finding": "NOT SCOOPED as a complete package. No 2026 paper found delivers training-free + head-localized + role/provenance-gated + per-instance-gated fix for the self-reflection illusion. Nearest neighbors are for OBJECT HALLUCINATION, not the re-examination illusion: CAST (arxiv:2605.04641) is training-free, probes to identify caption-sensitive attention heads and steers them; DMAS (arxiv:2602.21704) is training-free, finds distinct head subsets for truthfulness vs visual perception and does per-context dynamic steering-vector selection. Both = the 'global/collateral' baselines the direction already names.",
+            "evidence": "arxiv.org/abs/2605.04641 (CAST: 'identify attention heads highly sensitive to caption queries ... steering directions'); arxiv.org/abs/2602.21704 (DMAS: 'truthfulness and visual perception ... different subsets of attention heads ... dynamically selecting the most relevant steering vectors')",
+            "confidence": "high"
+          },
+          {
+            "finding": "Look-Back (arxiv:2507.03019) is NOT a scoop and NOT training-free: it uses a two-stage SFT+RL pipeline to teach a <back> token; the re-focusing emerges from training and is not head-localized or role/provenance-based. Violates the training-free constraint and does not address role gating.",
+            "evidence": "arxiv.org/html/2507.03019v1: 'comprises two primary stages: supervised fine-tuning (SFT) and reinforcement learning (RL)'; generates special <back> token",
+            "confidence": "high"
+          },
+          {
+            "finding": "Other adjacent 2026 papers are NOT scoops: VRRL 'Visually Grounded Self-Reflection via RL' (arxiv:2607.02490, Tang/Yin/Durrett) is RL training; BUS (arxiv:2607.07361) is a label-free TRAINING framework (backward prediction); DeAR (arxiv:2603.01111) decomposes head 'roles' but as FUNCTIONAL roles (attribute/generalization/mixed) via fine-tuning/prompt-learning, NOT token provenance and NOT the re-examination illusion. The specific 'role = user-provided vs self-generated provenance' framing appears novel.",
+            "evidence": "arxiv 2607.02490 ('novel reinforcement learning training framework VRRL'); 2607.07361 ('label-free training framework'); arxiv.org/abs/2603.01111 ('roles ... Attribute, Generalization, and Mixed ... prompt learning ... learnable tokens')",
+            "confidence": "high"
+          },
+          {
+            "finding": "VS-Bench is RELEASED and usable: 800 image pairs (200 each from MathVista/MathVerse/MathVision/MMMU-Pro), project page visualswap.github.io, code repo github.com/visualswap/visualswap, license CC BY 4.0. Feasible models on 4x L40 48GB exist: Qwen3-VL-8B (Instruct AND Thinking both on HF) and MoE Qwen3-VL-30B-A3B (3B active). The 235B and 32B/28B models used for the headline numbers are NOT feasible on the hardware.",
+            "evidence": "arxiv.org/html/2605.15864 'code and dataset available at visualswap.github.io'; CC BY 4.0; HF collections/Qwen/qwen3-vl lists 2/4/8/32B dense + 30B-A3B & 235B-A22B MoE, Instruct+Thinking each; huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+            "confidence": "high"
+          }
+        ],
+        "risks": [
+          "MARGIN RISK (highest): the phenomenon paper's own GLOBAL 2x visual-attention amplification already recovers +18.2% training-free. The primary claim ('recover most of the gap WITHOUT the collateral loss that global steering incurs') requires FIRST demonstrating that global steering actually causes collateral loss on swap-invariant instances -- the phenomenon paper reports only gains, not collateral damage. If global amplification turns out to be nearly harmless on swap-invariant cases, the head-localized + gated method has little headroom to justify its complexity.",
+          "MECHANISM RISK: the entire framing rests on role/provenance (user vs self) being dissociable from POSITION/RECENCY. The 3-condition matched-content design must confirm this. If turn-boundary/recency or the KV-cache position (not provenance) drives the visual-attention surge, the 'role-conditioned routing heads' story collapses into a positional-encoding story -- reframe risk.",
+          "STATISTICAL POWER: VS-Bench is only 800 pairs, math-only. After subsetting to 'swap-sensitive' instances per model and holding out a probe-training split, the per-instance gate g(x) may train/evaluate on a few hundred instances -- thin for a supervised probe and for claiming 'no degradation on swap-invariant' with tight CIs. Plan bootstrap CIs and possibly augment with additional swap pairs.",
+          "SCALE-TRANSFER RISK: headline effects (3x, 60% drop, +51pp) are largest on 235B/32B/28B Thinking models that DO NOT fit the hardware. Must first reproduce a meaningful self-vs-user gap on Qwen3-VL-8B-Thinking / 30B-A3B-Thinking; if the gap is small at feasible scale, the recovery ceiling shrinks and effect sizes may be underpowered.",
+          "GENERALIZATION OF HEAD SET: 'role-conditioned visual-routing heads' may be model-specific; heads localized on Qwen3-VL-8B may not transfer to 30B-A3B/Kimi-VL, weakening any cross-model claim. Budget for per-model localization.",
+          "IMPLEMENTATION COST: intervening on attention weights requires eager (non-FlashAttention) attention at re-look steps, raising memory/latency; on 4x L40 without NVLink, MoE 30B-A3B sharding + eager attention + activation capture on 800x(multi-condition) runs must be scoped carefully within ~600 GPU-h."
+        ],
+        "recommendations_for_plan": [
+          "Position the contribution explicitly AGAINST the phenomenon paper's own global 2x amplification PoC (Tab. 9) as the primary baseline, not just CAST/DMAS. The paper's headline must be: head-localized + role-gated + per-instance gated BEATS global amplification in accuracy-per-unit-collateral, and add RL-free/global-steering baselines (CAST 2605.04641, DMAS 2602.21704) for completeness.",
+          "Make the collateral-loss claim FALSIFIABLE and measured: define a swap-INVARIANT control set (instances where the swapped image does not change the answer, or answer is text-derivable) and report accuracy delta on it under global vs gated steering. The whole thesis hinges on global steering hurting this set.",
+          "Front-load the mechanism study (3-condition matched-content self/user/assistant-role-boundary) as the paper's intellectual core and the novelty anchor -- it is the one component with NO prior overlap. Pre-register the dissociation prediction (role explains variance beyond position) and report a position-only control.",
+          "Lock feasibility to Qwen3-VL-8B-Instruct/Thinking and Qwen3-VL-30B-A3B-Instruct/Thinking; reproduce the self-vs-user gap at this scale in week 1 as a go/no-go gate before building the gate/steering machinery.",
+          "Download VS-Bench (CC BY 4.0, github.com/visualswap/visualswap) and exactly replicate the Appendix-C user-turn oracle prompt ('Check the image again and re-examine') so your 'recover toward user-oracle' metric is directly comparable to their reported 85.4%/+51.3pp.",
+          "Cite and differentiate from Look-Back (2507.03019, SFT+RL), VRRL (2607.02490, RL), BUS (2607.07361, label-free training), and DeAR (2603.01111, functional-role fine-tuning) to preempt reviewer 'already done' claims -- emphasize training-free AND provenance-role (not functional-role) AND the re-examination-illusion target as the joint novelty.",
+          "Budget for per-model head localization and bootstrap CIs on the small (~800, subset) VS-Bench; consider curating extra swap pairs to strengthen the per-instance gate's training/eval split."
+        ],
+        "scoop_assessment": {
+          "is_scooped": false,
+          "closest_paper": "Two-front closest: (method) CAST arxiv:2605.04641 and DMAS arxiv:2602.21704 already do training-free, attention-head-localized (and, for DMAS, per-context dynamic) visual-attention steering -- but for object hallucination, not role/provenance-gated, not the re-examination illusion. (problem+fix) The phenomenon paper itself arxiv:2605.15864 already ships a GLOBAL training-free 2x visual-attention amplification PoC (+18.2%) for this exact illusion, but all-heads, not localized, not role-gated, not per-instance gated, and explicitly left as future work.",
+          "gap_remaining": "The full package -- training-free, head-localized, role/provenance-conditioned (user-vs-self) gating, with a per-instance supervised gate targeting swap-sensitive instances, applied to the self-reflection re-examination illusion, and shown to beat global amplification with less collateral loss -- is UNCLAIMED. The role/provenance mechanistic framing (gate conditioned on token provenance, dissociated from position via matched-content 3-condition design) has no prior overlap and is the strongest novelty anchor.",
+          "differentiation_strength": "moderate"
+        }
+      },
+      {
+        "topic": "Baseline verification: training-free visual-attention steering / visual-contrastive-decoding methods for VLM hallucination (differentiation target for a role-gated, per-instance training-free fix)",
+        "key_findings": [
+          {
+            "finding": "CAST (arxiv:2605.04641) RESOLVES to the exact cited paper: 'CAST: Mitigating Object Hallucination in LVLMs via Caption-Guided Visual Attention Steering' (Li, Ye, Feng et al.). Training-free, plug-and-play. Uses probing to find caption-sensitive attention heads (Top-K, concentrated in layers 7-20) and ADDS a precomputed shift vector alpha*S(l,h) to those head outputs. Crucially the gating function I(l,h) selects WHICH HEADS, not which instances: steering is applied to ALL instances at EVERY decoding step. This is head-localized but instance-indiscriminate / always-on = exactly our differentiation target (it never abstains and is not conditioned on token role/provenance or on whether genuine re-examination is occurring).",
+            "evidence": "http://export.arxiv.org/api/query?id_list=2605.04641 and https://arxiv.org/html/2605.04641v1 (extracted: gating I(l,h)=1 for caption heads/0 otherwise; hidden state O(l,h)+I(l,h)*alpha*S(l,h) applied every decoding step; avg 6.03% hallucination reduction)",
+            "confidence": "high"
+          },
+          {
+            "finding": "DMAS (arxiv:2602.21704) RESOLVES to 'Dynamic Multimodal Activation Steering for Hallucination Mitigation in LVLMs' (Yin, Chen, Chen, Zhou, Wu, He). Training-free. Builds a database of semantic-based truthfulness steering vectors + visual-perception steering vectors; at inference it dynamically retrieves WHICH vector by input semantic similarity and applies it to Top-K influential heads (K in {32..1024}). Key nuance: 'dynamic' = choosing which vector, NOT deciding whether to steer — it still steers every input, and is not role/provenance-conditioned. Reports F1 collapse when strength alpha/beta too large (collateral degradation), confirming the global-steering trade-off we target.",
+            "evidence": "http://export.arxiv.org/api/query?id_list=2602.21704 and https://arxiv.org/html/2602.21704v1 (extracted: retrieves vector by semantic similarity, binary masks to most influential heads; 'when alpha and beta become excessively large, F1 score shows a precipitous decline')",
+            "confidence": "high"
+          },
+          {
+            "finding": "The phenomenon paper cited (arxiv:2605.15864, 'Are VLMs Seeing or Just Saying?') RESOLVES correctly and matches the brief: VisualSwap/VS-Bench (800 pairs from MathVista/MathVerse/MathVision/MMMU-Pro), tested Qwen3-VL/Kimi-VL/ERNIE-VL, up to 60% accuracy drop, thinking models ~3x more vulnerable, user instructions restore visual grounding + surge visual-token attention while self-reflection does not. Confirms the self-vs-user gap and the attention-surge mechanism our method exploits.",
+            "evidence": "http://export.arxiv.org/api/query?id_list=2605.15864",
+            "confidence": "high"
+          },
+          {
+            "finding": "Spectral-QK / 'QK Product Steering' (arxiv:2606.20419, Tiwari, Chordia, Prathosh) RESOLVES. Data-free, training-free, ZERO inference-cost STATIC WEIGHT EDIT: suppresses dominant singular modes of the per-head query-key product in middle layers via a closed-form query-only update (GQA-compatible). Because it edits weights, it is by construction always-on and global across every input — the most indiscriminate baseline. Modest effect: avg 4.0% relative CHAIR_s reduction on three GQA-based VLMs. No code link in paper.",
+            "evidence": "http://export.arxiv.org/api/query?id_list=2606.20419 / https://arxiv.org/html/2606.20419v1",
+            "confidence": "high"
+          },
+          {
+            "finding": "VCD (arxiv:2311.16922, CVPR2024) confirmed with PUBLIC CODE at https://github.com/DAMO-NLP-SG/VCD. Training-free contrastive decoding: contrasts logits from original vs Gaussian-noised image, applied to every token of every instance (global). Costs ~2x forward passes. Classic, well-supported baseline; trivially reproducible on one L40 with a 7B VLM.",
+            "evidence": "http://export.arxiv.org/api/query?id_list=2311.16922 and https://github.com/DAMO-NLP-SG/VCD (CVPR 2024 Highlight repo confirmed via search)",
+            "confidence": "high"
+          },
+          {
+            "finding": "PAI (arxiv:2407.21771, ECCV2024) confirmed with PUBLIC CODE at https://github.com/LALBJ/PAI (attention.py present). Training-free, always-on: adaptively amplifies image-token attention weights AND subtracts pure-text logits from multimodal logits to fight 'text inertia'. Global across all tokens/instances, no per-instance gate, not role-conditioned. Directly comparable to our head-rescaling and reproducible on one L40.",
+            "evidence": "http://export.arxiv.org/api/query?id_list=2407.21771 and https://github.com/LALBJ/PAI/blob/master/attention.py",
+            "confidence": "high"
+          },
+          {
+            "finding": "M3ID (arxiv:2403.14003, Favero et al., Amazon) confirmed: 'Multi-Modal Mutual-Information Decoding' — training-free prompt-amplification sampling that up-weights tokens with high mutual information with the image; motivated by the SAME observation we use (visual reliance decays as more tokens are generated). Global/always-on decoding-time method. Tested on LLaVA-13B. A strong contrastive-decoding baseline; reproducible on one L40 for 7B.",
+            "evidence": "http://export.arxiv.org/api/query?id_list=2403.14003",
+            "confidence": "high"
+          },
+          {
+            "finding": "Additional CURRENT (2026) training-free steering baselines surfaced that strengthen the 'crowded but all-global' landscape: GEASS caption steering (arxiv:2605.01733), Dual-Level (token+head) Attention Intervention (arxiv:2506.12609), Attention-space Contrastive Guidance (arxiv:2601.13707), Token-Level Visual-Sensitivity Steering (arxiv:2606.07647), and Core Visual Regions internal-attention method (arxiv:2602.15556). None of these were verified in full text here, but all are candidate baselines/related-work; Token-Level Visual-Sensitivity Steering (2606.07647) is the closest in spirit to per-token selectivity and should be read before we claim per-instance-gating novelty.",
+            "evidence": "WebSearch result listing arxiv:2605.01733, 2506.12609, 2601.13707, 2606.07647, 2602.15556",
+            "confidence": "medium"
+          }
+        ],
+        "risks": [
+          "No public code for any of the three 2026 head/attention-steering baselines (CAST, DMAS, Spectral-QK). Full-text of CAST and DMAS explicitly showed NO GitHub link. We must reimplement all three from the papers to run a fair baselines table — budget ~1-2 GPU-days each of engineering + debugging. Spectral-QK is the cheapest (closed-form weight edit); DMAS (vector database + retrieval) is the most involved.",
+          "Framing risk on 'global/indiscriminate': CAST and DMAS are already HEAD-LOCALIZED (they steer only Top-K heads), so 'we target specific heads' is NOT our novelty. Our differentiation must rest strictly on (a) per-instance gating of WHETHER to steer (all baselines steer every instance / only choose which vector), and (b) conditioning on token ROLE/PROVENANCE at re-look steps. Reviewers will push on this — the mechanism study (role-vs-position dissociation) must carry the novelty.",
+          "Token-Level Visual-Sensitivity Steering (arxiv:2606.07647) and Dual-Level Attention Intervention (arxiv:2506.12609) may already implement token-selective or per-position gating. If either gates steering per-token by a visual-sensitivity signal, our 'per-instance gate g(x)' novelty narrows to the role/provenance conditioning only. Must read both before finalizing claims.",
+          "Baseline effect sizes are small and measured on different metrics (CAST 6.03% hallucination, Spectral-QK 4.0% CHAIR_s, on POPE/CHAIR/MME) than our target metric (self-vs-user accuracy gap on VS-Bench image-swap detection). A clean head-to-head requires running ALL baselines on VS-Bench, which none were designed for — non-trivial harness work and a potential reviewer complaint if baselines look artificially weak on an out-of-distribution eval.",
+          "Model-match risk: CAST/DMAS/PAI headline results use LLaVA-1.5-7B and Qwen-VL-Chat, but the phenomenon paper (2605.15864) uses Qwen3-VL/Kimi-VL/ERNIE-VL thinking models. The re-examination illusion is strongest on THINKING models; classic 7B baselines may not exhibit it, so we must pick a VLM that both shows the illusion AND runs on one L40 48GB. Qwen2.5-VL-7B (in CAST's appendix) is the most likely common ground."
+        ],
+        "recommendations_for_plan": [
+          "Adopt a 6-row baselines table: (1) VCD 2311.16922 [code], (2) PAI 2407.21771 [code], (3) M3ID 2403.14003, (4) CAST 2605.04641 [reimpl], (5) DMAS 2602.21704 [reimpl], (6) Spectral-QK 2606.20419 [reimpl]. Group as 'contrastive-decoding' (VCD/M3ID/PAI-logit) vs 'attention/activation steering' (CAST/DMAS/Spectral-QK); our method sits in the second group as its per-instance, role-gated variant.",
+          "Position CAST and DMAS as the PRIMARY differentiation target and label them precisely: 'always-on head steering (indiscriminate across instances and decode steps)'. Do NOT call them un-targeted — they are head-targeted; the honest contrast is instance/step-conditional + role-conditioned vs always-on.",
+          "Reproduce the two code-available baselines FIRST (VCD, PAI on a single L40 with Qwen2.5-VL-7B) to validate the harness and the VS-Bench eval before spending engineering on the 3 no-code reimplementations. Budget-protect: if reimplementation of DMAS's vector database stalls, keep it as a cited-but-not-run related work rather than a run baseline.",
+          "Read full text of Token-Level Visual-Sensitivity Steering (2606.07647) and Dual-Level Attention Intervention (2506.12609) before locking the novelty claim, to ensure 'per-instance gate' is not already covered; if they gate per-token by visual sensitivity, sharpen our claim to the ROLE/PROVENANCE conditioning + the re-examination-step targeting, which none of them address.",
+          "Standardize the eval on VS-Bench (swap-sensitive) PLUS a swap-invariant control set and a general benchmark (MME/POPE) so we can show baselines' COLLATERAL loss (DMAS's documented F1 collapse, CAST's global shift) on swap-invariant instances while our gated method does not degrade them — this is the core empirical claim.",
+          "Pick Qwen2.5-VL-7B as the shared backbone: it exhibits the re-examination illusion (thinking-capable, same family as phenomenon paper's Qwen3-VL) and appears in CAST's appendix, fits one L40 48GB, and lets all baselines run on identical weights for a fair table."
+        ],
+        "scoop_assessment": {
+          "is_scooped": false,
+          "closest_paper": "CAST (arxiv:2605.04641) — training-free, caption-guided, head-localized visual attention steering; and DMAS (arxiv:2602.21704) — dynamic per-input selection of steering vectors",
+          "gap_remaining": "No existing method (a) conditions steering on token ROLE/PROVENANCE (self-generated vs user-provided), (b) gates per-instance on WHETHER to steer via an external probe (all baselines steer every instance and merely choose which vector/head), or (c) targets the self-vs-user re-examination gap at self-reflection decode steps. CAST/DMAS/Spectral-QK are always-on; our contribution is the conditional + role-gated restoration and the mechanism study dissociating role from position. Novelty rests on this, not on head-localization (already done by CAST/DMAS).",
+          "differentiation_strength": "strong"
+        },
+        "resources": [
+          {
+            "name": "CAST (Caption-Guided Visual Attention Steering)",
+            "ref": "arxiv:2605.04641",
+            "available": false,
+            "notes": "ID resolves correctly. Training-free; adds shift vectors to Top-K caption-sensitive heads (layers 7-20) at every decode step on ALL instances = always-on differentiation target. Tested LLaVA-1.5-7B, Qwen-VL-Chat, LLaVA-NeXT, InternVL2-8B, Qwen2-VL-7B, Qwen2.5-VL-7B. NO code link in paper; must reimplement. 7B => runs on one L40."
+          },
+          {
+            "name": "DMAS (Dynamic Multimodal Activation Steering)",
+            "ref": "arxiv:2602.21704",
+            "available": false,
+            "notes": "ID resolves. Training-free; semantic-similarity retrieval of truthfulness/visual steering vectors applied to Top-K heads. Per-instance chooses WHICH vector but always steers; not role-conditioned. Documents F1 collapse at high strength = collateral loss we target. Tested LLaVA-1.5 7B/13B, QwenVL-7B, Qwen2.5-VL, InternVL3, Mantis, Idefics3. NO code; reimplement (vector DB is the costly part)."
+          },
+          {
+            "name": "Spectral-QK / QK Product Steering",
+            "ref": "arxiv:2606.20419",
+            "available": false,
+            "notes": "ID resolves. Data-free, training-free, zero-cost STATIC weight edit (suppress dominant QK singular modes, closed-form query update, GQA-compatible). Always-on/global by construction. Modest 4.0% rel CHAIR_s. No code; cheapest to reimplement."
+          },
+          {
+            "name": "VCD (Visual Contrastive Decoding)",
+            "ref": "arxiv:2311.16922 / https://github.com/DAMO-NLP-SG/VCD",
+            "available": true,
+            "notes": "CVPR2024. PUBLIC CODE confirmed. Contrasts original vs noised-image logits, global across all tokens, ~2x forward passes. Easy L40 repro on 7B. Use as harness-validation baseline."
+          },
+          {
+            "name": "PAI (Paying More Attention to Image)",
+            "ref": "arxiv:2407.21771 / https://github.com/LALBJ/PAI",
+            "available": true,
+            "notes": "ECCV2024. PUBLIC CODE confirmed (attention.py). Always-on image-attention amplification + text-logit subtraction; global, no gate, not role-conditioned. Directly comparable to our head-rescaling; reproducible on one L40."
+          },
+          {
+            "name": "M3ID (Multi-Modal Mutual-Information Decoding)",
+            "ref": "arxiv:2403.14003",
+            "available": true,
+            "notes": "Training-free MI-based prompt amplification; global decoding-time. Same motivating observation (visual reliance decays over generation) we build on. Tested LLaVA-13B; 7B variant fits one L40. Code availability not verified here — check repo before committing to run."
+          },
+          {
+            "name": "Phenomenon anchor: 'Are VLMs Seeing or Just Saying?' (VisualSwap/VS-Bench)",
+            "ref": "arxiv:2605.15864",
+            "available": false,
+            "notes": "ID resolves; confirms phenomenon, self-vs-user attention-surge gap, VS-Bench (800 pairs). Check whether VS-Bench dataset + code are released on HuggingFace/GitHub — our primary eval depends on it; if not released we must rebuild the 800-pair swap set from MathVista/MathVerse/MathVision/MMMU-Pro."
+          },
+          {
+            "name": "Secondary 2026 steering baselines to triage (read before locking novelty)",
+            "ref": "arxiv:2606.07647 (Token-Level Visual-Sensitivity Steering); 2506.12609 (Dual-Level Attention Intervention); 2605.01733 (GEASS); 2601.13707 (Attention-space Contrastive Guidance); 2602.15556 (Core Visual Regions)",
+            "available": false,
+            "notes": "Surfaced via search, not full-text-verified. 2606.07647 and 2506.12609 are the closest to token/head-selective gating and could narrow our per-instance-gate novelty — read both. Others are related-work citations."
+          }
+        ]
+      },
+      {
+        "topic": "Mechanism plausibility: are 'role/provenance-gated visual-routing attention heads' a plausible, testable mechanism for the visual re-examination illusion in VLMs, and is the role-vs-position dissociation design sound / already scooped?",
+        "key_findings": [
+          {
+            "finding": "A SMALL set of attention heads causally controls image-token attention / visual grounding in VLM LM-backbones, and is steerable training-free. Gaze Heads finds a few heads whose text-to-image attention is spatially concentrated (3 heads sufficient for grounding; top-100 for steering), intervening redirects descriptions at 83.1% accuracy, generalizing across 2B-32B and architectures. This strongly de-risks part (a) of the hypothesis.",
+            "evidence": "arxiv:2606.14703 (Gaze Heads: How VLMs Look at What They Describe, Gandikota & Bau) — abstract + html: 'a small set of attention heads... track image regions'; 'only three heads sufficient'; 'top-100 gaze heads achieves 83.1% accuracy'; treats heads as 'a causal control surface'.",
+            "confidence": "high"
+          },
+          {
+            "finding": "Multiple independent lines confirm head-level specialization for visual grounding vs hallucination and that targeted head steering works training-free: Dual-Pathway circuit analysis (5 VLMs, activation patching) separates a grounding pathway from a hallucination pathway and suppressing the latter cuts hallucination up to 76% with minimal accuracy loss; CAST probes heads 'sensitive to caption queries' and steers them; DMAS finds 'truthfulness and visual perception capabilities predominantly engage different subsets of attention heads' and does context-selective steering of key heads.",
+            "evidence": "arxiv:2605.13156 (Dual-Pathway Circuits); arxiv:2605.04641 (CAST); arxiv:2602.21704 (DMAS) — abstracts retrieved.",
+            "confidence": "high"
+          },
+          {
+            "finding": "Attention allocation is demonstrably sensitive to chat ROLE / turn structure / token span in text LLMs, supporting part (b). 'Beyond the Assistant Turn' shows role-switching mechanisms differ by whether a turn is self-generated vs given (behavioral, text-only). PASTA profiles heads and suppresses/boosts attention on user-specified vs non-instruction spans; SpotLight adds bias to user-specified spans when their attention share is below a threshold. System/role tokens attract measurable attention. These establish role/span-conditioned attention as a real, steerable lever — though none localize role-gated VISUAL heads.",
+            "evidence": "arxiv:2604.02315 (Beyond the Assistant Turn); arxiv:2311.02262 (PASTA); arxiv:2505.12025 (Spotlight Your Instructions) — search snippets + abstracts.",
+            "confidence": "medium"
+          },
+          {
+            "finding": "SCOOP CHECK: no retrieved paper localizes role/provenance-gated visual-routing heads or performs the role-vs-position dissociation. The phenomenon paper's own mechanism analysis is COARSE and leaves exactly this gap: it reports averaged scores over middle LAYERS (e.g. 18-21 for 8B), does NOT localize heads, does NOT separate token provenance from positional recency, and its only internal fix is a blanket 2x amplification across ALL layers/heads flagged as an exploratory 'proof-of-concept'. It explicitly notes external intervention remains necessary to reweight attention during self-reflection.",
+            "evidence": "arxiv:2605.15864 html mechanism section: 'average score across middle layers (e.g., 18-21 for 8B, 49-52 for 235B)'; 'amplifying visual attention weights by 2x across all layers and heads uniformly... proof-of-concept and leave further exploration to future work'; no role-vs-position separation.",
+            "confidence": "high"
+          },
+          {
+            "finding": "The single biggest confound to the role-vs-position dissociation is RECENCY/positional decay of visual attention, an intrinsic LLM-inherited bias: visual attention degrades as the generated sequence lengthens and later tokens/lower image regions are over-attended (attention-sink + recency). Because self-generated reflection occurs later in the decode than an injected user turn, an apparent 'role' effect could be pure position. Must be controlled by matching absolute position/token count and a position sweep.",
+            "evidence": "arxiv:2508.03469 (IKOD, visual attention degradation over sequence); arxiv:2508.17807 (PoRe); search: 'recency bias and attention sink effects inherited from LLMs', 'image attention tends to diminish as the sequence grows'.",
+            "confidence": "high"
+          },
+          {
+            "finding": "A second confound is the TURN-BOUNDARY special tokens themselves (e.g. <|im_start|>user) acting as re-anchoring points / attention sinks, distinct from role identity. The proposed 3rd condition (assistant-role turn-boundary injection) is precisely the control that isolates turn-boundary from role. A third confound is instruction CONTENT/query-type (CAST shows query type alone modulates which heads fire), controlled by the matched-content design.",
+            "evidence": "arxiv:2605.04641 (CAST: attention 'significantly enhanced when answering caption queries vs non-caption'); search: system tokens 'comprise control information such as role settings'.",
+            "confidence": "medium"
+          },
+          {
+            "finding": "Feasibility on 4xL40: the phenomenon uses open Qwen3-VL/Kimi-VL families and a small VS-Bench (800 pairs); Gaze-Heads-style head localization needs only 'a few forward passes'. A 7B-8B probing target (Gaze Heads confirms mechanism holds 2B-32B) fits comfortably; everything is inference + probing + steering, no training, well within 600 GPU-h.",
+            "evidence": "arxiv:2605.15864 (VS-Bench 800 pairs; Qwen3-VL/Kimi-VL/ERNIE-VL); arxiv:2606.14703 (2B-32B generalization, 'few forward passes').",
+            "confidence": "high"
+          }
+        ],
+        "risks": [
+          "Position/recency confound (dominant): the self-vs-user attention gap may be driven by absolute sequence position and attention-sink/recency decay rather than token role. If not controlled, the 'role-gating' framing collapses into a known positional-decay result (IKOD/PoRe territory). Mitigate with strict position+token-count matching and a position sweep.",
+          "Turn-boundary vs role identity: if the assistant-role turn-boundary condition (cond 3) ALSO surges visual attention like the user turn, the mechanism is turn-BOUNDARY re-anchoring (sink reset), not role/provenance. This refutes the specific hypothesis (still yields a usable fix: inject a boundary), so the 'role/provenance-gated' wording is at risk.",
+          "Partial scoop / novelty erosion by Gaze Heads (2606.14703): it already owns the discovery of a small steerable visual-routing head set and the training-free intervention method. Your novelty then rests on the ROLE-GATING property + the targeted role-profile-restoration fix beating global steering, not on head discovery. If the role-gated heads ARE the gaze heads, framing must foreground the gating mechanism.",
+          "Global-steering baseline already in the phenomenon paper: its blanket 2x amplification may already recover much of the self-vs-user gap. The PRIMARY CLAIM (targeted beats global 'without collateral loss') requires showing targeted rescaling strictly dominates the 2x-all-heads / CAST / DMAS baselines on swap-INVARIANT instances, or the contribution is marginal.",
+          "Grounding-head redundancy (Dual-Pathway 2605.13156): grounding components are redundant and 'flip polarity' between correct and hallucinating outputs; rescaling a small fixed head set may be insufficient or unstable, and the effective role-gated set may be larger than 'small'. Needs a head-set-size ablation.",
+          "Content/query-type confound (CAST): the instruction's semantic content, not its role, could drive the surge; must hold the injected string byte-identical across conditions.",
+          "Gate over-fitting: the tiny supervised probe g(x) predicting illusion-bound + swap-sensitive instances could exploit dataset shortcuts on the 800-pair VS-Bench; needs held-out source-benchmark splits and swap-invariant negatives."
+        ],
+        "recommendations_for_plan": [
+          "Adopt a 2x2 FACTORIAL dissociation instead of 3 conditions: ROLE (user vs assistant) x BOUNDARY (mid-decode vs turn-start), with the injected reflection string BYTE-IDENTICAL and inserted at the SAME absolute token position across all four cells. Cond1(assistant/mid)=self-reflection; Cond2(user/turn)=known user-turn fix; Cond3(assistant/turn)=isolates boundary from role; Cond4(user/mid) fully crosses the factors. Role effect = main effect of ROLE after removing BOUNDARY and POSITION.",
+          "Add a POSITION SWEEP control arm: inject the identical string at several decode offsets to map the recency/decay curve (per IKOD/PoRe), and report the role effect as the residual AFTER regressing out position. Pre-register that a role claim requires role main-effect > position slope contribution.",
+          "Localize candidate heads with the Gaze-Heads correlation/temporal criterion (2606.14703) and CAST-style query-sensitivity probing, then TEST those specific heads for role-gating (do their visual-key attention profiles differ across the 2x2 cells?). Reuses an established, cheap ('few forward passes') localizer and adds the role dimension they omit, directly addressing the scoop.",
+          "Run a head-set-size ablation (3 -> 100 heads, mirroring Gaze Heads) to address grounding-head redundancy (Dual-Pathway) and characterize whether 'small set' actually holds for the role-gated subset.",
+          "Benchmark the targeted fix against the STRONGEST existing global baselines on the SAME instances: the phenomenon paper's own 2x-all-heads amplification, CAST (2605.04641), and DMAS (2602.21704). Headline metric = collateral on swap-INVARIANT instances at matched recovery on swap-SENSITIVE instances; report a Pareto/dominance plot, not a single-number win.",
+          "State falsification outcomes up front: (i) if Cond3 surges like Cond2 -> mechanism is turn-boundary, reframe as 'boundary-reset', still publishable; (ii) if the surge tracks the position sweep -> it is recency, a negative result vs role. Either way the design yields an interpretable, publishable conclusion.",
+          "Split VS-Bench by source benchmark (MathVista/MathVerse/MathVision/MMMU-Pro) for held-out evaluation of the gate g(x) to guard against 800-pair shortcut learning, and include swap-invariant negatives in the gate's training/eval.",
+          "Target a 7B-8B open model (Qwen3-VL / Kimi-VL) as the primary probing subject given 4xL40 no-NVLink; Gaze Heads' 2B-32B generalization justifies the small model and keeps the full inference+probe+steer loop well under 600 GPU-h."
+        ],
+        "scoop_assessment": {
+          "is_scooped": false,
+          "closest_paper": "arxiv:2606.14703 (Gaze Heads: How VLMs Look at What They Describe, Gandikota & Bau) — localizes a small, causally-steerable set of visual-routing heads training-free, but with NO role/provenance/turn dimension. Secondary: the phenomenon paper (arxiv:2605.15864) establishes the self-vs-user behavioral gap and a coarse layer-level attention analysis but does not localize heads, does not dissociate role from position, and offers only a blanket 2x global-amplification proof-of-concept.",
+          "gap_remaining": "No paper (a) shows the visual-routing heads are GATED by token role/provenance, (b) performs a role-vs-position(-vs-turn-boundary) dissociation, or (c) restores the user-role attention profile on a TARGETED head set at self-reflection steps with less collateral than global steering. That conjunction is open and directly testable.",
+          "differentiation_strength": "moderate"
+        },
+        "resources": [
+          {
+            "name": "Are VLMs Seeing or Just Saying? (phenomenon + VS-Bench, 800 pairs)",
+            "ref": "arxiv:2605.15864",
+            "available": true,
+            "notes": "Base phenomenon. Their coarse layer analysis + 2x-all-heads amplification is the primary baseline to beat. Code/dataset stated available on project site; verify VS-Bench release on HF/GitHub before committing."
+          },
+          {
+            "name": "Gaze Heads (visual-routing head localizer)",
+            "ref": "arxiv:2606.14703",
+            "available": true,
+            "notes": "Strongest de-risk for part (a) and a ready-made cheap head-localization method (correlation/temporal criterion, few forward passes); check for released code. Also the main partial-scoop to differentiate from."
+          },
+          {
+            "name": "CAST (caption-query head steering, training-free)",
+            "ref": "arxiv:2605.04641",
+            "available": true,
+            "notes": "Method-level analog (probe query-sensitive heads + steer) and a required global-steering baseline; also the query-type confound source."
+          },
+          {
+            "name": "DMAS (dynamic multimodal activation steering)",
+            "ref": "arxiv:2602.21704",
+            "available": true,
+            "notes": "Context-selective head steering; required collateral-loss baseline; supports per-instance gating idea for g(x)."
+          },
+          {
+            "name": "Dual-Pathway Circuits of Object Hallucination",
+            "ref": "arxiv:2605.13156",
+            "available": true,
+            "notes": "Causal grounding-vs-hallucination head localization across 5 VLMs; flags grounding-head REDUNDANCY (motivates head-set-size ablation)."
+          },
+          {
+            "name": "IKOD / PoRe (visual attention decay, recency bias)",
+            "ref": "arxiv:2508.03469 / arxiv:2508.17807",
+            "available": true,
+            "notes": "Document the position/recency confound; use their framing for the position-sweep control arm."
+          },
+          {
+            "name": "PASTA / SpotLight (span/role attention steering in text LLMs)",
+            "ref": "arxiv:2311.02262 / arxiv:2505.12025",
+            "available": true,
+            "notes": "Prior art that attention-to-specified-spans is a controllable lever; supports the inference-time rescaling method and the role-sensitivity prior."
+          },
+          {
+            "name": "Beyond the Assistant Turn (self-generated vs given role probe)",
+            "ref": "arxiv:2604.02315",
+            "available": true,
+            "notes": "Behavioral evidence models track provenance (self-generated vs given); text-only, no head localization — conceptual support, not a scoop."
+          },
+          {
+            "name": "Qwen-VL / Kimi-VL open weights",
+            "ref": "HuggingFace (Qwen3-VL, Kimi-VL families)",
+            "available": true,
+            "notes": "7B-8B fits 4xL40 no-NVLink for inference+probing; verify exact checkpoints used by 2605.15864 are on HF before locking the model choice."
+          }
+        ]
+      },
+      {
+        "topic": "DATA + MODEL + COMPUTE feasibility for a training-free, role-gated fix of the VLM visual re-examination illusion (ICLR 2027), on 4xL40-48GB / ~600 GPU-h / 9 weeks.",
+        "key_findings": [
+          {
+            "finding": "The core phenomenon paper is real and matches the brief: 'Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination' (Shi, Yang, Wu, Jin, Shui, Berg-Kirkpatrick, Ma), submitted May 15 2026. VisualSwap swaps images after initial reasoning; 800 pairs from MathVista/MathVerse/MathVision/MMMU-Pro; accuracy drops up to ~60%; user prompts restore visual grounding but self-reflection does not; attention analysis shows user instructions elevate visual-token focus while self-reflection does not. This directly grounds the hypothesis.",
+            "evidence": "arxiv:2605.15864 (export.arxiv.org/api abstract retrieved verbatim)",
+            "confidence": "high"
+          },
+          {
+            "finding": "CRITICAL MODEL-SET MISMATCH: the phenomenon paper evaluated ~15 REASONING VLMs — Qwen3-VL 8B/32B/30B-A3B/235B (Instruct+Thinking), Kimi-VL and ERNIE-VL A3B/4.5-VL-28B-A3B (Instruct+Thinking), plus Qwen2.5-VL-7B-Instruct, OpenVLThinker-7B, VL-Rethinker-7B. It did NOT use LLaVA-1.5-7B, InternVL2.5-8B, or LLaVA-OneVision-7B. Those three are instruction-tuned, non-reasoning models that do not natively emit 'let me look again' self-reflection chains, so they may not exhibit the illusion at all — including them risks a null/undefined phenomenon rather than a fix.",
+            "evidence": "arxiv:2605.15864 HTML (visualswap.github.io), Appendix B model table; retrieved model list",
+            "confidence": "high"
+          },
+          {
+            "finding": "Both global-steering baselines are real and training-free. CAST 'Mitigating Object Hallucination... via Caption-Guided Visual Attention Steering' (Li et al.), May 6 2026, ~6.03% avg hallucination reduction. DMAS 'Dynamic Multimodal Activation Steering for Hallucination Mitigation' (Yin et al.), Feb 25 2026, ACCEPTED ICLR 2026 — finds truthfulness vs visual-perception engage different attention-head subsets and steers head subsets dynamically. DMAS's head-subset finding partially overlaps this proposal's 'small set of heads' premise (see scoop assessment).",
+            "evidence": "arxiv:2605.04641 (CAST); arxiv:2602.21704 (DMAS, ICLR 2026 accept)",
+            "confidence": "high"
+          },
+          {
+            "finding": "All six candidate models exist on HuggingFace and are NON-GATED (no access request): Qwen/Qwen2.5-VL-7B-Instruct (Apache-2.0, 10M+ dl), Qwen/Qwen2.5-VL-3B-Instruct (6.5M+ dl), llava-hf/llava-1.5-7b-hf (Llama-2 Community license, open), OpenGVLab/InternVL2_5-8B (MIT + Apache-2.0 base), llava-hf/llava-onevision-qwen2-7b-ov-hf (Apache-2.0). None require gating.",
+            "evidence": "HF pages huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct, /Qwen2.5-VL-3B-Instruct, /llava-hf/llava-1.5-7b-hf, /OpenGVLab/InternVL2_5-8B, /llava-hf/llava-onevision-qwen2-7b-ov-hf (all fetched)",
+            "confidence": "high"
+          },
+          {
+            "finding": "Qwen3-VL EXISTS as of Jul 2026 (first released Sep 23 2025). Dense sizes: 2B, 4B, 8B (Instruct + Thinking each), plus 32B dense, and MoE 30B-A3B and 235B-A22B (Instruct + Thinking); FP8 and GGUF variants for every size. The 8B-Instruct and 8B-Thinking dense models are the natural fit and run single-GPU on an L40. 32B (bf16 ~64GB) and 30B-A3B/235B MoE exceed 48GB in bf16.",
+            "evidence": "huggingface.co/collections/Qwen/qwen3-vl (fetched); simonwillison.net/2025/Sep/23/qwen3-vl",
+            "confidence": "high"
+          },
+          {
+            "finding": "VS-Bench is claimed released but NOT one-click accessible: project page visualswap.github.io is live (ICML 2026), lists 'VS-Bench Dataset' + 'Evaluation Code' and a code repo github.com/visualswap/visualswap, but the fetched page exposed no active dataset download hyperlink and gives a contact email (chufansh@usc.edu / xuezhema@usc.edu). Treat availability as probable-but-unconfirmed; budget time to clone the repo or email authors, and have a fallback to reconstruct swap pairs from the four source benchmarks (all public).",
+            "evidence": "visualswap.github.io (fetched); github.com/visualswap/visualswap listed",
+            "confidence": "medium"
+          },
+          {
+            "finding": "All collateral/no-degradation datasets are publicly available. Directly re-verified this session: A-OKVQA (huggingface.co/datasets/HuggingFaceM4/A-OKVQA), POPE (built on MSCOCO/A-OKVQA/GQA, 3x3000 VQA; multiple HF mirrors), HallusionBench (github.com/tianyilab/HallusionBench, 1129 Q), MMVP (150 img/300 Q). GQA, TextVQA, MME are long-established and hosted on HF (lmms-lab mirrors); not individually re-fetched this session but stable and public.",
+            "evidence": "HF datasets HuggingFaceM4/A-OKVQA, MM-Hallu/H-POPE; github.com/tianyilab/HallusionBench",
+            "confidence": "high"
+          },
+          {
+            "finding": "COMPUTE FITS with disciplined subsampling; the eval grid is the sole risk of blowing budget. 7-8B/3B models fit single L40-48GB in bf16 (~16GB weights), so 4 GPUs = 4 embarrassingly-parallel workers (no-NVLink is irrelevant for single-GPU-per-model). Est: (i) week-1 mechanism 3-condition study ~40-60 GPU-h; (ii) head localization (cheap correlational capture then causal-validate top ~30-50 heads on ~200 instances) ~80-120 GPU-h across models; (iii) tiny gate probe (feature caching + logistic/MLP) ~5 GPU-h; (iv) full eval grid ~200-300 GPU-h IF datasets subsampled (VS-Bench full 800, collateral ~1-1.5k each) and seeds limited. Total ~330-490 GPU-h — fits 600 with buffer. A NAIVE full grid (all datasets full x 5 conditions x 6 models x 2-3 seeds x reasoning-length generation) is ~800+ GPU-h and OVERRUNS. Wall-clock: ~490 GPU-h / 4 GPUs ~= 5-6 days compute, trivially inside 9 weeks; engineering, not compute, is the binding constraint.",
+            "evidence": "Derived from model sizes (HF cards) + VS-Bench N=800 + standard dataset sizes; L40-48GB single-GPU 7-8B inference",
+            "confidence": "medium"
+          }
+        ],
+        "risks": [
+          "placeholder"
+        ],
+        "recommendations_for_plan": [
+          "Reframe the model roster: PRIMARY mechanism/fix models = Qwen3-VL-8B-Thinking + Qwen2.5-VL-7B-Instruct (both in the source paper) plus one open reasoning-7B (OpenVLThinker-7B or VL-Rethinker-7B); use LLaVA-1.5-7B / InternVL2.5-8B / LLaVA-OneVision-7B only as 'non-reflective control' or collateral-damage checks, not as illusion-fix targets.",
+          "Secure VS-Bench in week 0: clone github.com/visualswap/visualswap, and if data is absent email chufansh@usc.edu / xuezhema@usc.edu; in parallel stand up the fallback swap-pair generator from the 4 public source benchmarks so the timeline never blocks on the release.",
+          "Front-load an eager-attention hooking + head-rescaling harness on ONE model in weeks 1-2 and MEASURE real per-instance latency with attention capture; use that number to size the eval grid so it lands near ~300 GPU-h, not 800.",
+          "Cap the eval grid explicitly: VS-Bench full (800), each collateral dataset subsampled to ~1-1.5k, 5 conditions (normal / CAST / DMAS / user-prompt oracle / ours), 2 seeds only on generation-stochastic reasoning runs. Reserve ~100 GPU-h contingency of the 600.",
+          "Position the paper's novelty squarely on ROLE/PROVENANCE gating and the matched-content 3-condition (self-mid-decode vs user-turn vs assistant-turn-boundary) dissociation of role from position, and cite DMAS + CAST as the head-subset / attention-steering precedents you go beyond — this is the defensible gap.",
+          "Run a power check: for each model, compute usable swap-sensitive N (correct pre-swap) before the localization/steering experiments; if N is small, pool the two reasoning models or expand via the fallback generator."
+        ],
+        "resources": [
+          {
+            "name": "Qwen2.5-VL-7B-Instruct",
+            "ref": "huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+            "available": true,
+            "notes": "Apache-2.0, non-gated, 10M+ downloads; single L40 in bf16 (~16GB). In the source paper's eval set."
+          },
+          {
+            "name": "Qwen2.5-VL-3B-Instruct",
+            "ref": "huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct",
+            "available": true,
+            "notes": "Non-gated, 6.5M+ downloads; smallest, cheapest for pilot hooking. (License file states Qwen license/Apache per family; not gated.)"
+          },
+          {
+            "name": "Qwen3-VL (dense 2B/4B/8B + 32B; MoE 30B-A3B/235B; Instruct+Thinking; FP8/GGUF)",
+            "ref": "huggingface.co/collections/Qwen/qwen3-vl",
+            "available": true,
+            "notes": "EXISTS (first release Sep 2025). Use 8B-Instruct and 8B-Thinking (single L40). 32B/30B-A3B/235B exceed 48GB in bf16 — avoid or FP8. Non-gated."
+          },
+          {
+            "name": "LLaVA-1.5-7B",
+            "ref": "huggingface.co/llava-hf/llava-1.5-7b-hf",
+            "available": true,
+            "notes": "Llama-2 Community license, non-gated. NON-reasoning: may not exhibit the self-reflection illusion; use as control only."
+          },
+          {
+            "name": "InternVL2.5-8B",
+            "ref": "huggingface.co/OpenGVLab/InternVL2_5-8B",
+            "available": true,
+            "notes": "MIT (+ Apache-2.0 InternLM2.5 base), non-gated, single L40. Instruct model; weak reflection behavior expected."
+          },
+          {
+            "name": "LLaVA-OneVision-7B",
+            "ref": "huggingface.co/llava-hf/llava-onevision-qwen2-7b-ov-hf",
+            "available": true,
+            "notes": "Apache-2.0, non-gated, single L40. Instruct model; collateral/control use."
+          },
+          {
+            "name": "OpenVLThinker-7B / VL-Rethinker-7B (recommended reasoning models)",
+            "ref": "arxiv:2605.15864 Appendix B (HF links) — search 'OpenVLThinker-7B', 'VL-Rethinker-7B'",
+            "available": true,
+            "notes": "Named in source paper as reasoning-7B VLMs exhibiting the illusion; better fit than LLaVA/InternVL. Verify exact HF repo ids before use."
+          },
+          {
+            "name": "VS-Bench / VisualSwap (800 swap pairs + eval code)",
+            "ref": "visualswap.github.io ; github.com/visualswap/visualswap",
+            "available": true,
+            "notes": "Page LIVE and claims release, but no confirmed direct download link observed; contact chufansh@usc.edu. Treat as probable; fallback = regenerate from source benchmarks."
+          },
+          {
+            "name": "POPE",
+            "ref": "HF mirrors (e.g. MM-Hallu/H-POPE) + original lmms-lab/POPE",
+            "available": true,
+            "notes": "3x3000 VQA over MSCOCO/A-OKVQA/GQA; standard, public. Collateral hallucination check."
+          },
+          {
+            "name": "MMVP",
+            "ref": "github.com/tsb0601/MMVP (HF mirror available)",
+            "available": true,
+            "notes": "150 images / 300 Q; small, cheap."
+          },
+          {
+            "name": "HallusionBench",
+            "ref": "github.com/tianyilab/HallusionBench",
+            "available": true,
+            "notes": "1129 questions; public eval scripts."
+          },
+          {
+            "name": "GQA",
+            "ref": "HF lmms-lab/GQA (standard)",
+            "available": true,
+            "notes": "Public; subsample ~1.5k for collateral eval. Not re-fetched this session but stable."
+          },
+          {
+            "name": "A-OKVQA",
+            "ref": "huggingface.co/datasets/HuggingFaceM4/A-OKVQA",
+            "available": true,
+            "notes": "~1.1k val; public, re-verified this session."
+          },
+          {
+            "name": "TextVQA",
+            "ref": "HF lmms-lab/TextVQA (standard)",
+            "available": true,
+            "notes": "~5k val; subsample ~2k. Stable/public, not re-fetched this session."
+          },
+          {
+            "name": "MME",
+            "ref": "HF lmms-lab/MME (standard)",
+            "available": true,
+            "notes": "~2374 items; public. Stable, not re-fetched this session."
+          },
+          {
+            "name": "CAST (global steering baseline)",
+            "ref": "arxiv:2605.04641",
+            "available": true,
+            "notes": "Training-free caption-guided visual attention steering; reimplement as global-steering baseline."
+          },
+          {
+            "name": "DMAS (global steering baseline)",
+            "ref": "arxiv:2602.21704",
+            "available": true,
+            "notes": "ICLR 2026; dynamic head-subset activation steering. Both baseline AND partial scoop risk — cite carefully."
+          }
+        ],
+        "scoop_assessment": {
+          "is_scooped": false,
+          "closest_paper": "DMAS — Dynamic Multimodal Activation Steering for Hallucination Mitigation (arxiv:2602.21704, ICLR 2026)",
+          "gap_remaining": "DMAS shows visual-perception vs truthfulness occupy different attention-head subsets and steers head subsets dynamically, and CAST (2605.04641) steers visual attention via caption queries — but NEITHER conditions on token ROLE/PROVENANCE (self-generated vs user-provided) nor explains WHY user-turn reflection surges visual attention while self-reflection does not. The proposal's specific contributions — matched-content 3-condition dissociation of role from position, localization of 'role-conditioned visual-routing heads', a per-instance supervised gate, and role-profile-targeted rescaling applied only at self-reflection steps — are not present in the phenomenon paper (which offers only a user-prompt workaround, no internal fix) or the steering baselines. Novelty is intact PROVIDED the paper foregrounds the role/provenance axis and does not re-litigate 'attention steering reduces hallucination' generically.",
+          "differentiation_strength": "moderate"
+        }
+      }
+    ],
+    "refutes": [
+      {
+        "target": "CLAIM UNDER TEST: There is a real, open gap for a training-free, head-level, role/provenance-mechanism + per-instance-gated fix of the visual re-examination illusion, not covered by VRRL/Look-Back/steering baselines (ICLR 2027 direction C1-repaired).",
+        "strongest_objection": "The claimed gap is real only as a CONJUNCTION; every constituent axis except one is already independently published as training-free work, so the novelty collapses onto a single, high-risk axis. (a) Head-level visual-attention steering, training-free: CAST (2605.04641), DMAS (2602.21704), VisFlow/dual-level TAI+HAI (2506.12609, which explicitly does HEAD-level intervention suppressing system/text tokens and reinforcing visual tokens), and Gaze Heads (2606.14703, localizes a small causal visual-routing head set) — 'head-level' is NOT novel. (b) Adaptive per-token gating of steering strength: TLVS (2606.07647) already modulates steering per token by visual sensitivity 'only where it matters'. (c) A training-free selective attention-masking inference fix for the visual-attention/correctness disconnect already exists: 'Seeing but Not Believing' (2510.17771) highlights deep-layer evidence regions via selective attention masking, no training, across LLaVA/Qwen/Gemma/InternVL. What remains genuinely un-scooped is ONLY the ROLE/PROVENANCE mechanism (user-provided vs self-generated) plus the per-INSTANCE whether-to-steer gate targeting the re-examination illusion. But that one surviving axis is precisely the one most likely to dissolve under scrutiny: the self-vs-user attention surge is confounded by absolute sequence position/recency-decay (IKOD 2508.03469, PoRe 2508.17807) and by turn-boundary re-anchoring/attention-sink resets. If the 2x2 matched-content dissociation shows the surge is positional or boundary-driven rather than role-driven, the method reduces to 'yet another training-free head-steering + gate applied to VS-Bench' — squarely inside CAST/DMAS/TLVS/VisFlow territory. So the gap survives on paper but is thin and mechanism-contingent, not the robust multi-axis novelty the direction advertises.",
+        "claim_survives": true,
+        "residual_strength": 0.55,
+        "cheapest_decisive_test": "Run the 2x2 matched-content role×boundary dissociation (self/mid-decode, user/turn, assistant/turn-boundary, user/mid-decode) with a BYTE-IDENTICAL injected reflection string inserted at the SAME absolute token position, plus a position sweep, on Qwen3-VL-8B-Thinking over ~100 swap-sensitive VS-Bench instances; test whether visual-attention surge has a ROLE main effect after regressing out POSITION and BOUNDARY. ~2-4 GPU-h. This is the go/no-go: if the role main effect survives the position+boundary controls, the sole un-scooped novelty axis is real and the gap is defensible; if it vanishes into recency/boundary, the contribution is scooped-equivalent. (Scoop reads themselves are effectively settled: no 2026 paper delivers a role/provenance-gated internal fix for the re-examination illusion.)",
+        "notes": "Verified via my own retrieval this session (not memory): (1) 2605.15864 CURRENT arXiv abstract is diagnostic-only and does NOT headline any inference-time fix — the recon's 'global 2x amplification +18.2% PoC (Tab.9)' is an appendix/future-work item, so the phenomenon paper does NOT itself scoop an internal fix, reducing that specific risk. (2) The 'selective attention masking / deep-layer evidence' fix belongs to 2510.17771 'Seeing but Not Believing' (Oct 2025), a DISTINCT training-free attention-masking baseline the recon did not list — ADD it as a baseline/related-work; it is global/evidence-region-based, not role-gated, not re-examination-specific. (3) TLVS 2606.07647 = per-token visual-sensitivity steering, needs minimal calibration training, object hallucination — narrows the 'adaptive gate' novelty. (4) VisFlow 2506.12609 = training-free head-level + token-level intervention including text/system-token suppression — narrows 'head-level' novelty and is close in spirit; read full text before locking claims. NET: gap is OPEN as a conjunction but the ONLY clean novelty is role/provenance + per-instance whether-to-steer gate on the re-examination illusion. TWO surviving threats to publishability (not scoop): (i) mechanism-collapse to position/boundary (IKOD 2508.03469, PoRe 2508.17807); (ii) margin — must show head-localized+role-gated BEATS global steering (incl. the phenomenon paper's own 2x PoC, CAST, DMAS, 2510.17771) on swap-INVARIANT collateral, which requires first demonstrating global steering actually causes collateral (phenomenon paper reports only gains; DMAS 2602.21704 documents F1 collapse at high strength, which helps). Feasibility to run the decisive test is fine on 4xL40 with Qwen3-VL-8B-Thinking (single-GPU, ~16GB bf16). Recommend: foreground role/provenance as the SOLE headline novelty, pre-register the position+boundary controls with stated falsification outcomes, and add 2510.17771 + VisFlow to the baseline table."
+      },
+      {
+        "target": "Claim under test: the visual re-examination surge is gated by token ROLE/PROVENANCE (user-provided vs self-generated), localized to a SMALL identifiable head set, cleanly dissociable from position/turn-boundary, and causally restorable training-free to match the user-turn oracle. Model substrate feasible on 4xL40: Qwen3-VL-8B-Thinking / Qwen2.5-VL-7B.",
+        "strongest_objection": "The user-turn ORACLE re-inserts the swapped image as an argument of turn 2 (R_multi = M(I_b, [Q, R_a, U]), verified in 2605.15864), so I_b's tokens sit RECENT in the sequence, whereas the self-reflection probe keeps the (re-encoded) image at its ORIGINAL far-back slot. IKOD (2508.03469) independently shows visual attention decays monotonically with generated-sequence length. Therefore the observed 'surge' that the oracle produces is confounded with image-token RECENCY/position, not text-token role/provenance. Two consequences: (a) the clean role-vs-position dissociation may collapse — a 'role' effect could be pure recency of freshly re-prefilled visual tokens; (b) the training-free head-rescaling fix can only reweight attention onto the STALE far-back image KV entries; it cannot grant the model the fresh, well-positioned visual tokens the oracle enjoys, so restoration likely hits a ceiling strictly below the +51pp oracle. Secondary: even if role matters, the assistant-turn-boundary control may surge too (=boundary/sink-reset, not role), and the phenomenon paper's own global 2x amplification PoC already recovers much of the gap, shrinking headroom for a localized+gated method.",
+        "claim_survives": true,
+        "residual_strength": 0.5,
+        "cheapest_decisive_test": "ONE contrast on Qwen3-VL-8B-Thinking, ~200 swap-sensitive VS-Bench instances, eager attention with per-head capture. Inject the BYTE-IDENTICAL re-examination string U under conditions that cross ROLE x BOUNDARY x IMAGE-POSITION while holding image CONTENT (re-encoded I_b) fixed: (C1) self/assistant mid-decode, image far-back; (C2) user-turn text, image STILL far-back (NO re-insertion); (C3) assistant-role at turn boundary, image far-back; (C4) true oracle = user turn WITH I_b re-inserted recently. Add a position-sweep arm injecting C1 at several offsets to map the recency curve. Decisive read: if C2 (user-role text, image not repositioned) fails to surge S_vis and fails to recover swap-detection accuracy while only C4 (image re-inserted) does, the effect is image-RECENCY and the role/provenance framing collapses -> reframe to boundary/position. If C2 alone surges and recovers accuracy from the user-role token with the image untouched, role-gating survives. Localization piggybacks for free: run the Gaze-Heads correlational localizer (few forward passes, 2606.14703) to get candidate heads, then test whether THOSE heads' text->image attention differs across C1-C4 (role-gating signature) and ablate head-set size 3->100. Cost ~25-40 GPU-h total; the single most decisive sub-contrast (C2 vs C4) is ~10-15 GPU-h. This is a hard week-1 go/no-go before any gate/steering machinery is built.",
+        "notes": "Localization conjunct is well de-risked: Gaze Heads (2606.14703, retrieved) shows a small (<9% heads), training-free-steerable visual-routing set recurring 2B-32B; role-conditioned attention has text-LLM precedent (PASTA/SpotLight per recon). So 'small + steerable' is likely to hold. The vulnerable conjuncts are (i) clean ROLE-vs-POSITION dissociation and (ii) full causal restoration to oracle. Both are threatened by the image-reinsertion/recency confound above (2605.15864 protocol + 2508.03469 decay), which the recon flags only as a generic 'KV context differs' risk but is actually the load-bearing failure mode and must be the FIRST experiment. Honest expected outcome: role explains SOME variance beyond position but restoration falls short of the +51pp oracle because the fix cannot reposition visual KV; that is still a publishable mechanism+partial-fix paper, and even a pure-recency null reframes cleanly (inject-a-boundary / re-prefill-image fix). Margin risk is real: the phenomenon paper's global 2x PoC (+18.2%) and CAST/DMAS are always-on head steerers, so the contribution MUST be demonstrated as lower collateral on a swap-INVARIANT control set, which the phenomenon paper never measured. Statistical power is thin (~800 pairs, math-only; after subsetting to swap-sensitive per model, a few hundred) -> bootstrap CIs mandatory. Claim survives to warrant the 9-week project ONLY conditional on the week-1 C2-vs-C4 test showing a role effect surviving position control; if it fails, pivot to the (still novel, still training-free) boundary-reset / visual-KV-refresh framing rather than abandoning. All arxiv IDs cited (2605.15864, 2606.14703, 2508.03469) were fetched this session; 2602.21704/2605.04641/2607.02490 are from the provided recon, not re-verified here."
+      }
+    ],
+    "plan": {
+      "hypotheses": [
+        {
+          "id": "H1",
+          "statement": "The visual-attention surge that enables genuine re-examination is GATED BY TOKEN ROLE/PROVENANCE (user-provided vs self-generated), and this role effect is dissociable from absolute sequence position/recency and from turn-boundary re-anchoring. (Core, highest-risk; phenomenon paper 2605.15864 shows only the behavioral self-vs-user gap with coarse layer-avg attention, no role-vs-position dissociation.)",
+          "falsifiable_test": "Matched-content design on Qwen3-VL-8B-Thinking over ~200 swap-sensitive VisualSwap instances, BYTE-IDENTICAL re-exam string at the SAME absolute token position, image CONTENT (re-encoded I_b) fixed: C1 self/assistant mid-decode, image far-back (=self-reflection probe); C2 user-role text, image STILL far-back (NO re-insertion) — isolates ROLE with image position held; C3 assistant-role at turn boundary, image far-back — isolates BOUNDARY; C4 true oracle = user turn WITH I_b re-inserted recently (2605.15864 App. C 'Check the image again and re-examine'); plus a position-sweep arm injecting C1 at several decode offsets to map the recency curve (IKOD 2508.03469). PASS iff the ROLE main effect on visual-attention surge S_vis AND on swap-detection accuracy is significant after regressing out position (sweep slope) and boundary: C2-C1 bootstrap 95% CI excludes 0 AND C2 gain >=40% of C4-C1 AND C3 does not reproduce C2. FALSIFIED iff C2~=C1 (CI includes 0) or C2 gain <20% of C4-C1 while C4 recovers -> surge is image-recency/position, not role."
+        },
+        {
+          "id": "H2",
+          "statement": "A SMALL, identifiable set of attention heads ('role-conditioned visual-routing heads') carries the role-gated visual routing; their text->image attention profile differs across role conditions. (Extends Gaze Heads 2606.14703, which localizes visual-routing heads but with NO role/turn dimension; guards against Dual-Pathway 2605.13156 head redundancy.)",
+          "falsifiable_test": "Gaze-Heads correlational localizer (few forward passes, 2606.14703) + role-differential ranking (heads whose text->image attention differs most across C1 vs C2). Head-set-size sweep K in {3,10,30,50,100}. PASS iff a small set (K<=50, <~15% of heads) exhibits significant role-differential attention AND rescaling only those heads recovers >=80% of the full-set recovery AND beats a size-matched RANDOM-head control (95% CI separation). FALSIFIED iff no small subset outperforms random-head control / recovery needs >50% of heads -> mechanism is diffuse."
+        },
+        {
+          "id": "H3",
+          "statement": "Rescaling the identified heads' visual-key attention to the MEASURED user-role profile, applied only at re-look steps, recovers most of the self-vs-user gap on swap-SENSITIVE instances with STRICTLY LESS collateral loss on swap-INVARIANT instances than global 2x amplification (2605.15864 Tab.9 PoC), CAST (2605.04641), and DMAS (2602.21704).",
+          "falsifiable_test": "On swap-sensitive: recovery fraction R=(acc_method-acc_self)/(acc_oracle-acc_self) >= pre-registered threshold. On swap-invariant control + POPE + MME: collateral delta >= -2pp AND paired-bootstrap strictly smaller than global-2x/CAST/DMAS collateral AT MATCHED swap-sensitive recovery (Pareto dominance). FALSIFIED iff targeted collateral is statistically indistinguishable from global, OR global-2x is already near-harmless (collateral <2pp) leaving no headroom to justify localization+gating complexity."
+        },
+        {
+          "id": "H4",
+          "statement": "A tiny supervised probe g(x) on internal features predicts illusion-bound + swap-sensitive instances above chance, and per-instance gating (steer only when g fires) reduces collateral vs always-on targeted steering. (No prior training-free method gates WHETHER to steer; CAST/DMAS/TLVS 2606.07647 all steer every instance and only choose which vector/head/token.)",
+          "falsifiable_test": "Logistic/MLP probe on cached activations, trained/evaluated on HELD-OUT source-benchmark splits (MathVista/MathVerse/MathVision/MMMU-Pro) with swap-invariant negatives. PASS iff probe AUROC >=0.65 on held-out split AND gated variant preserves swap-invariant accuracy better than always-on-targeted at matched swap-sensitive recovery. FALSIFIED iff AUROC<=0.60 or gating gives no collateral benefit vs always-on-targeted -> drop the gate, simplify to always-on-at-re-look-steps."
+        }
+      ],
+      "locked_success_criteria": [
+        "S1 (primary): On swap-sensitive VisualSwap instances, targeted+gated method recovers >=50% of the self-reflection->user-oracle swap-detection accuracy gap on Qwen3-VL-8B-Thinking, and >=40% on >=1 replication model (Qwen2.5-VL-7B-Instruct or Qwen3-VL-8B-Instruct); both with instance-bootstrap 95% CIs whose lower bound excludes 0.",
+        "S2 (collateral, the crux of the thesis): On swap-INVARIANT control (no-swap re-encode pass on VisualSwap) + POPE + MME, the method's accuracy delta >= -2pp, AND this collateral is statistically significantly smaller (one-sided paired bootstrap, alpha=0.05) than global-2x amplification's collateral at MATCHED swap-sensitive recovery. Requires FIRST demonstrating global-2x actually incurs collateral (>2pp) on swap-invariant.",
+        "S3 (localization): A small head set (K<=50, <~15% of total heads) reaches >=80% of full-set recovery AND its 95% CI separates from a size-matched random-head control -> supports 'small identifiable set'.",
+        "S4 (mechanism headline): Role main effect on S_vis is significant after regressing out position (sweep slope) + boundary, formalized on the full swap-sensitive set with bootstrap CIs; C3 (boundary-only) does not reproduce C2 (user-role, image held).",
+        "S5 (gate): Per-instance gate AUROC >=0.65 on held-out source-benchmark split; gated dominates always-on-targeted in the (recovery, collateral) plane."
+      ],
+      "locked_failure_criteria": [
+        "F1 (phenomenon not reproducible at feasible scale): self-vs-oracle swap-detection gap <15pp on Qwen3-VL-8B-Thinking AND on the 30B-A3B-FP8 escalation -> phenomenon underpowered at feasible scale -> pivot to Fallback B (mechanistic characterization).",
+        "F2 (role falsified): C2-C1 CI includes 0, OR C2 gain <20% of C4-C1 while C4 recovers -> surge is image-recency/position not role -> execute Fallback A (reframe to recency/boundary-reset gating) or Fallback B.",
+        "F3 (no collateral headroom): global-2x amplification collateral <2pp on swap-invariant (near-harmless) -> H3's 'beats global without collateral' has no headroom -> reframe contribution to 'cheapest sufficient training-free trigger + mechanism', drop dominance claim.",
+        "F4 (localization diffuse): no K<=50 head set beats size-matched random control / recovery needs >50% of heads -> H2 falsified -> drop 'small localized set', keep role-gated global steering + gate.",
+        "F5 (gate useless): probe AUROC <=0.60 or gating gives no collateral benefit -> drop per-instance gate, report always-on-at-re-look-steps targeted steering only."
+      ],
+      "datasets": [
+        {
+          "name": "VisualSwap (800 image-swap pairs; 200 each MathVista_MINI / MathVerse_MINI / MathVision / MMMU_Pro_10c_COT)",
+          "source": "HF datasets visualswap/VisualSwap; code github.com/visualswap/visualswap (run_inference.py, run_evaluation.py, download_data.py); paper arxiv:2605.15864",
+          "access": "HF dataset API returned HTTP 401 this session (possibly gated OR fetch-auth limitation) -> Week-0 risk: secure via HF access request / email authors (chufansh@usc.edu, xuezhema@usc.edu) / clone repo; FALLBACK: reconstruct swap pairs via download_data.py from the 4 public source benchmarks. License stated CC BY 4.0 on project page (not re-confirmable this session).",
+          "role": "PRIMARY testbed: swap-detection accuracy; swap-SENSITIVE split (correct pre-swap, answer changed by swap) for recovery; no-swap re-encode pass = swap-INVARIANT collateral control; source-benchmark splits for held-out gate eval."
+        },
+        {
+          "name": "MathVista / MathVerse / MathVision / MMMU-Pro (source benchmarks)",
+          "source": "public HF mirrors (lmms-lab / official); ingested by visualswap download_data.py",
+          "access": "public, non-gated",
+          "role": "Reconstruction fallback for VisualSwap; held-out source-benchmark splits for gate g(x) to prevent 800-pair math-only shortcut learning."
+        },
+        {
+          "name": "POPE",
+          "source": "public HF (built on MSCOCO/A-OKVQA/GQA); classic object-hallucination benchmark",
+          "access": "public, non-gated",
+          "role": "Collateral / general-benchmark check: measure whether steering degrades unrelated tasks; also CAST/DMAS home-turf sanity for fair baseline reimplementation."
+        },
+        {
+          "name": "MME",
+          "source": "public HF (lmms-lab mirror)",
+          "access": "public, non-gated",
+          "role": "General VLM collateral benchmark under identical intervention (subsampled for budget)."
+        }
+      ],
+      "baselines": [
+        {
+          "name": "Self-reflection probe (no intervention)",
+          "ref": "arxiv:2605.15864 (Shi et al.)",
+          "type": "lower-bound",
+          "why": "The illusion baseline: model self-generates re-examination; visual attention does not surge, answers stay text-anchored. Denominator of recovery fraction."
+        },
+        {
+          "name": "User-turn oracle (2-turn, App. C 'Check the image again and re-examine')",
+          "ref": "arxiv:2605.15864",
+          "type": "upper-bound/oracle",
+          "why": "R_multi=M(I_b,[Q,R_a,U]); recovers +51.3pp on 235B. Target ceiling; note it re-inserts I_b RECENTLY so its accuracy may exceed any far-back-KV training-free fix (image-recency ceiling)."
+        },
+        {
+          "name": "Global 2x visual-attention amplification (all heads)",
+          "ref": "arxiv:2605.15864 Tab.9 PoC (+18.2% Thinking)",
+          "type": "primary-comparison (training-free, all-heads, always-on)",
+          "why": "The phenomenon paper's OWN training-free fix. The headline contrast: head-localized+role-gated+per-instance MUST beat this on accuracy-per-collateral, else contribution is marginal."
+        },
+        {
+          "name": "CAST",
+          "ref": "arxiv:2605.04641 (Qiming Li et al.)",
+          "type": "training-free head-localized steering, always-on (reimplement, no public code)",
+          "why": "Steers caption-sensitive heads on EVERY instance/step; not role/provenance-conditioned, no whether-to-steer gate. Differentiation target for instance/step-conditional steering."
+        },
+        {
+          "name": "DMAS",
+          "ref": "arxiv:2602.21704 (Jianghao Yin et al., ICLR 2026)",
+          "type": "training-free dynamic head-subset steering, always-on (reimplement, no public code)",
+          "why": "'Dynamic' = which vector, not whether to steer; documents F1 collapse when strength too large (the global-steering collateral trade-off we exploit)."
+        },
+        {
+          "name": "VCD",
+          "ref": "arxiv:2311.16922 (Sicong Leng et al.); code github.com/DAMO-NLP-SG/VCD",
+          "type": "training-free contrastive decoding, global (public code)",
+          "why": "Classic reproducible baseline; validate harness/eval first before no-code reimplementations. ~2x forward passes."
+        },
+        {
+          "name": "PAI",
+          "ref": "arxiv:2407.21771 (Shi Liu et al.); code github.com/LALBJ/PAI",
+          "type": "training-free image-attention amplification + text-logit subtraction, always-on (public code)",
+          "why": "Directly comparable to our head-rescaling; combats 'text inertia' globally with no per-instance gate or role conditioning."
+        }
+      ],
+      "metrics": {
+        "primary": "Recovery fraction R = (acc_method - acc_self) / (acc_oracle - acc_self) of the self-reflection -> user-oracle swap-detection accuracy gap, on swap-SENSITIVE VisualSwap instances (correct pre-swap, answer changed by swap), primary model Qwen3-VL-8B-Thinking, LLM-as-judge answer extraction (run_evaluation.py); reported with instance-bootstrap 95% CI.",
+        "secondary": [
+          "Collateral accuracy delta (pp) on swap-INVARIANT control (no-swap re-encode pass) + POPE + MME under identical intervention (target >= -2pp).",
+          "Pareto dominance over global-2x / CAST / DMAS in the (swap-sensitive recovery, swap-invariant collateral) plane.",
+          "Role main effect on visual-attention surge delta-S_vis (S_vis = mean text->image attention per 2605.15864) after regressing out absolute position (sweep slope) and turn-boundary.",
+          "Head-localization curve: smallest K reaching >=80% of full-set recovery vs size-matched random-head control.",
+          "Per-instance gate g(x) AUROC on held-out source-benchmark split.",
+          "Latency/memory overhead of eager-attention capture + head-rescaling vs vanilla FlashAttention decode (sizes the eval grid)."
+        ]
+      },
+      "ablations": [
+        {
+          "name": "Gate-VARIABLE dissociation (2x2 role x boundary + position sweep)",
+          "isolates": "WHAT the visual surge is conditioned on: role vs turn-boundary vs absolute position/recency (image content + string + position held identical across cells; C2 holds image far-back to strip image-recency)",
+          "expected_effect": "Role main effect survives position+boundary controls (C2>C1, C3~=C1); if instead sweep or C3 drives the surge -> H1 falsified -> Fallback."
+        },
+        {
+          "name": "Head LOCALIZATION vs global",
+          "isolates": "The localization component: top-K role-differential heads vs all-heads (global-2x) vs size-matched RANDOM heads",
+          "expected_effect": "Targeted top-K matches/exceeds global recovery at strictly lower collateral, and beats random-head control -> localization is load-bearing, not incidental."
+        },
+        {
+          "name": "Head-set SIZE sweep (K in {3,10,30,50,100})",
+          "isolates": "How small the sufficient set is (guards Dual-Pathway 2605.13156 redundancy)",
+          "expected_effect": "Recovery knee at small K (<=50); flat beyond -> 'small identifiable set' holds; if monotone to all-heads -> H2 falsified."
+        },
+        {
+          "name": "Per-instance GATE (whether-to-steer)",
+          "isolates": "The gating decision: g(x)-gated vs always-on-targeted vs always-on-global",
+          "expected_effect": "Gated preserves swap-invariant/POPE/MME accuracy at matched swap-sensitive recovery; if no benefit over always-on-targeted -> drop gate (F5)."
+        },
+        {
+          "name": "Steering PROFILE / rule",
+          "isolates": "The steering target: rescale-to-measured-user-role-profile vs fixed-2x vs additive shift-vector (CAST-style)",
+          "expected_effect": "Rescale-to-user-profile gives best recovery-per-collateral; fixed-2x over-steers (more collateral)."
+        },
+        {
+          "name": "Intervention TIMING",
+          "isolates": "WHEN steering is applied: re-look steps only vs all decode steps",
+          "expected_effect": "Re-look-only is sufficient and lower-collateral than all-steps -> the fix is a localized-in-time intervention, not blanket amplification."
+        },
+        {
+          "name": "Gate FEATURE set",
+          "isolates": "The gate's input: internal-activation features vs surface features (reasoning length, presence of 'let me look again' trigger)",
+          "expected_effect": "Internal features add AUROC over surface-only; if not, gate is a cheap surface heuristic (still reportable)."
+        }
+      ],
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "compute_table": [
+        {
+          "phase": "P1 Week-1 GO/NO-GO: reproduce self-vs-oracle gap (full 800) + 2x2 role x boundary dissociation + position sweep (~200 swap-sensitive), Qwen3-VL-8B-Thinking, eager attention + per-head capture; mini-replicate on Qwen2.5-VL-7B",
+          "runs": 4,
+          "gpu_h_each": 18,
+          "gpu_h_total": 72
+        },
+        {
+          "phase": "P2 Head localization: Gaze-Heads correlational localizer + role-differential ranking + causal validation of top heads, 2 primary models",
+          "runs": 4,
+          "gpu_h_each": 15,
+          "gpu_h_total": 60
+        },
+        {
+          "phase": "P3 Targeted steering dev + ablations (head-set-size, steering-profile, timing, localization-vs-global) on swap-sensitive set, 2 models",
+          "runs": 8,
+          "gpu_h_each": 15,
+          "gpu_h_total": 120
+        },
+        {
+          "phase": "P4 Per-instance gate: activation caching (reuses P3), probe training (cheap), gated-vs-always-on eval + held-out source-split AUROC",
+          "runs": 4,
+          "gpu_h_each": 8,
+          "gpu_h_total": 32
+        },
+        {
+          "phase": "P5 Baselines: reimplement+run CAST/DMAS, reproduce VCD/PAI, global-2x; on swap-sensitive + swap-invariant + POPE + MME (subsampled), 2 models",
+          "runs": 10,
+          "gpu_h_each": 12,
+          "gpu_h_total": 120
+        },
+        {
+          "phase": "P6 Final eval grid: method vs baselines vs oracle, 3 seeds, 2 primary models + optional 30B-A3B-FP8 cross-model stretch, bootstrap CIs + Pareto plots",
+          "runs": 6,
+          "gpu_h_each": 15,
+          "gpu_h_total": 90
+        }
+      ],
+      "total_gpu_h": 494,
+      "fits_budget": true,
+      "schedule_weeks": [
+        {
+          "week": "W1 (from 2026-07-19; folds in Week-0 setup)",
+          "milestone": "Secure VisualSwap data (HF request/email/clone) OR stand up public-source reconstruction; build eager-attention hooking + per-head capture + head-rescaling harness on Qwen3-VL-8B-Thinking; reproduce self-vs-oracle gap; run 2x2 role x boundary dissociation + position sweep on ~200 swap-sensitive.",
+          "kill_gate": "GO iff gap >=15pp AND role main effect survives position+boundary (C2-C1 CI excludes 0, C2 gain >=40% of C4-C1, C3 does not match C2). Else trigger Fallback branch (F1/F2)."
+        },
+        {
+          "week": "W2",
+          "milestone": "Head localization: Gaze-Heads localizer + role-differential ranking; causal validation of top heads on 8B-Thinking.",
+          "kill_gate": "A small K<=50 head set shows role-differential attention AND causal effect > size-matched random control; else H2 falsified -> global+gate fallback (F4)."
+        },
+        {
+          "week": "W3",
+          "milestone": "Targeted steering (rescale-to-user-profile at re-look steps); head-set-size + steering-profile + timing ablations (single seed, interim).",
+          "kill_gate": "Targeted rescale recovers >=40% of gap on swap-sensitive (interim); else revisit steering rule / escalate scale."
+        },
+        {
+          "week": "W4",
+          "milestone": "Per-instance gate: activation caching, probe training, gated-vs-always-on; held-out source-split AUROC.",
+          "kill_gate": "Gate AUROC >=0.65 on held-out split; else drop gate, proceed always-on-at-re-look (F5)."
+        },
+        {
+          "week": "W5",
+          "milestone": "Baseline reimplementation (CAST, DMAS) + reproduce VCD/PAI; POPE/MME sanity on home turf; global-2x wired.",
+          "kill_gate": "CAST/DMAS reproduce published-direction effect on POPE; else demote to cited-only (keep global-2x/VCD/PAI as run baselines)."
+        },
+        {
+          "week": "W6",
+          "milestone": "Second-model replication (Qwen2.5-VL-7B-Instruct / Qwen3-VL-8B-Instruct); collateral measurement (swap-invariant + POPE + MME) for method vs global/CAST/DMAS.",
+          "kill_gate": "Method Pareto-dominates global-2x on >=1 model (recovery vs collateral) AND global-2x shows measurable collateral (>2pp); else reframe H3 (F3)."
+        },
+        {
+          "week": "W7",
+          "milestone": "Final eval grid: 3 seeds, bootstrap CIs, Pareto plots; optional 30B-A3B-FP8 cross-model stretch if budget/time.",
+          "kill_gate": "Locked S1-S3 met with CIs; else invoke Fallback A/B framing."
+        },
+        {
+          "week": "W8",
+          "milestone": "Analysis, figures, ablation tables, writing; document negatives honestly; freeze results.",
+          "kill_gate": "All pre-registered claims resolved (supported or reported as negative)."
+        },
+        {
+          "week": "W9 (to 2026-09-24)",
+          "milestone": "Buffer: paper polish, reviewer-proofing, contingency reruns / stragglers.",
+          "kill_gate": "Submission-ready by deadline; ~106 GPU-h contingency untouched or spent on 30B-A3B stretch."
+        }
+      ],
+      "week1_kill_gate": "By end of Week 1 on Qwen3-VL-8B-Thinking over ~200 swap-sensitive VisualSwap instances (eager attention, per-head capture, BYTE-IDENTICAL re-exam string at the SAME absolute token position, image content = re-encoded I_b held fixed): GO iff (i) self-vs-oracle swap-detection accuracy gap >=15pp, AND (ii) the ROLE main effect survives position+boundary controls — condition C2 (user-role re-exam text injected with the image held at its ORIGINAL far-back slot, NO re-insertion) yields a visual-attention surge and accuracy gain whose instance-bootstrap 95% CI excludes 0 vs C1 (self/assistant mid-decode) AND is >=40% of the full-oracle C4 (image re-inserted recently) gain, AND boundary-only C3 (assistant-role at turn boundary, image far-back) does NOT reproduce C2's gain, AND the position-sweep slope does not account for C2. NO-GO / FALSIFY iff C2-C1 CI includes 0, OR C2 gain <20% of C4-C1 while C4 recovers, OR C3 matches C2 -> the surge is image-recency/position/boundary, not role/provenance -> stop building the role-gated machinery and execute the Fallback. This is the cheapest decisive test (~10-15 GPU-h for the pivotal C2-vs-C4 sub-contrast; ~72 GPU-h for the full P1 block including reproduction and sweep) and it gates all downstream work.",
+      "fallback_if_mechanism_fails": "Two-tier, pre-committed. FALLBACK A (role falsified but a training-free trigger still works — F2 via C3 surge or sweep): reframe from 'role/provenance gating' to the empirically-winning variable. If C3 surges -> the mechanism is TURN-BOUNDARY re-anchoring / attention-sink reset; the fix becomes 'inject a boundary marker at re-look steps, gated per-instance'. If the position sweep drives it -> the mechanism is IMAGE-RECENCY (IKOD 2508.03469); the fix becomes 're-prefill / re-position the visual KV entries at re-look steps'. Either remains a training-free, targeted, mechanism-grounded fix that still beats naive global-2x on collateral and still uses the per-instance gate — publishable as 'boundary-reset / recency gating for the re-examination illusion'. FALLBACK B (no clean single gate variable, or H2/H3 also weak, or F1): pivot to a rigorous MECHANISTIC CHARACTERIZATION paper — the first head-level, matched-content dissociation of what does and does NOT drive the re-examination surge (role vs position vs boundary vs instruction content), the position-sweep recency curve, Gaze-Heads-style localization with a role dimension, and the STRONGEST training-free targeted fix regardless of the exact gate variable, benchmarked Pareto-style against global-2x / CAST / DMAS with the collateral-on-swap-invariant metric. This is ICLR-viable as a mechanism+diagnosis contribution even if the specific 'role' hypothesis returns negative, because no prior work (2605.15864 coarse layer-avg; 2606.14703 no role dim; CAST/DMAS no dissociation) performs the matched-content head-level dissociation.",
+      "scoop_verdict": "NOT fully scooped, but the novelty is a CONJUNCTION resting substantially on ONE surviving, mechanism-contingent axis. Every OTHER constituent is independently published as training-free work: head-level visual-attention steering (CAST 2605.04641, DMAS 2602.21704, VisFlow/dual-level 2506.12609, Gaze Heads 2606.14703), per-token adaptive steering strength (TLVS 2606.07647), a training-free selective-attention inference fix for the visual-attention/correctness disconnect (Seeing but Not Believing 2510.17771), and — most dangerously — the phenomenon paper's OWN global 2x visual-attention amplification PoC (2605.15864 Tab.9, +18.2% Thinking, 'left to future work'). The genuinely UN-scooped conjunction is: [re-examination-illusion target] x [role/provenance mechanism, user-vs-self] x [per-instance WHETHER-to-steer gate] x [matched-content role-vs-position-vs-boundary HEAD-LEVEL dissociation]. The matched-content dissociation has NO prior overlap and is the true novelty anchor. HONEST residual scoop-risk ~0.5: the surviving axis is confounded by (a) image-RECENCY — the oracle re-inserts I_b recently while the self-probe leaves the image far-back, and IKOD 2508.03469 shows monotonic visual-attention decay, so an apparent 'role' effect could be pure recency; and (b) turn-boundary sink-reset. If the Week-1 dissociation shows the surge is positional or boundary-driven, the contribution collapses toward 'yet another training-free head-steer + gate on VisualSwap' (CAST/DMAS/TLVS/VisFlow territory) unless reframed via Fallback A/B. Two further honesty caveats: the training-free fix can only reweight STALE far-back visual KV, so its recovery likely hits a CEILING below the +51pp oracle; and the primary 'beats global without collateral' claim is unproven until we FIRST show global-2x actually incurs collateral (2605.15864 reports only gains). VRRL (2607.02490), Look-Back (2507.03019), BUS (2607.07361) are RL/training solutions to the SAME symptom — complementary and useful as motivation ('they think only training can fix this'), not scooping. Verdict: GO, but the paper lives or dies on the Week-1 matched-content dissociation and on demonstrating global-steering collateral. All arxiv IDs above verified this session via export.arxiv.org; models (Qwen3-VL-8B-Thinking, Qwen2.5-VL-7B-Instruct) confirmed non-gated on HF; VisualSwap dataset confirmed to exist (github.com/visualswap/visualswap) though HF access returned 401 and must be secured Week-0.",
+      "remaining_risks": [
+        "Image-recency confound (DOMINANT): the user-turn oracle re-inserts I_b recently (R_multi=M(I_b,[Q,R_a,U])) while the self-probe keeps the image far-back; IKOD 2508.03469 shows monotonic visual-attention decay. An apparent 'role' effect may be pure recency. Mitigated by C2 (image held far-back) but the training-free fix can only reweight stale far-back KV -> restoration ceiling likely below the +51pp oracle.",
+        "Collateral-headroom risk: 2605.15864 reports only GAINS from global-2x, never collateral. If global steering is near-harmless on swap-invariant, H3 has no headroom -> the localized+gated complexity is unjustified -> must reframe (F3).",
+        "Scale-transfer: headline effects (3x, ~60% drop, +51pp) are on 235B/32B/28B Thinking models that DO NOT fit 4xL40; must reproduce >=15pp gap at 8B; 30B-A3B needs FP8 + multi-GPU sharding (no NVLink -> slow) as escalation only.",
+        "Statistical power: 800 pairs, math-only; per-model swap-sensitive subset after holding out a gate-train split may be a few hundred; claiming 'no degradation' with tight CIs is hard -> bootstrap CIs, held-out source-benchmark splits, pool the two primary models if N is thin.",
+        "Head-set generalization: role-conditioned heads may be model-specific (localized on 8B may not transfer to 30B-A3B) -> budget per-model localization; keep cross-model as a stretch claim, not load-bearing.",
+        "Grounding-head redundancy (Dual-Pathway 2605.13156): components are redundant and flip polarity between correct/hallucinating outputs; a small fixed head set may be unstable -> head-set-size ablation required.",
+        "Data access: HF visualswap/VisualSwap returned HTTP 401 this session (possibly gated) -> Week-0 secure via HF request/email authors, else reconstruct from public source benchmarks via download_data.py; timeline must not block on release.",
+        "Baseline fairness: CAST/DMAS have NO public code -> reimplement (~1-2 GPU-days engineering each; DMAS vector-DB is heaviest); running them on VisualSwap (OOD for them) may look artificially weak -> sanity-check on POPE home turf first and report both, or demote to cited-only if reimpl stalls.",
+        "Gate overfitting to VisualSwap math-only shortcuts -> held-out source-benchmark splits + swap-invariant negatives; report surface-feature-only baseline for the gate.",
+        "Eager-attention (non-FlashAttention) needed for capture+steering raises latency/memory -> measure real per-instance cost in Week 1 and size the eval grid to ~300-500 GPU-h (naive full grid ~800+ overruns); ~106 GPU-h contingency reserved.",
+        "Novelty-erosion by TLVS 2606.07647 (per-token steering) and VisFlow 2506.12609 (token+head intervention): read both in full before locking the 'per-instance gate' claim; if either already gates by a visual-sensitivity signal, sharpen the claim to role/provenance conditioning + re-look-step targeting, which none address."
+      ]
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Recon"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 3,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "scoop:VRRL",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "a6688c67b8ad84701",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395015399,
+      "queuedAt": 1784395009739,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Scoop close-read #1: VRRL (arXiv:2607.02490, 'Visually Grou…",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784395166083,
+      "tokens": 23478,
+      "toolCalls": 8,
+      "durationMs": 150684,
+      "resultPreview": "{\"topic\":\"Scoop close-read #1: VRRL (arXiv:2607.02490, 'Visually Grounded Self-Reflection for Vision-Language Models via Reinforcement Learning', Tang, Yin, Durrett) vs. the chosen training-free, head-level, role/provenance-mechanism direction.\",\"key_findings\":[{\"finding\":\"VRRL is entirely an RL/post-training method (two-stage SFT->RL), not a training-free or inference-time intervention. Its two c…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "scoop:phenomenon+lookback",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "aa25264fdb31bb445",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395014233,
+      "queuedAt": 1784395009740,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Scoop close-read #2: training-free, head-localized, role/pr…",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784395248632,
+      "tokens": 34260,
+      "toolCalls": 16,
+      "durationMs": 234398,
+      "resultPreview": "{\"topic\":\"Scoop close-read #2: training-free, head-localized, role/provenance-gated, per-instance fix for the VLM visual re-examination illusion (ICLR 2027 direction C1-repaired)\",\"key_findings\":[{\"finding\":\"Phenomenon paper arxiv:2605.15864 ('Are VLMs Seeing or Just Saying?', Shi et al., ICML 2026 Oral) is VERIFIED REAL with the exact numbers claimed. Self-vs-user gap on Qwen3-VL-235B-A22B-Thinki…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "baselines",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "a77db65fdb889d58d",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395015815,
+      "queuedAt": 1784395009740,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Baseline verification: training-free visual-attention steer…",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784395248625,
+      "tokens": 30995,
+      "toolCalls": 15,
+      "durationMs": 232810,
+      "resultPreview": "{\"topic\":\"Baseline verification: training-free visual-attention steering / visual-contrastive-decoding methods for VLM hallucination (differentiation target for a role-gated, per-instance training-free fix)\",\"key_findings\":[{\"finding\":\"CAST (arxiv:2605.04641) RESOLVES to the exact cited paper: 'CAST: Mitigating Object Hallucination in LVLMs via Caption-Guided Visual Attention Steering' (Li, Ye, Fe…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "mechanism",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "a0cfe6be1564e65c6",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395017463,
+      "queuedAt": 1784395009740,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Mechanism plausibility: are 'role/provenance-gated visual-r…",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784395350862,
+      "tokens": 43312,
+      "toolCalls": 19,
+      "durationMs": 333398,
+      "resultPreview": "{\"topic\":\"Mechanism plausibility: are 'role/provenance-gated visual-routing attention heads' a plausible, testable mechanism for the visual re-examination illusion in VLMs, and is the role-vs-position dissociation design sound / already scooped?\",\"key_findings\":[{\"finding\":\"A SMALL set of attention heads causally controls image-token attention / visual grounding in VLM LM-backbones, and is steerab…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "feasibility",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "a24db9435d190000a",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395019185,
+      "queuedAt": 1784395009740,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "DATA + MODEL + COMPUTE feasibility for a training-free, rol…",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784395265259,
+      "tokens": 28791,
+      "toolCalls": 16,
+      "durationMs": 246074,
+      "resultPreview": "{\"topic\":\"DATA + MODEL + COMPUTE feasibility for a training-free, role-gated fix of the VLM visual re-examination illusion (ICLR 2027), on 4xL40-48GB / ~600 GPU-h / 9 weeks.\",\"key_findings\":[{\"finding\":\"The core phenomenon paper is real and matches the brief: 'Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination' (Shi, Yang, Wu, Jin, Shui, Berg-Kirkpatrick, Ma), submitt…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "refute:gap-open",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "adcee4599d27d03c5",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395364551,
+      "queuedAt": 1784395361905,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "CLAIM UNDER TEST: There is a real, open gap for a training-…",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784395526622,
+      "tokens": 44769,
+      "toolCalls": 8,
+      "durationMs": 162071,
+      "resultPreview": "{\"target\":\"CLAIM UNDER TEST: There is a real, open gap for a training-free, head-level, role/provenance-mechanism + per-instance-gated fix of the visual re-examination illusion, not covered by VRRL/Look-Back/steering baselines (ICLR 2027 direction C1-repaired).\",\"strongest_objection\":\"The claimed gap is real only as a CONJUNCTION; every constituent axis except one is already independently publishe…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "refute:mechanism",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "ae8691e5846928f43",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395367657,
+      "queuedAt": 1784395361905,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Claim under test: the visual re-examination surge is gated …",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784395501646,
+      "tokens": 40352,
+      "toolCalls": 5,
+      "durationMs": 133989,
+      "resultPreview": "{\"target\":\"Claim under test: the visual re-examination surge is gated by token ROLE/PROVENANCE (user-provided vs self-generated), localized to a SMALL identifiable head set, cleanly dissociable from position/turn-boundary, and causally restorable training-free to match the user-turn oracle. Model substrate feasible on 4xL40: Qwen3-VL-8B-Thinking / Qwen2.5-VL-7B.\",\"strongest_objection\":\"The user-tu…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 8,
+      "label": "plan-skeleton (retry 1)",
+      "phaseIndex": 3,
+      "phaseTitle": "Synthesize",
+      "agentId": "ac64b2e4ba534a42b",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784395533719,
+      "queuedAt": 1784395528235,
+      "attempt": 2,
+      "lastAttemptReason": "stalled",
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "By end of Week 1 on Qwen3-VL-8B-Thinking over ~200 swap-sen…",
+      "promptPreview": "You are de-risking an ICLR 2027 paper direction. Be a rigorous, well-read, skeptical scientist. USE tools: ToolSearch to load WebFetch/WebSearch, then read arXiv abstracts via http://export.arxiv.org/api/query?id_list=ID and full text via https://arxiv.org/abs/ID or https://ar5iv.org/abs/ID; check HuggingFace for model/dataset availability. Do NOT rely on training memory for what 2026 papers conta…",
+      "lastProgressAt": 1784396613521,
+      "tokens": 105236,
+      "toolCalls": 29,
+      "durationMs": 1079801,
+      "resultPreview": "{\"hypotheses\":[{\"id\":\"H1\",\"statement\":\"The visual-attention surge that enables genuine re-examination is GATED BY TOKEN ROLE/PROVENANCE (user-provided vs self-generated), and this role effect is dissociable from absolute sequence position/recency and from turn-boundary re-anchoring. (Core, highest-risk; phenomenon paper 2605.15864 shows only the behavioral self-vs-user gap with coarse layer-avg at…"
+    }
+  ],
+  "totalTokens": 351193,
+  "totalToolCalls": 116
+}

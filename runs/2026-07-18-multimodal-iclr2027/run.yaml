@@ -1,0 +1,18 @@
+run_id: 2026-07-18-multimodal-iclr2027
+domain: "multimodal learning (vision-language)"
+target_venue:
+  name: "ICLR 2027"
+  track: "Main Conference"
+  source_url: "https://iclr.cc/"   # 2027 pages not yet live as of 2026-07-18; using ICLR 2026 official assets as interim baseline
+created_at: 2026-07-18T15:45:00+08:00
+budget:
+  gpu_hours: 600            # planning gate; adjustable after user confirms server availability
+  hardware: "4xL40-48GB (pku-server, via jump-box; UNREACHABLE as of 2026-07-18 — tailscale custom DERP relay down)"
+  wall_clock_days: 60
+deadline: 2026-09-24        # full-paper deadline per aggregator; abstract 2026-09-19; UNCONFIRMED until iclr.cc/2027 goes live
+mode: interactive           # user picks 1 of 3 ideas at end of Stage 1; plan approval required before GPU spend
+constraints:
+  - "hardware: 4xL40 48GB, no NVLink assumed — full fine-tune <=3B, LoRA <=13B, inference-heavy studies preferred"
+  - "server currently unreachable; Stage 3 blocked until jump-box connectivity restored"
+  - "no fabricated data/citations; all numbers must trace to runs/<run_id>/results/"
+human_contact: shilongkun1222@gmail.com

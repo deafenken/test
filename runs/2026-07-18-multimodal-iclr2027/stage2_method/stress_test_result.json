@@ -1,0 +1,395 @@
+{
+  "summary": "Four diverse hostile ICLR reviewers read the actual method.md + experiment_plan.yaml and try to reject; synthesis decides plan-ready or must-fix-before-Stage-3",
+  "agentCount": 5,
+  "logs": [],
+  "result": {
+    "reviews": [
+      {
+        "lens": "Soundness & math: identification validity of the §3.3 role main-effect regression, the §4.1 softmax-rescaling operator, and the §5 recovery-fraction / gate metric definitions.",
+        "overall_score": 4,
+        "recommendation": "weak reject",
+        "damning_comment": "Once you unfold the design, the vaunted 'role/provenance main effect' collapses to a single C2−C3 cell contrast whose only mechanical difference is which turn-marker token (user vs assistant) was inserted and the extra wrapper tokens it costs — and that fix is then scored as a fraction of a C4 oracle gap it targets a different (C2) profile to close, a denominator the plan's own F2 kill-switch concedes may be under 20% of C4−C1, which makes the pre-registered S1 (≥50% recovery) potentially unreachable by construction rather than by method weakness.",
+        "is_benchmark_paper": false,
+        "math_supports_claim": false,
+        "top_weaknesses": [
+          {
+            "weakness": "Target/ceiling mismatch in the primary metric. The steering target p* (§4.1) is the 'engaged' visual-mass profile measured under C2 (user role, image far-back, NO recency). But the recovery-fraction denominator (§5) uses acc_oracle = C4 (user role, image RE-INSERTED recently). C4's accuracy includes a recency contribution the training-free far-back method structurally cannot access. If C2 accuracy < C4 accuracy (exactly what failure criterion F2 anticipates: 'C2 gain <20% of C4−C1'), then even a perfect reproduction of C2's attention profile caps Rec at (accC2−accSelf)/(accC4−accSelf) < 1, and S1's ≥50% target is unreachable in principle. The metric ceiling and the intervention target are different experimental conditions.",
+            "severity": "blocking",
+            "required_fix": "Either (a) score recovery against the C2 (user, far-back) ceiling that the fix actually targets, reporting the C2→C4 residual separately as the irreducible recency gap; or (b) if C4 must remain the ceiling, re-derive S1's threshold conditional on the empirically measured C2/C4 ratio and pre-register that the reachable ceiling is (accC2−accSelf), not (accC4−accSelf). Reconcile the S1 (≥50%) target with the F2 (C2 may be <20% of C4) tolerance — they currently contradict.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The 'role main effect' is not identified free of turn-marker and query-recency confounds. The additive regression S ~ mu + delta*1[role=usr] + gamma*beta + eta*phi(pos) is fit on a design where every user-role cell (C2, C4) has beta=1; there is NO (user, mid-decode, far-back) cell. So role and boundary are only separable under an UNTESTABLE no-interaction assumption, and delta reduces to the single contrast C2−C3. C2 (user turn) vs C3 (assistant boundary) differ not only in 'provenance' but in (i) the specific marker tokens inserted (user vs assistant im_start/im_end, both known attention sinks), (ii) sequence length between the image and the re-look measurement query (user-turn wrappers add tokens → residual recency-of-query the position basis does not control, since it only tracks IMAGE position which is constant far-back across C1–C3), and (iii) whether a fresh assistant turn generates the re-look span. Byte-identical U does NOT imply position-identical or sink-identical.",
+            "severity": "blocking",
+            "required_fix": "Add the missing (user, mid-decode, far-back) cell to make the 2×2 role×boundary factorial complete and TEST the additivity/no-interaction assumption the identification relies on. Match absolute token position and total sequence length of the measurement query across all cells (pad/align so user-marker wrapper tokens do not shift the image→query distance). Report a marker-token-only control (insert user markers with empty/neutral U) to separate 'provenance' from 'inserted a sink token'.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Head-selection double-dipping. H_K is selected in §3.3 by 'causal score = recovery obtained when only that head is steered' on VisualSwap, and H3/S3 then report recovery of steering H_K on VisualSwap. Selecting heads that maximize recovery on a set and then reporting recovery on that same set is selection-on-the-outcome; the size-matched random-head control does not fix it because the top-K set was optimized against the same instances. The held-out source-benchmark split is used only for the gate, not for head localization.",
+            "severity": "major",
+            "required_fix": "Select H_K (and the knee K) on a disjoint localization split and report recovery/S3 on a held-out evaluation split, with the random-head control matched on the same split. Pre-register the split before Stage 3.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Recovery fraction is a ratio with a small, noisy denominator, and its stated domain is wrong. The GO gate only requires self-vs-oracle gap ≥15pp; on ~200 swap-sensitive instances the SE of an accuracy difference is ~5pp, so a 15–20pp denominator makes the S1 ≥50% threshold (~7.5–10pp absolute) barely separable from bootstrap noise, and the ratio's bootstrap CI is heavy-tailed near a small denominator. Separately, the claimed domain (−∞,1] assumes method ≤ oracle, but targeted steering to p* is not bounded by oracle accuracy, so Rec>1 is possible and the 'fraction of gap recovered' framing breaks. On the second reasoning model (S1 requires ≥40%) the oracle gap is not guaranteed positive, so Rec can be undefined or sign-flipped there.",
+            "severity": "major",
+            "required_fix": "Report absolute acc_self/acc_oracle/acc_method with instance-bootstrap CIs as the headline and treat Rec as secondary; power-analyze the ≥50%/≥40% thresholds against the actually-measured denominator and n, and pre-register a minimum denominator (e.g. ≥20pp with CI) below which Rec is not reported. Correct the stated domain and define behavior for Rec>1 and for non-positive oracle gaps on secondary models.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The rescaling operator does not reproduce the C2 profile it claims to restore. Two math-vs-claim gaps: (1) p* is a per-head population MEAN over the C2 span/instances; clamping every gated instance's head to this fixed scalar destroys per-instance/per-step variation and cannot let visual mass 'surge' above the mean on hard instances — it is a constant clamp, not a per-instance restoration of 'engaged' behavior. (2) The closed-form shift c=ln(p*B/((1−p*)A)) is solved independently per head, but heads compose across layers: steering layer ℓ changes the residual stream and hence the pre-softmax logits (A,B) of downstream heads, which were measured offline in the UN-steered C2 context. Independently forcing each head to its offline C2 mass does not yield the joint C2 state. The within-image/within-text ratio-preservation math is correct, but 'matches the engaged profile' is an overclaim, and 'minimal, interpretable intervention' understates an unbounded downstream causal footprint.",
+            "severity": "major",
+            "required_fix": "Justify or drop the independence assumption: either steer heads jointly / iteratively re-solve to the C2 joint state, or empirically verify that the composed intervention reproduces C2's downstream head masses (not just each head's marginal). Replace the population-mean clamp with a per-instance target (e.g. condition p* on cached pre-trigger features) or explicitly test that a fixed clamp does not cap recovery. Report the actual downstream activation divergence from true C2, not just the softmax-local invariance.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Gate train/deploy distribution mismatch and label ill-definition. g(x) is trained/evaluated on held-out UNSWAPPED source benchmarks (MathVista/MathVerse/MathVision/MMMU-Pro) but deployed on SWAPPED VisualSwap instances. The positive label requires y_oracle=1 AND y_self=0 ('benefits from re-look'), which presupposes a swap image I_b to create the illusion — the unswapped source benchmarks have no I_b, so the label-generating oracle-vs-self contrast is not defined on the training distribution. AUROC ≥0.65 on the held-out source split therefore does not certify performance on the swap deployment distribution.",
+            "severity": "major",
+            "required_fix": "Define the gate's training distribution to match deployment: train/evaluate on held-out SWAPPED instances (source-split reconstruction) so the illusion label is well-defined, and report AUROC on the actual VisualSwap swap-sensitive deployment set (with a source-held-out split to guard shortcut learning). Clarify how y_oracle/y_self labels are computed without a swap if the source-benchmark training is retained.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Post-selection inference on delta. H1's test — 'role coefficient delta (aggregated appropriately) significant with instance-bootstrap 95% CI excluding 0' — leaves 'aggregated appropriately' undefined, and ranking heads by |delta| then testing delta≠0 on the same data is circular (selected large-|delta| heads are significant by construction). No multiple-comparison correction is specified across the full head set H.",
+            "severity": "minor",
+            "required_fix": "Pre-specify the aggregate statistic (e.g. a fixed signed sum over a pre-registered head set, or a global omnibus test) before selection; apply FDR/family-wise correction across all heads; keep head selection and significance testing on disjoint splits.",
+            "fixable_before_stage3": true
+          }
+        ]
+      },
+      {
+        "lens": "Novelty & related work — is the contribution genuinely distinct, or \"attention steering + a gate + a role hypothesis\"?",
+        "overall_score": 4,
+        "recommendation": "weak reject",
+        "top_weaknesses": [
+          {
+            "weakness": "The novelty is admitted-unverified at lock time. experiment_plan.yaml's own scoop_verdict (line 159) says 'Read TLVS 2606.07647 and VisFlow 2506.12609 in full in W1 BEFORE locking the per-instance-gate claim' — yet the plan is declared LOCKED. A direct check of both confirms the threat: TLVS (2606.07647) already does token-adaptive, visual-sensitivity-gated conditional steering ('applies steering only where it matters', decides where-to-intervene), and VisFlow (2506.12609) already does training-free dual-level attention intervention that conditions on token source/provenance (suppresses attention on system-prompt vs visual vs previously-generated tokens). These erode the 'per-instance gate' and 'role/provenance' pillars, and NEITHER appears in the §7 differentiation table.",
+            "severity": "blocking",
+            "required_fix": "Read TLVS and VisFlow in full and add both — plus PAI (2407.21771), Spectral-QK (2606.20419), DeAR (2603.01111) — as rows in §7 with honest per-column entries; run at least TLVS/VisFlow-style token-adaptive gating as an empirical baseline; and sharpen the claim to the specific self-generated-vs-user provenance axis, demonstrating it is not already captured by VisFlow's attention-source conditioning.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Novelty-by-gerrymandered-conjunction. Every atomic component is prior art: head localization (CAST/DMAS/Gaze-Heads/Dual-Pathway), image-attention rescaling (phenomenon-paper 2x, PAI), input-conditional steering (DMAS, TLVS), and provenance/role-sensitive attention (VisFlow at the attention-source level; PASTA 2311.02262, SpotLight 2505.12025, 'Beyond the Assistant Turn' 2604.02315 in text LLMs). The contribution reduces to 'attention steering + a per-instance gate + a role hypothesis'. The §7 table manufactures distinctness by (a) listing only 5 easy-to-beat foils and (b) padding the conjunction with two columns — 'causal role-vs-position dissociation' and 'collateral-on-swap-invariant metric' — that are experiment-design/metric choices, not method properties.",
+            "severity": "major",
+            "required_fix": "Separate method novelty from evaluation novelty; drop the metric/experimental-design columns from a method-differentiation table; name the single load-bearing new atom (self-vs-user provenance gating of visual-routing heads) and defend THAT against the full neighbor set rather than defending an inflated 6-way conjunction.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The one genuinely novel atom (role/provenance gating) is a contingent hypothesis, not a result, and both failure branches land in occupied territory. If H1 is falsified, Fallback A/B reframe to 'turn-boundary reset' or 'image-recency gating' — positional stories already owned by IKOD (2508.03469) and PoRe (2508.17807). If H1 holds, the mechanism (provenance-sensitive attention) is already demonstrated in text LLMs (2604.02315, PASTA, SpotLight) and at the attention-source level in VisFlow, making it an incremental transfer to visual heads. So novelty is either unproven-and-contingent or incremental.",
+            "severity": "major",
+            "required_fix": "Pre-commit to a novelty claim that survives BOTH the success and falsification branches; explicitly position against the text-LLM provenance-attention literature and VisFlow up front; and honestly frame the contribution as a transfer-plus-dissociation rather than the discovery of a new mechanism.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The DMAS row in §7 is misleading. DMAS is marked '✗ (always-on)' on the per-instance-gate column, but DMAS performs per-context dynamic steering-vector selection by input semantic similarity — it is already input-conditional. The paper's real distinction ('DMAS picks which vector, we decide whether to steer') is legitimate but is hidden under a binary ✗ that overstates the gap and reads as spin.",
+            "severity": "major",
+            "required_fix": "Replace binary ticks with a precise phrase per cell (e.g. DMAS = 'input-conditional vector choice, no abstain'; TLVS = 'per-token visual-sensitivity gating'; VisFlow = 'attention-source-conditioned, no abstain') so a reader can see which neighbors are already instance/token-adaptive.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The most directly comparable baseline is absent from the differentiation table. PAI (2407.21771) — training-free image-attention amplification with public code, listed in experiment_plan.yaml as 'directly comparable to our head-rescaling' — does not appear in §7, while a strictly weaker foil (VRRL, an RL method with zero attention analysis) is included. DeAR (2603.01111), which literally assigns 'roles' to heads, is dismissed in prose but also omitted. The table's comparator set is selected to flatter.",
+            "severity": "minor",
+            "required_fix": "Add PAI and DeAR (and M3ID/VCD as the contrastive-decoding family) to §7, and drop or demote VRRL to a one-line 'disjoint RL solution' note rather than a table row it trivially loses.",
+            "fixable_before_stage3": true
+          }
+        ],
+        "damning_comment": "The paper's own locked plan concedes it never read its two nearest competitors — TLVS (2606.07647) and VisFlow (2506.12609) — before locking the per-instance-gate claim, and a five-minute check shows both already do training-free conditional and provenance-aware attention steering; so the §7 differentiation table is not an honest map of the neighborhood but a curated shortlist of works chosen to lose, and once the real neighbors are added the contribution collapses to 'attention steering + a gate + an as-yet-unproven role hypothesis'.",
+        "is_benchmark_paper": false,
+        "math_supports_claim": true
+      },
+      {
+        "lens": "Experimental rigor &amp; statistics (statistical power, baseline fairness, compute feasibility)",
+        "overall_score": 5,
+        "recommendation": "borderline",
+        "top_weaknesses": [
+          {
+            "weakness": "The crux claim S2 (collateral delta >= -2pp on swap-INVARIANT + POPE + MME AND collateral significantly smaller than global-2x/CAST/DMAS with non-overlapping bootstrap CIs) is almost certainly underpowered. Swap-sensitive N is never quantified: it is a double-conditioning (correct pre-swap AND answer flips on swap) on 800 math-only pairs, plausibly leaving ~150-350 per model, and the swap-invariant subset is similarly bounded. Detecting a ~2pp near-ceiling effect AND separating three methods with non-overlapping 95% CIs needs an order of magnitude more instances than that. No MDE/power analysis is provided.",
+            "severity": "blocking",
+            "required_fix": "Add a pre-registered power/MDE calculation: report the expected swap-sensitive and swap-invariant N per model AFTER both conditioning steps, compute the sample size required for the -2pp non-inferiority bound and for between-method CI separation, and reach it by reconstructing additional VS-Bench pairs from the 4 public source benchmarks and/or pooling the reasoning models with a stratified bootstrap. State it as non-inferiority, not a raw CI overlap heuristic.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Head-localization is circular: the top-K heads are selected by causal recovery (recovery_when_only_steering) on the same instances that then score H2 (beats size-matched random control) and H3 (recovery of the selected set). This is winner's-curse selection on ~1150 candidate heads (36 layers x 32 query heads for Qwen3-VL-8B), which inflates exactly the S3 localization claim and the random-control gap.",
+            "severity": "major",
+            "required_fix": "Use nested cross-validation or disjoint instance splits: select and rank heads on a held-out selection fold, evaluate recovery and the random-control comparison on a separate fold. Report the selected head set's stability across folds.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The 494 GPU-h budget does not survive arithmetic. P1 (72 GPU-h) runs C1-C4 plus a position-sweep grid (one full generation per grid point per instance) under eager (non-Flash) attention on multi-thousand-token Thinking traces; the PS multiplier is not reflected. P6 (90 GPU-h) is 9 methods x 3 models x 3 seeds x (VisualSwap 800 + POPE 9000 + MME 2374) with generation-time reasoning, which at realistic per-generation latency is many hundreds of GPU-h.",
+            "severity": "major",
+            "required_fix": "Publish the measured per-generation latency of eager-attention capture on an actual Thinking trace, the exact POSITION_GRID size and per-condition instance counts, and the explicit subsampling for POPE/MME; recompute each phase from those numbers and show the grid lands inside budget rather than asserting fits_budget: true.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Baseline fairness under OOD transfer: CAST and DMAS have no public code, are designed for object-hallucination on POPE/CHAIR, and would be reimplemented then run on math swap-detection with unspecified steering-strength selection. A Pareto-dominance claim over them is confounded by how much each baseline's strength was tuned on the target task versus the proposed method.",
+            "severity": "major",
+            "required_fix": "Tune each baseline's steering strength (CAST alpha, DMAS alpha/beta, global-2x factor) on a VisualSwap dev split to its own best point on the (recovery, collateral) plane under the same tuning budget as the method, and report the full strength sweep for each baseline, not a single default-strength point.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The Week-1 GO/NO-GO kill-gate is defined on a confounded contrast. C2-C1 differs in BOTH role and turn-boundary (a user turn is inherently a boundary, so C1 has beta=0 while C2 has beta=1), so 'C2-C1 CI excludes 0' does not isolate role. The clean role contrast at matched boundary and position is C2 vs C3, but H1 headlines C2>C1 and C3~=C1. The fully-crossed user/mid-decode/beta=0 cell is unconstructable, so the role x boundary interaction is not point-identified.",
+            "severity": "major",
+            "required_fix": "Redefine the primary role test and the kill-gate as C2 vs C3 (matched beta and image position, differing only in role); demote C2-C1 to descriptive. Explicitly acknowledge the missing user/beta=0 cell and the resulting non-identifiability of the interaction.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The primary metric Rec = (acc_method - acc_self)/(acc_oracle - acc_self) is a ratio of differences with a small, seed-dependent denominator; bootstrap CIs on such a ratio are wide and unstable, and the swap-sensitive set that defines the denominator itself shifts across the 3 seeds. 3 seeds is thin for estimating that generation variance.",
+            "severity": "major",
+            "required_fix": "Report absolute self/oracle/method accuracies as the primary headline with paired stratified bootstrap; treat Rec as secondary with a pre-registered rule for near-zero denominators and a bootstrap that jointly resamples seed and instance. Increase seeds or justify 3 with a variance estimate.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "H1's per-head role-coefficient significance is tested across ~1150 heads with multiplicity uncontrolled; the method only says the coefficient is significant 'aggregated appropriately,' which is undefined. This invites fishing for a significant head.",
+            "severity": "minor",
+            "required_fix": "Specify the aggregation (e.g., set-level mean effect on the pre-registered head set) and apply FWER/FDR control for any per-head significance claims.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The gate g(x) is claimed to avoid 'math-only shortcut learning' by training on a held-out source-benchmark split, but all four source benchmarks (MathVista/MathVerse/MathVision/MMMU-Pro) are math/STEM, so the held-out split is still math. AUROC >= 0.65 on a few-hundred-instance split has a confidence interval plausibly crossing 0.5.",
+            "severity": "minor",
+            "required_fix": "Add a genuinely non-math OOD gate-eval set to test the anti-shortcut claim, and report the AUROC bootstrap CI with the N required to separate 0.65 from chance.",
+            "fixable_before_stage3": true
+          }
+        ],
+        "damning_comment": "The headline contribution -- 'recover the gap WITHOUT collateral' -- rests on detecting a ~2pp near-ceiling collateral difference against three baselines with non-overlapping CIs on a swap-invariant subset the authors never even size; on ~150-350 math-only instances that comparison is statistically dead on arrival, and no power analysis is offered to suggest otherwise.",
+        "is_benchmark_paper": false,
+        "math_supports_claim": true
+      },
+      {
+        "lens": "reviewer-2 / is-this-a-contribution",
+        "overall_score": 4,
+        "recommendation": "weak reject",
+        "is_benchmark_paper": false,
+        "math_supports_claim": true,
+        "damning_comment": "Strip away the four pre-registered fallbacks and the headline collapses to two coin-flips the authors themselves flag as high-risk: that 'role/provenance' survives dissociation from turn-boundary tokens it is physically identical to, and that global-2x actually causes the collateral the entire targeted+gated apparatus exists to prevent (a cost the source paper never reports) — if either lands wrong, what remains is a finer-grained re-diagnosis of an already-ICML-Oral illusion plus a fix that may not beat a near-harmless baseline, i.e. a repackaged negative result dressed as a mechanism.",
+        "top_weaknesses": [
+          {
+            "weakness": "The 'recover without collateral' headline is contingent on global-2x being harmful, which is unverified and contradicted by the only evidence we have. The phenomenon paper's own global-2x PoC reports only a +18.2% GAIN and never measures collateral; the authors' own failure criterion F3 concedes that if global-2x collateral is <2pp the whole targeted+gated contribution 'has no headroom.' The paper's central engineering claim thus rests on a cost that plausibly does not exist — making the method a workaround for a workaround (global-2x) that may already be near-harmless.",
+            "severity": "blocking",
+            "required_fix": "Measure global-2x / CAST / DMAS collateral on swap-invariant + POPE + MME as a standalone PRECONDITION before any targeting/gating machinery is built. If collateral is <2pp (F3), the contribution must be reframed away from 'no collateral' before Stage 3, not after.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The 'role/provenance' mechanism is not cleanly separable from turn-boundary tokens, because in a chat template user-provenance is INSTANTIATED by the <|im_start|>user boundary/sink tokens — role and boundary are the same physical intervention, not two crossable factors. The Part A design lacks a user/mid-decode (boundary=0) cell (the recon explicitly recommended a full 2x2; the method table omits it), and C3 injects an assistant turn-boundary the model never naturally emits. So the flagship dissociation may be measuring an artifact, and 'role' could just be relabeled KV-context/boundary structure.",
+            "severity": "blocking",
+            "required_fix": "Either add and justify a genuine user-provenance-without-boundary condition (define how user role is tokenized without the boundary markers), or concede role and boundary are inherently confounded in deployed templates and reframe the primary claim as boundary-reset gating (Fallback A) up front rather than as a role mechanism.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Scale mismatch guts the phenomenon at the studied scale. The headline effects (+51pp, 3x, ~60% drop) are on 235B/32B/28B Thinking models that do NOT fit 4xL40; at the feasible 8B-Thinking scale the self-vs-oracle gap may be marginal (F1 only requires >=15pp). A smaller gap shrinks the recovery ceiling and, combined with cascaded subsetting, leaves the primary metric badly underpowered. The paper effectively studies a downscaled version of the illusion and claims to fix it.",
+            "severity": "major",
+            "required_fix": "Report the actual Qwen3-VL-8B-Thinking self-vs-oracle gap and usable swap-sensitive N in Week-1, plus a pre-hoc power calculation showing the (recovery, collateral) CIs can resolve S1/S2/S3 at that N and gap; if not, pool models or expand swap pairs before locking claims.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "Novelty is claimed as a conjunction of individually-fragile legs. Head-localization is conceded as non-novel (Gaze Heads, CAST, DMAS). That leaves 'role-gating' (weakness above) and 'per-instance gate' — but the recon flags 2606.07647 (Token-Level Visual-Sensitivity Steering) and 2506.12609 (Dual-Level Attention Intervention) as UNREAD and potentially already doing per-instance/per-token gating. If either does, the gate leg evaporates and only the contested role leg remains, i.e. novelty-by-intersection with both intersecting components in doubt.",
+            "severity": "major",
+            "required_fix": "Read and empirically compare against 2606.07647 and 2506.12609 before locking the gate novelty; if either gates per-instance/per-token, restrict the claim to role/provenance conditioning and drop 'per-instance gate' from the differentiation table.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The paper is an unusually deep decision tree of pre-registered negative-result reframings (Fallbacks A, B, five kill-gates F1-F5). This is honest but is itself a tell that the authors have low confidence in the headline. The most probable landing given the stacked risks (dominant recency confound, unverified collateral, math-only 800 pairs, downscaled effect) is Fallback B: a 'mechanistic characterization' paper that re-diagnoses an illusion already established by an ICML 2026 Oral, at finer (head vs layer) granularity. That is incremental, not a top-tier standalone contribution.",
+            "severity": "major",
+            "required_fix": "Commit to a single minimum guaranteed contribution that clears ICLR's bar even in the worst-case branch, and argue explicitly why head-level matched-content dissociation is a sufficient advance over the phenomenon paper's layer-level analysis independent of whether the role hypothesis or the fix survives.",
+            "fixable_before_stage3": false
+          },
+          {
+            "weakness": "The gate that anchors the 'surgical, no-collateral' story targets only AUROC >=0.65 — barely above chance. A predictor that weak cannot credibly support selective, collateral-free intervention, and its oracle-derived label ('would the user-turn flip self-wrong to correct') plus an answer-logit-margin feature risks the gate learning a generic uncertainty signal rather than anything illusion-specific.",
+            "severity": "minor",
+            "required_fix": "Raise the gate bar (e.g. AUROC >=0.75) or prove the gated policy Pareto-dominates at 0.65; and add an answer-margin-only 'uncertainty' baseline gate to demonstrate the internal features contribute illusion-specific signal beyond generic uncertainty.",
+            "fixable_before_stage3": true
+          },
+          {
+            "weakness": "The primary Recovery-fraction metric conditions its denominator on oracle success (defined only where oracle gap > 0), so N shrinks through cascaded subsetting: 800 pairs -> swap-sensitive -> oracle-recovered -> per-model -> held-out gate split. Claiming '50% recovery' on the resulting few-hundred instances with only 3 seeds yields wide CIs, undermining every non-overlapping-CI success criterion (S2, S3, S5).",
+            "severity": "minor",
+            "required_fix": "Report usable N per model after full subsetting alongside every recovery/collateral number, and pre-register the bootstrap-CI width; augment swap pairs (public-source reconstruction) if N is too small to separate CIs.",
+            "fixable_before_stage3": true
+          }
+        ]
+      }
+    ],
+    "verdict": {
+      "plan_ready": false,
+      "predicted_score_range": "As locked: 3.5–4.5 (reject/weak-reject), consistent with the four 4/4/5/4 reviews. With all must-fixes applied AND favorable Week-1 gates (8B gap ≥15pp, role survives the C2-vs-C3 + marker-token control, global-2× shows >2pp collateral): 5.5–6.5 (borderline-accept, tip-able on strong collateral separation). If the fixes are applied but it lands in Fallback B: 4.5–5.5 (borderline).",
+      "must_fix_before_stage3": [
+        {
+          "item": "Repair the primary metric: make the recovery denominator the ceiling the fix can actually reach (C2), and resolve the S1↔F2 self-contradiction.",
+          "why": "Rec's denominator is acc_oracle = C4 (user turn WITH image re-inserted recently, yaml line 55), but the method restores the C2 profile (user role, image far-back) and structurally cannot access C4's recency term — so method accuracy is capped near acc_C2. F2 (line 150) explicitly tolerates C2 gain being as low as 20% of C4−C1 while still declaring role NOT-falsified, which means max Rec ≈ 20% while S1 (line 142) demands ≥50%. The plan can pass its Week-1 role gate and be guaranteed to fail its pre-registered primary success criterion. No GPU can fix a contradiction inside the pre-registration.",
+          "concrete_change": "In method.md §5 and experiment_plan.yaml metrics/success_criteria: redefine primary Rec denominator to (acc_C2 − acc_self) — the role-attributable ceiling the fix targets — and report (acc_C4 − acc_C2), the irreducible recency residual, as a separate scientific quantity. Restate S1 as '≥50% of the role-attributable (C2) gap.' Explicitly reconcile S1 with F2 so they cannot both trigger. Also correct the stated domain: Rec is NOT bounded by oracle (targeted steering can overshoot), so replace '(−∞,1]' with the true range and define behavior for Rec>1 and for non-positive denominators on the secondary model; pre-register a minimum-denominator floor (e.g. ≥15pp with CI) below which Rec is suppressed and only absolute accuracies are reported; make absolute acc_self/acc_C2/acc_C4/acc_method with paired instance-bootstrap CIs the HEADLINE and Rec secondary."
+        },
+        {
+          "item": "Fix identification of the 'role' effect: move the kill-gate to the matched C2-vs-C3 contrast, add a marker-token-only control, match sequence length, and state the interaction non-identifiability with a pre-committed reframe trigger.",
+          "why": "The Week-1 GO gate is defined on C2−C1 (yaml line 131), which changes role AND turn-boundary simultaneously (C1: self/far-back/β=0; C2: user/far-back/β=1) — a boundary effect can pass the gate masquerading as role. The clean role-at-matched-boundary contrast is C2 vs C3. Even C2 vs C3 confounds 'provenance' with which sink/marker tokens were inserted and with query-recency (user-wrapper tokens shift the image→query distance, which the IMAGE-position basis does not control). There is no natural (user, far-back, β=0) cell in a deployed chat template, so the role×boundary interaction is not point-identified — this must be conceded, not assumed away. This is the flagship scientific claim; a confounded gate is a guaranteed reviewer weak-reject.",
+          "concrete_change": "In method.md §3.3/H1 and experiment_plan.yaml lines 9/105/131: redefine the primary role test and the W1 kill-gate as the conjunction '(C2−C3 CI excludes 0) AND (C3−C1 small/CI includes 0)'; demote C2−C1 to descriptive. Add a marker-token-only control condition (insert the user role markers around an empty/neutral U, image far-back) to separate provenance from sink-token insertion. Pad/align total sequence length and absolute image→query distance across C1/C2/C3 so the position basis controls query-recency. Add a sentence in §3.3 and §8 stating the interaction is not point-identified, and pre-register the threshold at which — if the marker-only control explains the C2−C3 gap — the claim reframes to boundary/sink-reset (Fallback A). Do not fit the additive regression as if additivity were tested; report it as a descriptive decomposition under a stated no-interaction caveat."
+        },
+        {
+          "item": "De-circularize head localization: pre-register disjoint localization vs evaluation instance splits and honest per-head statistics.",
+          "why": "H_K is selected by 'recovery when only that head is steered' on VisualSwap (§3.3, pseudocode localize_heads), then S3/H2/H3 report recovery and random-control separation on the same instances — selection-on-the-outcome over ~1150 heads (36×32 for Qwen3-VL-8B). This inflates exactly the localization claim and the random-control gap; the size-matched random control does NOT fix it because the top-K set was optimized against the same instances. H1's 'aggregated appropriately' (line 9) is undefined and, combined with ranking heads by |δ| then testing δ≠0 on the same data, is circular with no multiplicity control across the head set.",
+          "concrete_change": "In experiment_plan.yaml (H2/H3/S3, P2) and method.md §3.3: pre-register a disjoint localization split for head selection and knee-K choice, and evaluate recovery/S3/random-control on a held-out evaluation split (nested CV), reporting head-set stability across folds; match the random-head control on the same eval split. Pin H1's aggregate to a pre-specified signed statistic on a pre-registered head set and apply FDR/FWER correction across all heads. Keep head selection and any per-head significance test on disjoint folds."
+        },
+        {
+          "item": "Read the two nearest competitors now (no GPU) and de-gerrymander the §7 differentiation table; sharpen to the single load-bearing novel atom.",
+          "why": "The plan's own scoop_verdict (yaml line 159) and week0_notes defer reading TLVS (2606.07647, per-token visual-sensitivity-gated conditional steering) and VisFlow (2506.12609, training-free dual-level attention intervention conditioned on token source/provenance) to W1 — AFTER lock — yet both directly threaten the 'per-instance gate' and 'role/provenance' pillars and neither appears in §7. The verification workflow itself records VisFlow as doing head-level, provenance-conditioned (system/text vs visual) intervention. The §7 table also lists only 5 easy foils, pads the conjunction with two non-method columns, marks DMAS a misleading '✗ always-on' (it is input-conditional vector selection), and omits PAI (which the plan itself calls 'directly comparable') and DeAR. A novelty reviewer who finds the nearest neighbors omitted weak-rejects on integrity grounds. This is all no-GPU literature/doc work.",
+          "concrete_change": "Read TLVS and VisFlow in full before locking. Add TLVS, VisFlow, PAI, and DeAR as rows in §7 with precise per-cell phrases instead of binary ticks (e.g. DMAS = 'input-conditional vector choice, no abstain'; TLVS = 'per-token visual-sensitivity gating, no abstain'; VisFlow = 'attention-source-conditioned head intervention, no abstain'). Drop the two non-method columns ('causal role-vs-position dissociation', 'collateral-on-swap-invariant metric') from the method-differentiation table — they are evaluation/design choices, not method properties — and present them separately as evaluation contributions. Demote VRRL to a one-line 'disjoint RL solution' note. Name the single load-bearing new atom explicitly (self-generated-vs-user provenance gating of visual-routing heads at re-look steps) and defend THAT against the full neighbor set rather than a 6-way conjunction. Add TLVS/VisFlow-style token-adaptive gating as an empirical baseline in the yaml."
+        },
+        {
+          "item": "Pre-register a power/MDE analysis with an N-augmentation trigger and a non-inferiority framing for S1/S2, and move the F3 collateral precondition to Week-1.",
+          "why": "S2 — the crux 'no collateral' claim — requires detecting a ~2pp near-ceiling collateral effect AND non-overlapping CIs across three methods on a math-only, doubly-conditioned subset (correct pre-swap AND flips on swap) plausibly ~150–350 instances; with per-model SE ~5pp on accuracy differences this is underpowered on arrival and no MDE is given. The entire 'recover without collateral' headline also presupposes global-2× is actually harmful (F3), but that collateral is currently only measured at W5 — after the whole targeted+gated apparatus is built in P2–P4. If global-2× collateral is <2pp, the contribution has no headroom regardless of method quality.",
+          "concrete_change": "In experiment_plan.yaml add a pre-registered MDE/power formula and a hard W1 reporting gate: measured 8B self-vs-C2 and self-vs-C4 gaps, usable swap-sensitive and swap-invariant N AFTER both conditioning steps, and the resulting MDE. Pre-register that if MDE exceeds the S1/S2 target effect, N is augmented via public-source VisualSwap reconstruction and/or stratified reasoning-model pooling BEFORE the final eval grid. Restate S2 as a non-inferiority test (−2pp margin) plus a pre-registered between-method comparison, not a raw CI-overlap heuristic. Move the global-2×/CAST/DMAS collateral measurement into W1 as an explicit F3 precondition and pre-commit the reframe (to 'cheapest sufficient targeted fix') if collateral <2pp — before building P2–P4."
+        },
+        {
+          "item": "Fix the compute-budget arithmetic and specify the missing grid/subsample sizes so P1 and P6 are feasible within budget.",
+          "why": "The 494 GPU-h total does not survive arithmetic and Stage 3 cannot produce the headline numbers if the final grid is infeasible (and the GPU cluster is currently down against a hard late-September deadline). P1 (72h) omits the position-sweep multiplier (one full generation per grid point per instance) under eager (non-Flash) attention on multi-thousand-token Thinking traces; P6 (90h) is 9 methods × 3 models × 3 seeds × (VisualSwap 800 + POPE 9000 + MME 2374) with generation-time reasoning under eager attention, which at realistic latency is plausibly many hundreds of GPU-h on its own. An order-of-magnitude budget error on the eval grid means no complete paper.",
+          "concrete_change": "In experiment_plan.yaml compute_estimate: state the POSITION_GRID size and per-condition instance counts, an explicit POPE/MME subsample (e.g. POPE ≤1000, MME subsample) applied uniformly across methods, and a measured (not assumed) eager-attention per-generation latency on a real Thinking trace. Recompute each phase from those numbers and show P1 and P6 land inside 600 GPU-h rather than asserting fits_budget: true. If P6 does not fit, cut the method×model×seed×dataset cross rather than discovering it mid-execution."
+        },
+        {
+          "item": "Pre-register fair, matched-budget baseline strength tuning.",
+          "why": "CAST and DMAS have no public code, are designed for object-hallucination on POPE/CHAIR, and would be reimplemented then run on math swap-detection; global-2× and PAI have a single strength. A Pareto-dominance claim (S2) over baselines tuned differently from the method is confounded by tuning effort — the single most common 'unfair baseline' reject lever, and free to defuse on paper.",
+          "concrete_change": "In experiment_plan.yaml baselines/success_criteria: pre-register that each comparator (global-2× factor, CAST α, DMAS α/β, PAI strength) is tuned on a VisualSwap dev split to its own best point on the (recovery, collateral) plane under a tuning budget matched to the method's, and that the full strength sweep for each baseline is reported — not a single default-strength point. State the Pareto claim is made against each baseline's tuned frontier."
+        }
+      ],
+      "should_fix": [
+        "Soften the §4.1 steering-operator overclaim: replace 'matches the engaged profile' with 'moves each head's marginal image-mass toward the measured C2 mean', and drop 'minimal, interpretable intervention' given the unbounded downstream cross-layer footprint. p* is a population MEAN clamp (a constant), which cannot let hard instances surge above the mean, and heads are solved independently while they compose across layers (steering layer ℓ changes downstream heads' pre-softmax logits measured offline in the un-steered C2 context). Extend the §6.5 steering-rule ablation to include population-mean clamp vs per-instance target (condition p* on cached pre-trigger features) AND independent vs joint/iterative solve, and add a check reporting downstream activation divergence from true C2 — not just the softmax-local invariance.",
+        "Fix the gate's train/deploy distribution and label semantics: the gate is trained on held-out UNSWAPPED source benchmarks (no I_b), so the 'benefits from re-look' label there is a generic re-look-benefit proxy, not swap-sensitivity; yet S5 certifies AUROC on that source distribution while deployment is on SWAPPED VisualSwap. Report S5 AUROC additionally on a held-out SWAPPED VisualSwap split (the actual deployment distribution), clarify the proxy nature of the source-trained label in §4.2, and add an answer-margin-only 'uncertainty' baseline gate (extend §6.7) plus the AUROC bootstrap CI to show the internal features add illusion-specific signal. Fallback F5 protects the paper if the gate is weak, which is why this is should-fix rather than blocking.",
+        "Raise or re-anchor the gate bar: AUROC ≥0.65 has a CI plausibly crossing 0.5 on a few-hundred split. Either raise to ≥0.75 or pre-commit that the gate claim rests on the gated policy Pareto-dominating always-on-targeted, not on raw AUROC; add a genuinely non-math OOD gate-eval set to actually test the anti-shortcut claim (all four current source benchmarks are math/STEM).",
+        "Justify 3 seeds with a variance estimate or increase them, and use a bootstrap that JOINTLY resamples seed and instance, since the swap-sensitive set that defines the denominator itself shifts across seeds.",
+        "In §8/Fallback B, explicitly argue why the worst-case guaranteed contribution (the first head-level matched-content dissociation of role vs position vs boundary) is a sufficient advance over the phenomenon paper's layer-level analysis to clear ICLR's bar independent of whether the role hypothesis or the fix survives — commit to a single minimum contribution rather than a decision tree of reframings."
+      ],
+      "residual_reject_risks": [
+        "Scale-down risk (F1): at the feasible 8B-Thinking scale the self-vs-oracle gap (headline effects were on 235B/32B/28B) may be marginal (<15pp), shrinking the recovery ceiling and underpowering the primary metric — only the Week-1 measurement resolves this, and it may force Fallback B.",
+        "Role may be genuinely falsified: C3 may surge or the position sweep may drive the surge, making the mechanism turn-boundary/sink-reset or image-recency — territory already occupied by IKOD (2508.03469) and PoRe (2508.17807). Even the added marker-token control could reveal the C2−C3 gap is a sink-token artifact, not provenance.",
+        "The single load-bearing novel atom (self-vs-user provenance head gating) may already be substantially covered by VisFlow's attention-source conditioning or TLVS's per-token gating once read in full — if so, novelty collapses to an incremental transfer-to-visual-heads even when H1 holds, and no edit recovers it.",
+        "No collateral headroom (F3): global-2×/CAST/DMAS collateral may be <2pp, in which case 'recover without collateral' has nothing to beat and the engineering contribution is forced into a weaker 'cheapest sufficient fix' framing.",
+        "The population-mean clamp plus independent per-head solving may under-reproduce the joint C2 state and cap recovery below S1 even with the correct head set — a method-internal ceiling only the actual steering runs expose.",
+        "Even with fair tuning and N-augmentation, S2's ~2pp between-method CI separation may not resolve at any achievable N on 800 math-only pairs, collapsing the crux to a non-inferiority-only result.",
+        "The most probable landing given the stacked risks is Fallback B (head- vs layer-level mechanistic characterization of an illusion already established by an ICML 2026 Oral) — honest and ICLR-viable but incremental, i.e. borderline at best."
+      ],
+      "strengths_to_keep": [
+        "The pre-registered kill-gates (F1–F5) and pre-committed fallbacks (A/B) are genuinely good, reviewer-friendly science — keep them; they only need to be re-anchored on the un-confounded contrasts (C2 vs C3, C2 ceiling).",
+        "The matched-content, byte-identical-U, image-content-fixed design is the correct instrument for the scientific question, and the C2 control (user role WITHOUT image re-insertion) is a genuinely clever isolation of role from recency — promote C2 to the metric ceiling and pair it with the marker-token control.",
+        "Head-level dissociation is a real advance over the phenomenon paper's layer-level analysis, and is the durable contribution even in the Fallback-B world — once the localization is de-circularized.",
+        "Training-free regime, frozen open models, ≤4×L40 feasibility, and full per-run reproducibility logging match ICLR's reproducibility and 'mechanism-not-benchmark' emphasis.",
+        "Treating collateral as co-headline (not just recovery) is the honest framing and correctly identifies the crux the whole contribution rests on."
+      ],
+      "one_paragraph_verdict": "Not ready to lock — but the blockers are all pre-registration and framing defects that are free to fix before any GPU spend, not fatal design flaws, so the decision is 'do a bounded doc-edit pass, then lock,' not 'kill the idea.' Two contradictions are load-bearing and verified against the files: the primary metric scores recovery against a C4 (recency-reinserted) ceiling the far-back method structurally cannot reach, making S1 (≥50%) unreachable while F2 tolerates C2 being <20% of C4 (S1 and F2 contradict); and the Week-1 role kill-gate is defined on C2−C1, which confounds provenance with turn-boundary rather than the matched C2-vs-C3 contrast. Add head-localization circularity (selection-on-the-outcome over ~1150 heads scored on the same instances), an admitted-unread pair of nearest competitors (TLVS, VisFlow — the latter already provenance-conditioned at head level) with a gerrymandered §7 table, an unpowered S2 crux with no MDE and its F3 precondition checked too late, a budget that does not survive arithmetic on the eager-attention eval grid, and untuned reimplemented baselines — and you have exactly the 4/4/5/4 weak-reject the reviewers returned. Every one of these is editable in method.md/experiment_plan.yaml with zero GPU, and the cluster is down anyway, so there is no schedule cost to fixing them now. Apply the seven must-fixes, then lock; after that the accept genuinely hinges on Week-1 experimental outcomes (does the 8B gap survive, does role survive dissociation, is there collateral headroom, does the novel atom survive VisFlow) that no amount of editing can pre-resolve."
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Review"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "review:soundness",
+      "phaseIndex": 1,
+      "phaseTitle": "Review",
+      "agentId": "a3dd474ca8b7c9707",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784397097700,
+      "queuedAt": 1784397091660,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Soundness & math: identification validity of the §3.3 role …",
+      "promptPreview": "You are a hostile but fair ICLR 2027 reviewer for a TRAINING-FREE mechanistic VLM paper. Read these files from disk before reviewing:\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/method.md\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/experiment_plan.yaml\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/p…",
+      "lastProgressAt": 1784397301332,
+      "tokens": 61035,
+      "toolCalls": 5,
+      "durationMs": 203632,
+      "resultPreview": "{\"lens\":\"Soundness & math: identification validity of the §3.3 role main-effect regression, the §4.1 softmax-rescaling operator, and the §5 recovery-fraction / gate metric definitions.\",\"overall_score\":4,\"recommendation\":\"weak reject\",\"damning_comment\":\"Once you unfold the design, the vaunted 'role/provenance main effect' collapses to a single C2−C3 cell contrast whose only mechanical difference i…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "review:novelty",
+      "phaseIndex": 1,
+      "phaseTitle": "Review",
+      "agentId": "aa9753f1807504582",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784397100030,
+      "queuedAt": 1784397091660,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Novelty & related work — is the contribution genuinely dist…",
+      "promptPreview": "You are a hostile but fair ICLR 2027 reviewer for a TRAINING-FREE mechanistic VLM paper. Read these files from disk before reviewing:\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/method.md\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/experiment_plan.yaml\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/p…",
+      "lastProgressAt": 1784397241453,
+      "tokens": 65157,
+      "toolCalls": 8,
+      "durationMs": 141423,
+      "resultPreview": "{\"lens\":\"Novelty & related work — is the contribution genuinely distinct, or \\\"attention steering + a gate + a role hypothesis\\\"?\",\"overall_score\":4,\"recommendation\":\"weak reject\",\"top_weaknesses\":[{\"weakness\":\"The novelty is admitted-unverified at lock time. experiment_plan.yaml's own scoop_verdict (line 159) says 'Read TLVS 2606.07647 and VisFlow 2506.12609 in full in W1 BEFORE locking the per-i…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "review:rigor",
+      "phaseIndex": 1,
+      "phaseTitle": "Review",
+      "agentId": "a8097ee4998ec17da",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784397097516,
+      "queuedAt": 1784397091660,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Experimental rigor &amp; statistics (statistical power, bas…",
+      "promptPreview": "You are a hostile but fair ICLR 2027 reviewer for a TRAINING-FREE mechanistic VLM paper. Read these files from disk before reviewing:\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/method.md\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/experiment_plan.yaml\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/p…",
+      "lastProgressAt": 1784397239583,
+      "tokens": 61075,
+      "toolCalls": 5,
+      "durationMs": 142067,
+      "resultPreview": "{\"lens\":\"Experimental rigor &amp; statistics (statistical power, baseline fairness, compute feasibility)\",\"overall_score\":5,\"recommendation\":\"borderline\",\"top_weaknesses\":[{\"weakness\":\"The crux claim S2 (collateral delta >= -2pp on swap-INVARIANT + POPE + MME AND collateral significantly smaller than global-2x/CAST/DMAS with non-overlapping bootstrap CIs) is almost certainly underpowered. Swap-sen…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "review:reviewer2",
+      "phaseIndex": 1,
+      "phaseTitle": "Review",
+      "agentId": "afc352f799371234b",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784397098236,
+      "queuedAt": 1784397091660,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "reviewer-2 / is-this-a-contribution",
+      "promptPreview": "You are a hostile but fair ICLR 2027 reviewer for a TRAINING-FREE mechanistic VLM paper. Read these files from disk before reviewing:\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/method.md\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/experiment_plan.yaml\n- /Volumes/ORICO/code/code9/runs/2026-07-18-multimodal-iclr2027/stage2_method/p…",
+      "lastProgressAt": 1784397231063,
+      "tokens": 61043,
+      "toolCalls": 5,
+      "durationMs": 132827,
+      "resultPreview": "{\"lens\":\"reviewer-2 / is-this-a-contribution\",\"overall_score\":4,\"recommendation\":\"weak reject\",\"is_benchmark_paper\":false,\"math_supports_claim\":true,\"damning_comment\":\"Strip away the four pre-registered fallbacks and the headline collapses to two coin-flips the authors themselves flag as high-risk: that 'role/provenance' survives dissociation from turn-boundary tokens it is physically identical to…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "verdict",
+      "phaseIndex": 2,
+      "phaseTitle": "Synthesize",
+      "agentId": "ad3e9b072293b060e",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784397307976,
+      "queuedAt": 1784397301335,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "As locked: 3.5–4.5 (reject/weak-reject), consistent with th…",
+      "promptPreview": "You are the senior advisor deciding whether this Stage-2 method+plan is ready to lock and proceed to Stage-3 execution (goal: an ACCEPTED ICLR 2027 paper, no benchmark paper). Four hostile reviews:\n\n## Soundness & math: identification validity of the §3.3 role main-effect regression, the §4.1 softmax-rescaling operator, and the §5 recovery-fraction / gate metric definitions.\nscore=4 rec=weak rejec…",
+      "lastProgressAt": 1784397786264,
+      "tokens": 78673,
+      "toolCalls": 12,
+      "durationMs": 478287,
+      "resultPreview": "{\"plan_ready\":false,\"predicted_score_range\":\"As locked: 3.5–4.5 (reject/weak-reject), consistent with the four 4/4/5/4 reviews. With all must-fixes applied AND favorable Week-1 gates (8B gap ≥15pp, role survives the C2-vs-C3 + marker-token control, global-2× shows >2pp collateral): 5.5–6.5 (borderline-accept, tip-able on strong collateral separation). If the fixes are applied but it lands in Fallb…"
+    }
+  ],
+  "totalTokens": 326983,
+  "totalToolCalls": 35
+}

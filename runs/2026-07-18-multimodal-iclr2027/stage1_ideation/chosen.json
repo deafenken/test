@@ -1,0 +1,48 @@
+{
+  "chosen_by": "auto (adversarial workflow wf_73561b51-160) + human-visible pivot disclosure",
+  "chosen_at": "2026-07-19T01:10:00+08:00",
+  "id": "C1-repaired",
+  "working_title": "Seeing or Just Saying? A Role-Gated, Training-Free Fix for the Visual Re-examination Illusion in VLMs",
+  "chosen_reason": "All three original candidates failed adversarial refutation (survives=false): C2 scooped by arxiv:2605.14054 (perception-reward multimodal RL), C3 scooped by arxiv:2604.10219 (cognitive-pivot-point hallucination rectification) — both non-reparable. C1's adaptive-latent-depth premise is falsified by arxiv:2605.12163 (Information Gain Collapse: longer latent visual reasoning degrades). C1 was repaired by a substrate pivot that preserves its DNA (per-instance, evidence-sufficiency-gated allocation of visual computation with a formal signal + causal confound control) onto a substrate with VERIFIED large per-instance headroom: the visual re-examination illusion (arxiv:2605.15864). Chosen because it is the only surviving direction that (1) is training-free / inference + probing + activation-steering only -> fits 4xL40-48GB, no RL, no NVLink dependence; (2) states a falsifiable mechanism (a MECHANISM paper, not a benchmark); (3) targets accuracy via a collateral-free comparison vs global steering (escapes the efficiency-paper trap); (4) has a <10 GPU-h week-1 GO/NO-GO kill gate.",
+
+  "pain_point": "arxiv:2605.15864 establishes that VLM self-reflection is largely an ILLUSION: models say 'let me look again' but visual-token attention does not surge and answers stay text-anchored (VisualSwap accuracy drops up to ~60%, thinking models ~3x more vulnerable). The SAME instruction delivered as a USER turn does surge visual attention and restores accuracy. The field frames this only as 'a failure of control, not capability' and offers a user-prompt workaround — but no explanation of WHY identical content behaves differently by source, and no internal fix. Existing training-free steering (CAST arxiv:2605.04641, DMAS arxiv:2602.21704) boosts visual attention GLOBALLY and indiscriminately (HIVE-style collateral risk); the grounded re-look methods that work (VRRL arxiv:2607.02490) require RL.",
+
+  "key_intuition": "The visual-attention surge that produces genuine re-examination is GATED BY TOKEN PROVENANCE/ROLE (user-provided vs self-generated): a small identifiable set of role-conditioned attention heads down-weight visual keys during assistant-role (self-generated) decoding — which also explains why more 'thinking' makes it worse. Restoring the user-role attention profile on exactly those heads, only on instances a cheap gate flags as illusion-bound and swap-sensitive, should recover most of the self-vs-user accuracy gap WITHOUT the collateral loss global steering incurs, and without RL.",
+
+  "core_hypothesis": "In VLMs, the visual-attention surge behind genuine re-examination is gated by trigger-token role/provenance (user vs self-generated), is localized to a small identifiable set of attention heads, and can be restored training-free at self-reflection steps to recover externally-prompted accuracy on swap-sensitive instances without degrading swap-invariant ones.",
+
+  "method_seed": "INPUTS: open VLM (Qwen2.5-VL-7B primary; Qwen3-VL thinking/instruct as strongest illusion testbed; LLaVA-1.5-7B fixed-576-token for clean head attribution; +1 more family for generality), image+question, decoded reasoning trace. MECHANISM STUDY (no learning, week 1): with re-look instruction CONTENT held fixed, measure per-head visual-attention mass under 3 matched conditions — (a) self-generated mid-decoding, (b) injected as USER turn, (c) injected as assistant-role at a turn boundary — to DISSOCIATE role/provenance from position/turn-boundary; identify the head set whose visual attention responds to role -> falsifiable 'role-conditioned visual-routing heads'. LEARNED COMPONENT: lightweight per-instance gate g(x) — a small supervised probe (no RL) on cheap pre-trigger features (visual-attention profile on identified heads vs measured user-triggered reference profile + answer-logit margin) predicting whether the instance is in the illusory-inertia AND swap-sensitive regime. TRAINING SIGNAL: self-supervised oracle labels from a train split (user-role re-look vs none; label 'benefits' where external re-look flips to correct or VisualSwap detection succeeds only with re-engagement); threshold calibrated to a target intervention budget. INFERENCE: at re-look/self-reflection steps, evaluate g(x); if fired, apply training-free provenance-restoring intervention on exactly the identified heads (rescale their visual-key attention to the measured user-role profile, or role/positional-spoof the trigger span); else decode normally. Zero added params, no user in loop, targeted (not global), gated (not always-on).",
+
+  "primary_claim": "A training-free, per-instance-gated provenance-restoring intervention on a small set of role-conditioned attention heads recovers the majority of the self-vs-user visual-re-examination accuracy gap (documented by arxiv:2605.15864) on swap-sensitive instances — approaching the user-prompt oracle upper bound — WITHOUT the collateral accuracy loss on swap-invariant instances that global visual-attention steering (CAST arxiv:2605.04641, DMAS arxiv:2602.21704) incurs, and without RL; establishing the illusion as a role-gated control failure rather than a capability limit.",
+
+  "expected_baselines": [
+    "arxiv:2605.15864 diagnosis + its user-prompt workaround (oracle upper bound)",
+    "Global training-free visual-attention steering: CAST (arxiv:2605.04641), DMAS (arxiv:2602.21704) — VERIFY these before citing",
+    "RL grounded re-look: VRRL (arxiv:2607.02490) as an upper-reference (not our regime; we are training-free)",
+    "Vanilla decode + naive 'always re-look' text prompt"
+  ],
+  "recommended_models": ["Qwen2.5-VL-7B-Instruct (primary, single-L40 inference)", "Qwen3-VL instruct+thinking (strongest illusion signal)", "LLaVA-1.5-7B (fixed 576 tokens -> clean head attribution)", "InternVL2.5-8B or LLaVA-OneVision-7B (cross-family generality)", "Qwen2.5-VL-3B (optional full-FT-feasible)"],
+  "recommended_datasets": ["VS-Bench / VisualSwap (arxiv:2605.15864) — causal control", "POPE sliced swap-sensitive vs swap-invariant", "MMVP (vision-decisive perception)", "HallusionBench (vision vs language-prior conflict)", "GQA / A-OKVQA / TextVQA (general VQA, sliced)", "MME (sanity + overhead)"],
+
+  "novelty_score": 0.58,
+  "feasibility_score": 0.85,
+  "publishability_score": 0.55,
+  "overall_score": 0.65,
+  "score_justification": "Repaired-C1 out-ranked C2 (0.30) and C3 (0.34), both non-reparably scooped. Feasibility high (training-free, no RL, single-L40 inference, week-1 kill gate). Novelty moderate and FRAGILE: the neighborhood is crowded (self-reflection illusion diagnosis 2605.15864, RL fix 2607.02490, global steering CAST/DMAS, Look-Back 2507.03019). Novelty rests ENTIRELY on the provenance MECHANISM + gated targeting being demonstrably superior to generic steering. Not a slam dunk — a bet with a mandatory cheap kill gate.",
+
+  "top_risks": [
+    "Crowded neighborhood; reviewers will demand head-to-heads with 2605.15864, CAST/DMAS/VLI, VRRL 2607.02490, Look-Back 2507.03019. A weak mechanism story collapses this into 'yet another attention-steering hallucination paper.'",
+    "ROLE-vs-POSITION confound: the surge may track position/recency/turn-boundary, not user-vs-assistant role (salvageable as turn-boundary gating, weaker).",
+    "Partial recovery: internal profile restoration may not reach the external-prompt oracle (user-turn KV context may matter beyond role).",
+    "HIVE-style collateral: intervening where language priors were correct can LOWER swap-invariant accuracy; gate must be precise enough that the joint win over global steering survives.",
+    "Head-localization generality: clean on LLaVA-1.5 (fixed tokens) but possibly diffuse on Qwen dynamic-resolution models."
+  ],
+  "kill_conditions_week1": [
+    "ROLE-vs-POSITION test (<10 GPU-h, GO/NO-GO): if surge tracks turn-boundary/position not role, provenance mechanism is mis-attributed -> reframe or stop.",
+    "Head-localization: if no small head set carries the role effect (diffuse/model-wide), the targeted fix ~= global steering, loses differentiator.",
+    "VisualSwap internal-trigger validation (inference-only, cheapest decisive test, run FIRST): if internal intervention fails to raise VisualSwap detection/accuracy toward the user-prompt oracle, core claim is dead.",
+    "Scoop re-check (close-read week 1): read 2607.02490, 2507.03019 end-to-end; if any already delivers a training-free role/provenance mechanism + per-instance-gated fix validated by swap-detection, novelty collapses."
+  ],
+  "supporting_citations": ["arxiv:2605.15864", "arxiv:2607.02490", "arxiv:2605.12163", "arxiv:2604.10219", "arxiv:2605.14054"],
+  "citations_to_verify_before_use": ["arxiv:2605.04641 (CAST)", "arxiv:2602.21704 (DMAS)", "arxiv:2507.03019 (Look-Back)", "arxiv:2603.24224 (RVLM)", "arxiv:2606.17678 (VEPA)"]
+}

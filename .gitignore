@@ -1,0 +1,13 @@
+# caches / scratch
+**/.cache/
+**/__pycache__/
+*.pyc
+# large experiment artifacts (kept on the GPU server, not versioned)
+*.npz
+*.safetensors
+*.pt
+*.ckpt
+**/provlook_out*/
+**/checkpoints/
+# OS
+.DS_Store

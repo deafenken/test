@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-07-18T16:40:00+08:00",
+  "method": "4-persona debate (theorist/engineer/skeptic/pm) over literature_pool.json + openreview_extracts; full persona notes in persona_notes/",
+  "clusters": [
+    {
+      "cluster_id": "C1",
+      "underlying_issue": "Latent/continuous multimodal reasoning lacks (a) principled objectives for what a latent thought must encode, (b) adaptive computation — every method uses fixed latent length/uniform budget, and (c) confound-controlled evaluation separating 'thinking in latent space' from 'extra fine-tuning compute'.",
+      "personas": ["T1 (ad-hoc latent targets; AMVL posterior-shortcut evidence)", "T3 (no stopping rule; DLWM uniform-budget complaint)", "S1 (LVR reviews: single dataset, stage-2 text-FT drives gains, baseline access unclear)", "E1 (efficiency claimed, wall-clock rarely reported; ThinkMorph interleaved generation cost)", "P1 (decode-side tokens are the real latency/energy cost per arxiv:2607.09520)"],
+      "evidence_papers": ["arxiv:2606.31986", "arxiv:2606.15160", "arxiv:2606.13061", "arxiv:2607.00461", "arxiv:2606.15099", "openreview:j84WR5ORsC", "openreview:mB3vxfrQZM", "openreview:GYWuixnyvu", "openreview:9JjKTp8Jmy"],
+      "reviewer_quotes": [
+        "The reliance on a fixed latent reasoning length may restrict flexibility and generalization to variable reasoning complexity. (LVR review)",
+        "This concern is reinforced by Table 4, which shows that the first training stage (latent grounding) has substantially less impact than the second (text-only fine-tuning). (LVR review)",
+        "However, generating N interleaved chains, each containing images, is computationally expensive. (ThinkMorph review)"
+      ],
+      "intersection_bonus": "high"
+    },
+    {
+      "cluster_id": "C2",
+      "underlying_issue": "Internal hallucination predictors in LVLMs (hidden-state similarity, attention degradation, key-norms, SAE features, language-prior dominance) are used as if causal but validated only correlationally; steering/decoding fixes built on them have unmeasured side effects (refusal rate up, OOD accuracy down) and unquantified latency/memory overhead.",
+      "personas": ["T2 (Token-Guard: cosine-similarity-factuality link unverified; HalluGuard: 'extremely loose' theory)", "S3 (QA-only benchmarks; CASAL OOD refusal/accuracy side effects)", "E2 (overhead unreported in wall-clock/memory)", "P2 (extra decoding passes won't ship)"],
+      "evidence_papers": ["openreview:5fCDEz43ya", "openreview:ZURs3YZclt", "openreview:YM3RcI3q0E", "openreview:Ii4HBlERix", "arxiv:2607.04163", "arxiv:2607.07507", "openreview:7QVxGhSPYy", "arxiv:2606.26535"],
+      "reviewer_quotes": [
+        "A key concern is that the paper does not clearly establish the causal connection between SAE features and hallucination behavior. (Snowballing review)",
+        "The definition of latent hallucination scoring is intuitive but not empirically verified; it is unclear whether cosine similarity between hidden states best correlates with factual accuracy. (Token-Guard review)",
+        "It seems the refusal rate increased and accuracy dropped after CASAL in OOD generalization. (CASAL review)",
+        "The framework assumes that hallucination arises primarily from attention degradation, but other causes of hallucination are not addressed. (Snowballing review)"
+      ],
+      "intersection_bonus": "high"
+    },
+    {
+      "cluster_id": "C3",
+      "underlying_issue": "RL for multimodal reasoning (GRPO-family) reports aggregate gains without attributing them between perception errors and reasoning errors; reviewers repeatedly ask 'what fraction of baseline failures are perception failures and which does RL fix?', and text-heavy RL may silently degrade visual grounding (catastrophic forgetting unmeasured).",
+      "personas": ["T4 (no formal error decomposition)", "S4 (gains vs plain GRPO marginal; single backbone family)", "E4 (rollout compute makes reproduction hard; encourages under-ablated papers)"],
+      "evidence_papers": ["openreview:KttCXdjj4w", "openreview:NTo6f6GENJ", "arxiv:2606.23206", "arxiv:2607.01191", "arxiv:2607.13931", "openreview:OXPKjZ6iB8", "arxiv:2606.29812"],
+      "reviewer_quotes": [
+        "What percentage of the baseline's failures on these tasks are due to perception errors, and what percentage of those specific errors does Perception-R1 fix? (Perception-R1 review)",
+        "The reviewer notes that GRPO is also used in Vision-R1, making it unclear how much of the improvement is attributable to the novel contribution versus the baseline RL algorithm. (Perception-R1 review)",
+        "After text-only cold-start SFT and text-only RL, visual related ability could degrade. Did you measure vision-only tasks before & after? (Revisual-R1 review)"
+      ],
+      "intersection_bonus": "high"
+    },
+    {
+      "cluster_id": "C4",
+      "underlying_issue": "Visual-token importance metrics are unreliable (random pruning matches sophisticated metrics; key-norm heuristics unvalidated), and the entire visual-token-reduction agenda may target the wrong bottleneck — decode-side generation dominates edge VLM energy/latency, not vision encoding.",
+      "personas": ["E3 (Random-Visual-Tokens contradiction; heuristics unvalidated)", "S3b (matched-budget comparisons missing across pruning papers)", "P1 (arxiv:2607.09520: 'Seeing is Free, Speaking is Not')"],
+      "evidence_papers": ["openreview:KcIDfNX9ew", "openreview:8lHWG9Isnc", "arxiv:2607.09520", "arxiv:2607.12756", "arxiv:2607.13500", "arxiv:2607.10640", "openreview:UDCiCnVGhq"],
+      "reviewer_quotes": [
+        "The key-norm heuristic used as a substitute for attention may not perfectly capture true token importance, and the paper does not analyze failure cases. (Snowballing review)"
+      ],
+      "intersection_bonus": "medium",
+      "note": "Folded partially into C1 (decode-side cost motivates latent/short reasoning) and C2 (unvalidated importance signals)."
+    }
+  ]
+}

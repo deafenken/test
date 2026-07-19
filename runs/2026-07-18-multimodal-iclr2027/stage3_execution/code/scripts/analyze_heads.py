@@ -1,0 +1,53 @@
+"""
+Per-head localization analysis (H1 sharper test + H2).
+Loads perhead_*.npz (each: C1,C2,C3,C0m arrays [L,H] = per-head visual mass for one instance).
+Computes, per head, the mean provenance differential across instances and tests whether a
+SMALL set of heads carries a strong, consistent effect — the aggregate mean washes this out.
+"""
+import glob, os, sys, numpy as np
+OUT = sys.argv[1] if len(sys.argv)>1 else "/home/intern/provlook_out_q3think"
+conds = ["C1","C2","C3","C0m"]
+files = sorted(glob.glob(os.path.join(OUT,"perhead_*.npz")))
+assert files, f"no npz in {OUT}"
+stacks = {c: [] for c in conds}
+for f in files:
+    d = np.load(f)
+    for c in conds: stacks[c].append(d[c])
+for c in conds: stacks[c] = np.stack(stacks[c])   # [N, L, H]
+N, L, H = stacks["C1"].shape
+print(f"N={N} instances, L={L} layers, H={H} heads/layer, total heads={L*H}")
+
+# per-head mean contrasts across instances
+def contrast(a,b):
+    diff = stacks[a] - stacks[b]         # [N,L,H]
+    m = diff.mean(0)                     # [L,H] mean over instances
+    # paired bootstrap CI per head (light)
+    rng = np.random.RandomState(0)
+    idx = rng.randint(0, N, (500, N))
+    bs = diff.reshape(N,-1)[idx].mean(1).reshape(500,L,H)
+    lo, hi = np.percentile(bs,2.5,0), np.percentile(bs,97.5,0)
+    return m, lo, hi
+
+for a,b in [("C2","C1"),("C2","C3"),("C3","C1"),("C0m","C1")]:
+    m,lo,hi = contrast(a,b)
+    flat = m.flatten()
+    agg = flat.mean()
+    # top provenance-differential heads
+    order = np.argsort(flat)[::-1]
+    topk = 20
+    top = order[:topk]
+    sig_pos = ((lo.flatten()>0)).sum()   # heads with CI>0
+    print(f"\n### {a}-{b}: aggregate mean over all heads = {agg:+.5f}")
+    print(f"    per-head max = {flat.max():+.5f} at (L{top[0]//H},h{top[0]%H}); "
+          f"top-{topk} mean = {flat[top].mean():+.5f}; heads with 95pctCI>0: {sig_pos}/{L*H}")
+    if a=="C2" and b=="C1":
+        print("    top-10 provenance heads (layer,head): "
+              + ", ".join(f"(L{i//H},h{i%H}:{flat[i]:+.4f})" for i in order[:10]))
+        np.save(os.path.join(OUT,"prov_diff_C2C1.npy"), m)   # for later steering target
+
+# how concentrated? cumulative share of positive differential in top-K heads
+m,_,_ = contrast("C2","C1")
+pos = np.clip(m.flatten(),0,None); pos_sorted = np.sort(pos)[::-1]
+tot = pos_sorted.sum()
+for K in [5,10,30,50,100]:
+    print(f"    top-{K} heads hold {100*pos_sorted[:K].sum()/max(tot,1e-9):.1f}% of total positive C2-C1 mass")
