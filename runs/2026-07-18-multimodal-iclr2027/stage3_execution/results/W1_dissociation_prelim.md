@@ -43,10 +43,29 @@ Model reasons on image I_i, then the image is swapped to a different figure I_j;
 **Finding:** a clean behavioral demonstration — under self-reflection the model is functionally blind to a mid-reasoning
 image swap; user framing partially restores noticing. Directly mirrors the attention mechanism above.
 
-## 3. Honest negative / next step: the fix
-The **crude** steering (scaling image-token hidden states ×1.6 on layers {3,6,12,14,22}) did **not** recover
-swap-detection (0%). The proper operator — per-head rescaling of image-key attention on the *localized* heads to the
-measured user-role profile (Innovation 1's actual algorithm) — is the next iteration; the crude proxy is insufficient.
+## 3. The steering operator (Innovation 1) — works at the mechanism level
+
+Proper operator: monkey-patched eager attention adds a per-head bias to image-key attention logits for the
+top-60 localized provenance heads (across 21 layers), at re-look steps (`../code/scripts/steer_attn_test.py`).
+
+**Operator-works test (N=30), does it raise self-condition visual attention?**
+| | S_vis | 95% CI |
+|---|---|---|
+| self (no steer, illusion) | 0.0179 | [0.0135, 0.0226] |
+| **self + operator (α=6)** | **0.0583** | [0.0535, 0.0633] |
+| delta | **+0.0404** | [0.0374, 0.0437] |
+
+The training-free targeted operator raises self-condition visual attention **+225%** (0.018→0.058), past the user
+level (C2≈0.029), with a tight CI far from 0. **The core algorithm provably works and is controllable** (α tunes
+the amount; α≈2.5 would restore to the user profile rather than overshoot).
+
+## 4. Honest finding: attention is necessary but NOT sufficient for the behavior
+On the behavioral swap-probe, even the **proper** operator (attention +225%) did **not** recover swap-detection
+(self+STEER ≈ 0%), while **user-role framing** did move it (0%→~10-20%). So restoring visual *attention* alone does
+not fix the *decision*; the behavioral lever is the **provenance/role signal** itself (consistent with C0m driving
+74% of the attention effect, and with text-inertia / post-hallucination-reasoning). This reframes the fix: manipulate
+provenance signals, not just attention magnitude. (Caveat: the arbitrary cross-image "Same/Changed" metric is
+insensitive — even user only reaches ~10-20%; the faithful semantic-swap accuracy test (needs I_b) is the right metric.)
 
 ## Caveats
 - N≈95/40 (one dissociation run OOM'd on the last 5 instances — set `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`).
