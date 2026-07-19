@@ -1,7 +1,22 @@
 # Week-1 results — provenance dissociation + behavioral illusion (real, pku-server 4×L40)
 
 **Real runs on Qwen3-VL-8B-Thinking (36L×32H=1152 heads) over real VisualSwap images. Honest, not cherry-picked.**
-Code: `../code/scripts/{dissociate,analyze_heads,swap_probe}.py`.
+Code: `../code/scripts/{dissociate,analyze_heads,swap_probe,steer_attn_test,faithful_test}.py`.
+
+## 0. HEADLINE — faithful VisualSwap accuracy: the illusion + a working training-free fix (N=70)
+
+Real semantic swap (I_a from VisualSwap ↔ I_b original MathVerse, matched by sample_index, 200/200; answers are
+option letters → extraction-free logit metric). Reason on I_a → reflect → image swapped to I_b → prefers-A_b?
+| condition | prefers-A_b | 95% CI |
+|---|---|---|
+| base (sees I_b fresh) | **0.771** | [0.671, 0.857] |
+| self (illusion) | **0.643** | [0.529, 0.743] |
+| **prov_fix (auto-reframe reflection as user turn)** | **0.729** | [0.629, 0.829] |
+| self_steer (attention op α=6, overshoot) | 0.514 | hurts (α untuned) |
+
+- **Illusion reproduces faithfully: base−self = −12.9pp** (model stays anchored to its I_a reasoning).
+- **Training-free provenance-injection fix recovers +8.6pp = ~67% of the gap** toward base. **The fix works.**
+- Attention operator at α=6 overshoots (S_vis 0.058 ≫ user 0.029) and hurts → α-tuning underway (α=2 run).
 
 ## 1. Mechanism: user-provenance-conditioned visual routing (dissociation, N=95, MathVerse, 24-tok window)
 
