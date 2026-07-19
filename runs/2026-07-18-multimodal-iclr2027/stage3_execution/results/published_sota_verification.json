@@ -1,0 +1,316 @@
+{
+  "summary": "Verify which VLM hallucination / visual-attention / re-examination methods are PUBLISHED (peer-reviewed, accepted at a venue) vs arXiv preprints, and establish the published-SOTA comparison targets + benchmarks for our provenance-injection method",
+  "agentCount": 7,
+  "logs": [],
+  "result": {
+    "verified": [
+      {
+        "paper": "VCD — Mitigating Object Hallucinations in Large Vision-Language Models through Visual Contrastive Decoding",
+        "arxiv_id": "2311.16922",
+        "published": true,
+        "venue": "CVPR 2024 (Highlight)",
+        "year": 2024,
+        "evidence": "Official CVPR 2024 Open Access proceedings page: https://openaccess.thecvf.com/content/CVPR2024/html/Leng_Mitigating_Object_Hallucinations_in_Large_Vision-Language_Models_through_Visual_Contrastive_CVPR_2024_paper.html (proceedings pages 13872-13882). Also listed on the CVPR 2024 virtual site: https://cvpr.thecvf.com/virtual/2024/poster/29205 . Official repo confirms Highlight status: https://github.com/DAMO-NLP-SG/VCD (\"[CVPR 2024 Highlight]\").",
+        "usable_as_sota": true,
+        "notes": "Training-free, single-pass contrastive decoding method (contrasts output distributions from original vs. Gaussian-noise-distorted visual inputs) — directly comparable in spirit to our training-free provenance-injection fix. Reports on PUBLISHED benchmarks: POPE (object hallucination; accuracy/F1 under random/popular/adversarial splits), MME (perception + cognition subsets, including the hallucination-related existence/count/position/color subscores), and CHAIR (caption-level CHAIR_S/CHAIR_I object hallucination). Evaluated on LLaVA-1.5, InstructBLIP, and Qwen-VL backbones. Headline: consistent POPE accuracy/F1 gains over greedy/nucleus baselines (typically several points, e.g. LLaVA-1.5 POPE improvements of a few pp across splits) and improved MME total perception scores; no exact single headline number claimed in abstract, but per-benchmark tables in the CVPR paper are the citable published numbers. Selected as CVPR 2024 Highlight/Poster (top ~11.9%)."
+      },
+      {
+        "paper": "PAI — Paying More Attention to Image: A Training-Free Method for Alleviating Hallucination in LVLMs",
+        "arxiv_id": "2407.21771",
+        "published": true,
+        "venue": "ECCV 2024",
+        "year": 2024,
+        "evidence": "Authors' official GitHub repo title explicitly reads \"[ECCV 2024] Paying More Attention to Image: A Training-Free Method for Alleviating Hallucination in LVLMs\" (https://github.com/LALBJ/PAI). Project page: https://lalbj.github.io/projects/PAI/. arXiv abstract: https://arxiv.org/abs/2407.21771. The venue was corroborated by web search results identifying acceptance to ECCV 2024.",
+        "usable_as_sota": true,
+        "notes": "Training-free, inference-time hallucination-mitigation method for LVLMs. Two mechanisms: (1) amplify attention weights assigned to image tokens during decoding, and (2) contrastive-style logit refinement subtracting text-only (no-image) logits from multimodal logits to counter \"text inertia.\" Directly relevant as a PUBLISHED training-free visual-attention baseline for the re-examination/provenance work — note its central claim is that amplifying image-token attention MAGNITUDE reduces hallucination, which is exactly the mechanism our magnitude-matched control argues is insufficient; PAI is thus both a strong SOTA baseline and a natural contrast point. Benchmarks reported: POPE (object-hallucination accuracy/F1, adversarial/popular/random splits), CHAIR (CHAIR_S and CHAIR_I on captioning), and MME. Evaluated on LLaVA-1.5, MiniGPT-4, Shikra, and InstructBLIP backbones. Paper reports consistent reductions in CHAIR_S/CHAIR_I and improved POPE F1 over greedy/nucleus decoding and prior training-free methods (e.g., VCD, OPERA); exact headline numbers vary by backbone and are in the paper/repo tables rather than the arXiv abstract."
+      },
+      {
+        "paper": "OPERA: Alleviating Hallucination in Multi-Modal Large Language Models via Over-Trust Penalty and Retrospection-Allocation",
+        "arxiv_id": "2311.17911",
+        "published": true,
+        "venue": "CVPR 2024",
+        "year": 2024,
+        "evidence": "Official CVF Open Access proceedings: https://openaccess.thecvf.com/content/CVPR2024/html/Huang_OPERA_Alleviating_Hallucination_in_Multi-Modal_Large_Language_Models_via_Over-Trust_CVPR_2024_paper.html (pages 13418-13427). Also confirmed by arXiv Comments field on https://arxiv.org/abs/2311.17911 stating \"CVPR 2024\", and the official repo https://github.com/shikiw/OPERA labeled \"[CVPR 2024 Highlight]\".",
+        "usable_as_sota": true,
+        "notes": "Training-free, decoding-based (beam-search) hallucination-mitigation method for MLLMs — directly relevant as a PUBLISHED training-free baseline. Reported benchmarks: CHAIR (image captioning object hallucination, CHAIR_S/CHAIR_I on MSCOCO), POPE (object-existence VQA hallucination, random/popular/adversarial splits), MME (hallucination subset / full benchmark), and GPT-4/GPT-4V-assisted evaluation (GPT-4 assisted quality + a hallucination assessment). Evaluated across MLLMs including LLaVA-1.5, InstructBLIP, MiniGPT-4, and Shikra. Headline claim: consistent reductions in CHAIR and improved POPE F1 over greedy/beam-search/nucleus/DoLa/VCD baselines without additional training or data. Note: OPERA operates on attention/summary-token aggregation patterns and is decode-time, making it a strong magnitude/attention-oriented comparison point for your provenance-injection method; it does not address the re-examination/self-reflection provenance issue."
+      },
+      {
+        "paper": "HALC: Object Hallucination Reduction via Adaptive Focal-Contrast Decoding (primary); plus M3ID, SID, ICD — all four PUBLISHED and usable as SOTA",
+        "arxiv_id": "2403.00425",
+        "published": true,
+        "venue": "ICML 2024 (HALC). Also: M3ID = CVPR 2024; ICD = ACL 2024 Findings; SID = ICLR 2025",
+        "year": 2024,
+        "evidence": "HALC=ICML 2024: OpenReview accept https://openreview.net/forum?id=W6L1osw76W and ICML virtual poster https://icml.cc/virtual/2024/poster/34578 (official repo tagged [ICML 2024] https://github.com/BillChan226/HALC). M3ID=CVPR 2024: official CVF proceedings https://openaccess.thecvf.com/content/CVPR2024/html/Favero_Multi-Modal_Hallucination_Control_by_Visual_Information_Grounding_CVPR_2024_paper.html and CVPR virtual poster https://cvpr.thecvf.com/virtual/2024/poster/30302. ICD=ACL 2024 Findings: ACL Anthology https://aclanthology.org/2024.findings-acl.937/. SID=ICLR 2025: OpenReview accept https://openreview.net/forum?id=rsZwwjYHuD and ICLR proceedings PDF https://proceedings.iclr.cc/paper_files/paper/2025/file/4537e2172096d966228d68c428392894-Paper-Conference.pdf",
+        "usable_as_sota": true,
+        "notes": "All four are training-free / inference-time VLM hallucination-mitigation decoding methods and all are PUBLISHED (not preprint-only), so any/all are valid published SOTA baselines. Benchmarks reported: HALC (ICML 2024) — CHAIR (CHAIRs/CHAIRi on MSCOCO captioning), POPE, MME, and GPT-4/GPT-4V-assisted eval; claims to outperform SOTA (incl. VCD, OPERA, DoLa) across four benchmarks; plug-and-play, no training. M3ID (CVPR 2024, arXiv 2403.14003) — POPE (~+21% acc on LLaVA-13B) and CHAIR object-hallucination in captioning (hallucinated objects reduced ~25%); training-free at inference (optional +DPO variant needs training). ICD (ACL 2024 Findings, arXiv 2403.18715) — POPE and MME; contrasts standard vs instruction-perturbed inputs; training-free. SID (ICLR 2025, arXiv 2408.02032) — POPE, CHAIR, MME, and open-ended/LLaVA-Bench-style eval; CT2S token-selection contrastive decoding; training-free. Recommended primary published comparisons on POPE/CHAIR/MME: HALC (ICML'24), M3ID (CVPR'24), plus VCD (CVPR'24, arXiv 2311.16922) and OPERA (CVPR'24) which are the other standard published training-free decoding baselines. Note ICD here = Instruction Contrastive Decoding (Wang et al.), distinct from VCD (Visual Contrastive Decoding)."
+      },
+      {
+        "paper": "VisualSwap — \"Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination\"",
+        "arxiv_id": "2605.15864",
+        "published": true,
+        "venue": "ICML 2026 (Oral)",
+        "year": 2026,
+        "evidence": "arXiv abstract page https://arxiv.org/abs/2605.15864 Comments field reads exactly \"ICML 2026 Oral\" (subjects cs.CV, cs.CL). This is the paper that defines our target problem (visual re-examination illusion) and the VS-Bench benchmark.",
+        "usable_as_sota": true,
+        "notes": "STATUS OF ALL 5 PAPERS (all arXiv IDs are real/verified):\n\n1) VisualSwap (2605.15864) — PUBLISHED, ICML 2026 Oral (Comments: \"ICML 2026 Oral\"). This is the problem-defining paper: introduces VisualSwap image-swap probing + VS-Bench (800 image pairs from MathVista/MathVerse/MathVision/MMMU-Pro). Finding: models miss the swap, accuracy drops up to 60%; multi-turn USER instructions restore grounding but self-generated reflective statements do NOT — directly motivates our provenance-injection fix. Use as the published anchor/benchmark, not as a mitigation baseline.\n\n2) DMAS (2602.21704) — PUBLISHED, ICLR 2026 (Comments: \"Accepted by ICLR 2026\"). \"Dynamic Multimodal Activation Steering for Hallucination Mitigation in LVLMs.\" Training-free activation/attention-steering method. STRONGEST published training-free SOTA baseline to compare our method against. Reports standard hallucination benchmarks (object hallucination / truthfulness + visual-perception heads).\n\n3) VRRL (2607.02490) — PREPRINT ONLY (submitted 2 Jul 2026; no Comments/venue). \"Visually Grounded Self-Reflection for VLMs via Reinforcement Learning\" (Tang, Yin, Durrett; UT Austin/NYU). NOTE: closest conceptual competitor (grounded self-reflection) BUT it is RL-training-based, not training-free, and not published — do not cite as published SOTA; can mention as concurrent preprint.\n\n4) CAST (2605.04641) — PREPRINT ONLY (submitted 6 May 2026; no Comments/venue). \"CAST: Mitigating Object Hallucination in LVLMs via Caption-Guided Visual Attention Steering.\" Training-free, plug-and-play attention steering. Not usable as PUBLISHED SOTA.\n\n5) VisFlow (2506.12609) — PREPRINT ONLY (v2 Aug 2025; no Comments/venue; no acceptance found via search). \"Not All Tokens and Heads Are Equally Important: Dual-Level Attention Intervention for Hallucination Mitigation.\" Training-free dual-level (token+head) attention intervention (TAI/HAI); reports POPE/CHAIR-style hallucination benchmarks. Not published — do not cite as published SOTA.\n\nBOTTOM LINE for the paper: only VisualSwap (ICML 2026) and DMAS (ICLR 2026) are peer-reviewed/published. DMAS is the right PUBLISHED training-free mitigation baseline. CAST, VisFlow, VRRL are arXiv preprints only and must not be presented as published SOTA. Our magnitude-matched-control argument (magnitude amplification does not fix; provenance does) is well-positioned against the attention-amplification family (VisFlow/CAST/SAVAA-style), which we can note are preprints while comparing head-to-head against DMAS on published benchmarks."
+      },
+      {
+        "paper": "HallusionBench: An Advanced Diagnostic Suite for Entangled Language Hallucination and Visual Illusion in Large Vision-Language Models (primary pick for a re-examination/self-reflection fix). Verified alongside 6 other benchmarks — see notes.",
+        "arxiv_id": "2310.14566",
+        "published": true,
+        "venue": "CVPR 2024",
+        "year": 2024,
+        "evidence": "HallusionBench venue = CVPR 2024, confirmed on the official CVF open-access proceedings: https://openaccess.thecvf.com/content/CVPR2024/html/Guan_HallusionBench_An_Advanced_Diagnostic_Suite_for_Entangled_Language_Hallucination_and_CVPR_2024_paper.html (pp. 14375-14385) and CVPR virtual poster https://cvpr.thecvf.com/virtual/2024/poster/29422",
+        "usable_as_sota": true,
+        "notes": "PUBLICATION STATUS of the 7 requested VLM hallucination / visual-grounding benchmarks (each verified against its official proceedings/anthology page):\n\nPUBLISHED (peer-reviewed) — usable as SOTA comparison benchmarks:\n1. POPE — \"Evaluating Object Hallucination in Large Vision-Language Models.\" EMNLP 2023 (main, pp.292-305). Evidence: https://aclanthology.org/2023.emnlp-main.20/ . Measures: object hallucination via balanced yes/no probing (\"Is there a <object>?\") under random/popular/adversarial splits; reports Accuracy/Precision/Recall/F1. BEST-SUITED for a re-examination/self-reflection fix — binary existence queries directly test whether the model re-attends to the image; standard SOTA arena for training-free mitigation.\n2. CHAIR — \"Object Hallucination in Image Captioning.\" EMNLP 2018 (pp.4035-4045). Evidence: https://aclanthology.org/D18-1437/ . Measures: fraction of hallucinated objects in generated captions (CHAIRi per-instance, CHAIRs per-sentence) vs MSCOCO ground truth. Suits open-ended caption re-examination, less so yes/no reflection.\n3. HallusionBench — CVPR 2024 (pp.14375-14385). Evidence: https://openaccess.thecvf.com/content/CVPR2024/html/Guan_HallusionBench_An_Advanced_Diagnostic_Suite_for_Entangled_Language_Hallucination_and_CVPR_2024_paper.html . Measures: entangled LANGUAGE hallucination (parametric/commonsense prior overriding the image) vs VISUAL ILLUSION, via yes/no image-context reasoning pairs; metrics = aAcc/qAcc/fAcc. HIGHLY suited — it explicitly probes reliance on language prior vs actual re-attention to the image, which is exactly the provenance-injection target.\n4. MMVP — \"Eyes Wide Shut? Exploring the Visual Shortcomings of Multimodal LLMs.\" CVPR 2024 (pp.9568-9578). Evidence: https://cvpr.thecvf.com/virtual/2024/poster/30013 (CVF proceedings). Measures: CLIP-blind pair failures across 9 visual patterns; a visual-grounding diagnostic, relevant but small (300 Qs) and less about self-reflection.\n5. MMHal-Bench — from \"Aligning Large Multimodal Models with Factually Augmented RLHF\" (LLaVA-RLHF). ACL 2024 Findings (2024.findings-acl.775). Evidence: https://aclanthology.org/2024.findings-acl.775/ . Measures: response-level hallucination rate + informativeness via GPT-4 judge over 96 image-question pairs (8 categories). Suited to open-ended self-reflection evaluation.\n\nNOT PEER-REVIEWED PUBLISHED (arXiv preprint only) — do NOT cite as published SOTA:\n6. MME — \"MME: A Comprehensive Evaluation Benchmark for Multimodal LLMs.\" arXiv:2306.13394 only (no accepted venue found across arXiv Comments/Semantic Scholar/proceedings; still v5 preprint). Evidence: https://arxiv.org/abs/2306.13394 . Measures perception+cognition over 14 subtasks (yes/no), widely used but formally a preprint.\n7. AMBER — \"AMBER: An LLM-free Multi-dimensional Benchmark for MLLMs Hallucination Evaluation.\" arXiv:2311.07397 only, no peer-reviewed venue found. Evidence: https://arxiv.org/abs/2311.07397 . Measures existence/attribute/relation hallucination in both generative and discriminative tasks (LLM-free pipeline).\n\nRECOMMENDATION: For the provenance-injection re-examination fix, benchmark on POPE (EMNLP 2023) as the canonical published object-hallucination arena and HallusionBench (CVPR 2024) for the language-prior-vs-visual-illusion angle; both are peer-reviewed and both hinge on whether the model actually re-attends to the image. Use MMHal-Bench (ACL 2024 Findings) for open-ended self-reflection. Report MME/AMBER only as auxiliary preprint benchmarks, never as the published-SOTA baseline. Published mitigation methods to compare against on these (all training-free/decoding-time) are typically VCD (CVPR 2024), OPERA (CVPR 2024), and M3ID/attention-based methods — evaluated on POPE/CHAIR/MME."
+      }
+    ],
+    "plan": {
+      "published_sota_methods": [
+        {
+          "name": "DMAS — Dynamic Multimodal Activation Steering for Hallucination Mitigation in LVLMs",
+          "venue": "ICLR 2026 — evidence: OpenReview https://openreview.net/forum?id=YtWZdwEG5K ; arXiv 2602.21704 Comments field: 'Accepted by ICLR 2026'",
+          "why_sota": "STRONGEST and most recent PUBLISHED training-free mitigation; the primary head-to-head SOTA. Builds a semantic truthfulness/visual-perception steering-vector database and dynamically applies steering to the most influential attention heads at inference (no training). Reports +94.66 MME total and -20.2% CHAIR hallucinations, beating prior SOTA. It is an activation/attention-magnitude-direction intervention that does NOT target self-reflection provenance, so it is both the SOTA to beat and conceptually adjacent to our magnitude-vs-provenance contrast."
+        },
+        {
+          "name": "VCD — Visual Contrastive Decoding (Mitigating Object Hallucinations via Visual Contrastive Decoding)",
+          "venue": "CVPR 2024 (Highlight) — evidence: https://openaccess.thecvf.com/content/CVPR2024/html/Leng_Mitigating_Object_Hallucinations_in_Large_Vision-Language_Models_through_Visual_Contrastive_CVPR_2024_paper.html",
+          "why_sota": "Canonical training-free, SINGLE-PASS contrastive decoding (original vs Gaussian-noise-distorted image) — closest in spirit to our training-free single-pass provenance-injection fix. Standard published baseline on POPE/MME/CHAIR across LLaVA-1.5/InstructBLIP/Qwen-VL."
+        },
+        {
+          "name": "PAI — Paying More Attention to Image (training-free)",
+          "venue": "ECCV 2024 — evidence: official repo https://github.com/LALBJ/PAI (title '[ECCV 2024] Paying More Attention to Image...'); arXiv https://arxiv.org/abs/2407.21771",
+          "why_sota": "THE contrast baseline for our magnitude-matched control: PAI's central thesis is that amplifying image-token attention MAGNITUDE (plus text-inertia logit subtraction) reduces hallucination — exactly the mechanism we argue is insufficient for the re-examination illusion. Implement it as the published control arm. Training-free; reports POPE/CHAIR/MME on LLaVA-1.5/MiniGPT-4/Shikra/InstructBLIP."
+        },
+        {
+          "name": "OPERA — Over-Trust Penalty + Retrospection-Allocation",
+          "venue": "CVPR 2024 (Highlight) — evidence: https://openaccess.thecvf.com/content/CVPR2024/html/Huang_OPERA_Alleviating_Hallucination_in_Multi-Modal_Large_Language_Models_via_Over-Trust_CVPR_2024_paper.html",
+          "why_sota": "Training-free, decode-time (beam-search) method operating on attention/summary-token aggregation patterns — a strong published attention-oriented baseline and a second magnitude/attention contrast point. Reports CHAIR/POPE/MME + GPT-4-assisted eval; does not address self-reflection provenance."
+        },
+        {
+          "name": "HALC — Object Hallucination Reduction via Adaptive Focal-Contrast Decoding",
+          "venue": "ICML 2024 — evidence: OpenReview https://openreview.net/forum?id=W6L1osw76W ; ICML virtual poster https://icml.cc/virtual/2024/poster/34578",
+          "why_sota": "Training-free, plug-and-play focal-contrast decoding that reports outperforming VCD/OPERA/DoLa across CHAIR/POPE/MME + GPT-4V eval. Strong optional published baseline on the established arenas."
+        },
+        {
+          "name": "M3ID — Multi-Modal Hallucination Control by Visual Information Grounding",
+          "venue": "CVPR 2024 — evidence: https://openaccess.thecvf.com/content/CVPR2024/html/Favero_Multi-Modal_Hallucination_Control_by_Visual_Information_Grounding_CVPR_2024_paper.html",
+          "why_sota": "Training-free inference-time visual-information-grounding decoding (~+21% POPE acc on LLaVA-13B; ~25% fewer hallucinated caption objects). Optional published baseline on POPE/CHAIR. (Its optional +DPO variant needs training and is out of scope for the training-free comparison.)"
+        },
+        {
+          "name": "ICD — Instruction Contrastive Decoding (Wang et al.; distinct from VCD)",
+          "venue": "ACL 2024 Findings — evidence: https://aclanthology.org/2024.findings-acl.937/",
+          "why_sota": "Training-free contrastive decoding that contrasts standard vs instruction-perturbed inputs. Secondary/optional published baseline; reports POPE and MME."
+        },
+        {
+          "name": "SID — Self-Introspective Decoding (CT2S context-and-token-selection)",
+          "venue": "ICLR 2025 — evidence: OpenReview https://openreview.net/forum?id=rsZwwjYHuD ; ICLR proceedings PDF https://proceedings.iclr.cc/paper_files/paper/2025/file/4537e2172096d966228d68c428392894-Paper-Conference.pdf",
+          "why_sota": "Training-free CT2S token-selection contrastive decoding. Secondary/optional published baseline; reports POPE/CHAIR/MME + open-ended (LLaVA-Bench-style) eval."
+        }
+      ],
+      "published_benchmarks": [
+        {
+          "name": "VS-Bench / VisualSwap swap-probing protocol (the re-examination anchor)",
+          "venue": "ICML 2026 (Oral) — evidence: https://arxiv.org/abs/2605.15864 (Comments field: 'ICML 2026 Oral')",
+          "what": "800 image pairs curated from MathVista/MathVerse/MathVision/MMMU-Pro; after the model reasons over an image it is swapped for a visually-similar but semantically-different one, testing whether the model genuinely re-attends. THE target benchmark for our re-examination fix; provides the two reference points we anchor to — self-reflection 'illusion' lower bound vs user-turn oracle upper bound. CORRECTION to task premise: this is PUBLISHED (ICML 2026 Oral), not a preprint — but newly introduced, so no published mitigation reports numbers on it yet (we must run baselines ourselves)."
+        },
+        {
+          "name": "POPE (Polling-based Object Probing Evaluation)",
+          "venue": "EMNLP 2023 (main, pp.292-305) — evidence: https://aclanthology.org/2023.emnlp-main.20/",
+          "what": "Balanced yes/no object-existence probing ('Is there a <object>?') under random/popular/adversarial splits; reports Accuracy/Precision/Recall/F1. BEST-SUITED established published arena because binary existence directly tests whether the model re-attends to the image; standard SOTA arena for all training-free mitigation methods."
+        },
+        {
+          "name": "HallusionBench",
+          "venue": "CVPR 2024 (pp.14375-14385) — evidence: https://openaccess.thecvf.com/content/CVPR2024/html/Guan_HallusionBench_An_Advanced_Diagnostic_Suite_for_Entangled_Language_Hallucination_and_CVPR_2024_paper.html",
+          "what": "Entangled LANGUAGE-hallucination (parametric/commonsense prior overriding the image) vs VISUAL-illusion yes/no reasoning pairs; metrics aAcc/qAcc/fAcc. HIGHLY suited — it explicitly probes reliance on the language prior vs actual re-attention to the image, i.e. the provenance-injection target."
+        },
+        {
+          "name": "CHAIR (Caption Hallucination Assessment with Image Relevance)",
+          "venue": "EMNLP 2018 (pp.4035-4045) — evidence: https://aclanthology.org/D18-1437/",
+          "what": "Fraction of hallucinated objects in generated captions (CHAIRs per-sentence, CHAIRi per-instance) vs MSCOCO ground truth. Suits open-ended caption re-examination; the caption-level metric that DMAS/VCD/PAI/OPERA/HALC all report, enabling situating our method against published numbers."
+        },
+        {
+          "name": "MMHal-Bench",
+          "venue": "ACL 2024 Findings (2024.findings-acl.775; from LLaVA-RLHF) — evidence: https://aclanthology.org/2024.findings-acl.775/",
+          "what": "Response-level hallucination rate + informativeness via a GPT-4 judge over 96 image-question pairs (8 categories). Suited to open-ended self-reflection evaluation of the provenance fix."
+        },
+        {
+          "name": "MMVP (Eyes Wide Shut? Visual Shortcomings of MLLMs)",
+          "venue": "CVPR 2024 (pp.9568-9578) — evidence: https://cvpr.thecvf.com/virtual/2024/poster/30013",
+          "what": "CLIP-blind pair failures across 9 visual patterns; a visual-grounding diagnostic. Auxiliary only — small (300 questions) and less about self-reflection than POPE/HallusionBench."
+        }
+      ],
+      "recommended_comparison": "PRIMARY published head-to-head: benchmark our training-free, single-pass provenance-injection fix against DMAS (ICLR 2026) — the strongest, most recent PUBLISHED training-free mitigation — plus the standard published training-free decoding family VCD (CVPR'24), PAI (ECCV'24) and OPERA (CVPR'24); add HALC (ICML'24)/M3ID (CVPR'24)/SID (ICLR'25)/ICD (ACL'24 Findings) as optional additional published baselines for breadth.\n\nTARGET BENCHMARK = VS-Bench (ICML 2026 Oral), the anchor for the re-examination illusion. IMPORTANT CORRECTION to the task premise: VS-Bench is NOT a preprint benchmark — VisualSwap is ICML 2026 Oral (verified), so it is PUBLISHED. HOWEVER, because it was just introduced and the re-examination problem is new, NO published mitigation method reports numbers on it. Therefore we MUST RUN every baseline ourselves on VS-Bench under the VisualSwap swap-probing protocol: (a) our provenance-injection method; (b) DMAS + VCD + PAI + OPERA (+optional HALC/M3ID/SID); (c) the magnitude-matched control; and (d) the two reference points the VisualSwap paper defines — the self-reflection 'illusion' LOWER bound (continuous self-generated re-look) and the user-turn ORACLE UPPER bound (identical re-look injected as a user turn). Headline to establish: provenance-injection recovers illusion accuracy toward the user-turn oracle, while none of the decoding/attention baselines close the gap.\n\nMAGNITUDE-vs-PROVENANCE contrast made against a PUBLISHED method: implement the magnitude-matched control as PAI-style (ECCV 2024) image-token attention-MAGNITUDE amplification, so the control arm is a published method rather than a preprint. Show that magnitude amplification does not restore re-examination accuracy while provenance-injection does. DMAS (activation steering) and OPERA (attention/summary-token aggregation) are the other published attention/magnitude-oriented anchors; note explicitly that none were designed for the self-reflection provenance issue.\n\nGENERALITY / established-arena cross-checks: also evaluate on published benchmarks that hinge on re-attention — POPE (EMNLP'23; binary existence) and HallusionBench (CVPR'24; language-prior vs visual-illusion) as the primary secondaries, plus CHAIR (EMNLP'18) and MMHal-Bench (ACL'24 Findings) for open-ended re-examination; MMVP (CVPR'24) optional. Published DMAS/VCD/PAI/OPERA numbers on POPE/CHAIR can be cited where backbones match, but for a defensible apples-to-apples comparison RE-RUN all baselines under one fixed backbone + decoding configuration rather than copying cross-paper numbers.\n\nBACKBONES: match VisualSwap on VS-Bench — Qwen3-VL, Kimi-VL, ERNIE-VL, including 'thinking' vs 'instructed' variants (thinking models are ~3x more vulnerable to the swap, a key stress case for the fix); use LLaVA-1.5 / InstructBLIP / Qwen-VL for POPE/CHAIR/MME where the published baselines ship released configs.\n\nWHAT WE MUST RUN OURSELVES (not citable from prior work): every VS-Bench number (all baselines + ours + the PAI-style control + the two anchors); our method + the control on POPE/HallusionBench/CHAIR/MMHal-Bench; and any baseline re-runs needed for backbone-matched fairness. MME/AMBER may be reported only as AUXILIARY preprint benchmarks, never as the published-SOTA arena.\n\nDO NOT present as published SOTA: VRRL (RL-trained, preprint — the closest conceptual rival; cite only as concurrent preprint), CAST and VisFlow (training-free attention-amplification preprints — mention as concurrent context that reinforces the 'amplification family' framing our control argues against). VisualSwap itself is published but is the problem/benchmark-defining ANCHOR, not a mitigation baseline to beat.",
+      "preprints_excluded": [
+        "VRRL — 'Visually Grounded Self-Reflection for Vision-Language Models via Reinforcement Learning' (Tang, Yin, Durrett; arXiv 2607.02490, submitted 2 Jul 2026). VERIFIED PREPRINT ONLY — no Comments/venue on the arXiv page. Closest conceptual competitor (grounded self-reflection) BUT it is RL-TRAINING-based, not training-free. Mention only as a concurrent preprint; must NOT be cited as published SOTA.",
+        "CAST — 'Mitigating Object Hallucination in LVLMs via Caption-Guided Visual Attention Steering' (arXiv 2605.04641, 6 May 2026). VERIFIED PREPRINT ONLY — no venue found. Training-free, plug-and-play attention steering in the attention-amplification family our magnitude-matched control argues against; not published — do not cite as published SOTA.",
+        "VisFlow — 'Not All Tokens and Heads Are Equally Important: Dual-Level Attention Intervention for Hallucination Mitigation' (arXiv 2506.12609, v2 Aug 2025). VERIFIED PREPRINT ONLY — no venue found. Training-free dual-level (token+head) attention intervention; reports POPE/CHAIR-style benchmarks; not published — do not cite as published SOTA.",
+        "MME — 'A Comprehensive Evaluation Benchmark for Multimodal LLMs' (arXiv 2306.13394). BENCHMARK PREPRINT ONLY — no accepted venue found. Widely used and acceptable as an AUXILIARY report (many published baselines report it), but it is NOT a published-SOTA benchmark and must not be presented as the published arena.",
+        "AMBER — 'An LLM-free Multi-dimensional Benchmark for MLLMs Hallucination Evaluation' (arXiv 2311.07397). BENCHMARK PREPRINT ONLY — no peer-reviewed venue. Auxiliary only, never the published-SOTA benchmark.",
+        "NOTE (not a preprint, but not a baseline): VisualSwap / VS-Bench (ICML 2026 Oral) is PUBLISHED, but it is the problem- and benchmark-defining anchor, NOT a mitigation method — use it as the target benchmark and the illusion/oracle reference points, not as a SOTA method to compare against."
+      ],
+      "one_paragraph": "Only eight training-free/inference-time methods qualify as PUBLISHED SOTA baselines — DMAS (ICLR 2026, strongest and most recent), VCD (CVPR'24 Highlight), PAI (ECCV'24), OPERA (CVPR'24 Highlight), HALC (ICML'24), M3ID (CVPR'24), ICD (ACL'24 Findings) and SID (ICLR'25) — and six benchmarks are peer-reviewed published: VS-Bench (ICML'26 Oral, the re-examination anchor), POPE (EMNLP'23), HallusionBench (CVPR'24), CHAIR (EMNLP'18), MMHal-Bench (ACL'24 Findings) and MMVP (CVPR'24). Verification corrected one task premise: VS-Bench is published (VisualSwap = ICML 2026 Oral, confirmed via arXiv Comments and the ICML schedule), NOT a preprint — but because it is newly introduced with no published mitigation numbers, we still must run every baseline ourselves on it. The recommended plan is a head-to-head against DMAS plus the VCD/PAI/OPERA family on VS-Bench under the swap protocol, anchored by the VisualSwap illusion lower bound and user-turn oracle upper bound, using a PAI-style (ECCV'24) image-token attention-MAGNITUDE amplifier as the magnitude-matched control so the 'provenance-not-magnitude' claim is demonstrated against a PUBLISHED method; generality is cross-checked on POPE + HallusionBench (+ CHAIR/MMHal-Bench) with backbone-matched re-runs rather than copied cross-paper numbers. Exclude as published SOTA: VRRL (RL-trained, preprint — closest rival), CAST and VisFlow (training-free attention-amplification preprints), and MME/AMBER (preprint benchmarks, auxiliary only); VisualSwap is the published anchor/benchmark, not a mitigation baseline."
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "verify",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a11de61e64ac30d45",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784472854821,
+      "queuedAt": 1784472846713,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "VCD — Mitigating Object Hallucinations in Large Vision-Lang…",
+      "promptPreview": "You are verifying PUBLICATION STATUS rigorously. A paper counts as PUBLISHED only if accepted/appearing at a peer-reviewed venue (CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/etc.) — arXiv-only or 'submitted to' does NOT count. USE tools: ToolSearch->WebSearch/WebFetch; check the paper's arXiv 'Comments' field (often says 'Accepted to CVPR 2024'), Semantic Scholar 'venue', OpenReview, and offic…",
+      "lastProgressAt": 1784472889306,
+      "tokens": 19901,
+      "toolCalls": 4,
+      "durationMs": 34485,
+      "resultPreview": "{\"paper\":\"VCD — Mitigating Object Hallucinations in Large Vision-Language Models through Visual Contrastive Decoding\",\"arxiv_id\":\"2311.16922\",\"published\":true,\"venue\":\"CVPR 2024 (Highlight)\",\"year\":2024,\"evidence\":\"Official CVPR 2024 Open Access proceedings page: https://openaccess.thecvf.com/content/CVPR2024/html/Leng_Mitigating_Object_Hallucinations_in_Large_Vision-Language_Models_through_Visual…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "verify",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a4885159205758f85",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784472860254,
+      "queuedAt": 1784472846713,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "PAI — Paying More Attention to Image: A Training-Free Metho…",
+      "promptPreview": "You are verifying PUBLICATION STATUS rigorously. A paper counts as PUBLISHED only if accepted/appearing at a peer-reviewed venue (CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/etc.) — arXiv-only or 'submitted to' does NOT count. USE tools: ToolSearch->WebSearch/WebFetch; check the paper's arXiv 'Comments' field (often says 'Accepted to CVPR 2024'), Semantic Scholar 'venue', OpenReview, and offic…",
+      "lastProgressAt": 1784472911201,
+      "tokens": 20323,
+      "toolCalls": 6,
+      "durationMs": 50947,
+      "resultPreview": "{\"paper\":\"PAI — Paying More Attention to Image: A Training-Free Method for Alleviating Hallucination in LVLMs\",\"arxiv_id\":\"2407.21771\",\"published\":true,\"venue\":\"ECCV 2024\",\"year\":2024,\"evidence\":\"Authors' official GitHub repo title explicitly reads \\\"[ECCV 2024] Paying More Attention to Image: A Training-Free Method for Alleviating Hallucination in LVLMs\\\" (https://github.com/LALBJ/PAI). Project p…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "verify",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "aa8cd275627b10a89",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784472858267,
+      "queuedAt": 1784472846713,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "OPERA: Alleviating Hallucination in Multi-Modal Large Langu…",
+      "promptPreview": "You are verifying PUBLICATION STATUS rigorously. A paper counts as PUBLISHED only if accepted/appearing at a peer-reviewed venue (CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/etc.) — arXiv-only or 'submitted to' does NOT count. USE tools: ToolSearch->WebSearch/WebFetch; check the paper's arXiv 'Comments' field (often says 'Accepted to CVPR 2024'), Semantic Scholar 'venue', OpenReview, and offic…",
+      "lastProgressAt": 1784472888281,
+      "tokens": 20003,
+      "toolCalls": 4,
+      "durationMs": 30014,
+      "resultPreview": "{\"paper\":\"OPERA: Alleviating Hallucination in Multi-Modal Large Language Models via Over-Trust Penalty and Retrospection-Allocation\",\"arxiv_id\":\"2311.17911\",\"published\":true,\"venue\":\"CVPR 2024\",\"year\":2024,\"evidence\":\"Official CVF Open Access proceedings: https://openaccess.thecvf.com/content/CVPR2024/html/Huang_OPERA_Alleviating_Hallucination_in_Multi-Modal_Large_Language_Models_via_Over-Trust_CV…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "verify",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a5d7be5f740d1075b",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784472857080,
+      "queuedAt": 1784472846713,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "HALC: Object Hallucination Reduction via Adaptive Focal-Con…",
+      "promptPreview": "You are verifying PUBLICATION STATUS rigorously. A paper counts as PUBLISHED only if accepted/appearing at a peer-reviewed venue (CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/etc.) — arXiv-only or 'submitted to' does NOT count. USE tools: ToolSearch->WebSearch/WebFetch; check the paper's arXiv 'Comments' field (often says 'Accepted to CVPR 2024'), Semantic Scholar 'venue', OpenReview, and offic…",
+      "lastProgressAt": 1784472914345,
+      "tokens": 23859,
+      "toolCalls": 6,
+      "durationMs": 57265,
+      "resultPreview": "{\"paper\":\"HALC: Object Hallucination Reduction via Adaptive Focal-Contrast Decoding (primary); plus M3ID, SID, ICD — all four PUBLISHED and usable as SOTA\",\"arxiv_id\":\"2403.00425\",\"published\":true,\"venue\":\"ICML 2024 (HALC). Also: M3ID = CVPR 2024; ICD = ACL 2024 Findings; SID = ICLR 2025\",\"year\":2024,\"evidence\":\"HALC=ICML 2024: OpenReview accept https://openreview.net/forum?id=W6L1osw76W and ICML …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "verify",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "aa486937e2ce3bbd5",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784472856672,
+      "queuedAt": 1784472846713,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "VisualSwap — \"Are VLMs Seeing or Just Saying? Uncovering th…",
+      "promptPreview": "You are verifying PUBLICATION STATUS rigorously. A paper counts as PUBLISHED only if accepted/appearing at a peer-reviewed venue (CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/etc.) — arXiv-only or 'submitted to' does NOT count. USE tools: ToolSearch->WebSearch/WebFetch; check the paper's arXiv 'Comments' field (often says 'Accepted to CVPR 2024'), Semantic Scholar 'venue', OpenReview, and offic…",
+      "lastProgressAt": 1784472967872,
+      "tokens": 27599,
+      "toolCalls": 14,
+      "durationMs": 111200,
+      "resultPreview": "{\"paper\":\"VisualSwap — \\\"Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination\\\"\",\"arxiv_id\":\"2605.15864\",\"published\":true,\"venue\":\"ICML 2026 (Oral)\",\"year\":2026,\"evidence\":\"arXiv abstract page https://arxiv.org/abs/2605.15864 Comments field reads exactly \\\"ICML 2026 Oral\\\" (subjects cs.CV, cs.CL). This is the paper that defines our target problem (visual re-examination …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "verify",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a7237274802f7a188",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784472858385,
+      "queuedAt": 1784472846713,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "HallusionBench: An Advanced Diagnostic Suite for Entangled …",
+      "promptPreview": "You are verifying PUBLICATION STATUS rigorously. A paper counts as PUBLISHED only if accepted/appearing at a peer-reviewed venue (CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/etc.) — arXiv-only or 'submitted to' does NOT count. USE tools: ToolSearch->WebSearch/WebFetch; check the paper's arXiv 'Comments' field (often says 'Accepted to CVPR 2024'), Semantic Scholar 'venue', OpenReview, and offic…",
+      "lastProgressAt": 1784472964882,
+      "tokens": 28789,
+      "toolCalls": 9,
+      "durationMs": 106497,
+      "resultPreview": "{\"paper\":\"HallusionBench: An Advanced Diagnostic Suite for Entangled Language Hallucination and Visual Illusion in Large Vision-Language Models (primary pick for a re-examination/self-reflection fix). Verified alongside 6 other benchmarks — see notes.\",\"arxiv_id\":\"2310.14566\",\"published\":true,\"venue\":\"CVPR 2024\",\"year\":2024,\"evidence\":\"HallusionBench venue = CVPR 2024, confirmed on the official CV…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "plan",
+      "phaseIndex": 2,
+      "phaseTitle": "Synthesize",
+      "agentId": "a73346dbb6e1c66c8",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784472977172,
+      "queuedAt": 1784472971276,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "PRIMARY published head-to-head: benchmark our training-free…",
+      "promptPreview": "You are verifying PUBLICATION STATUS rigorously. A paper counts as PUBLISHED only if accepted/appearing at a peer-reviewed venue (CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/etc.) — arXiv-only or 'submitted to' does NOT count. USE tools: ToolSearch->WebSearch/WebFetch; check the paper's arXiv 'Comments' field (often says 'Accepted to CVPR 2024'), Semantic Scholar 'venue', OpenReview, and offic…",
+      "lastProgressAt": 1784473276965,
+      "tokens": 37155,
+      "toolCalls": 10,
+      "durationMs": 299792,
+      "resultPreview": "{\"published_sota_methods\":[{\"name\":\"DMAS — Dynamic Multimodal Activation Steering for Hallucination Mitigation in LVLMs\",\"venue\":\"ICLR 2026 — evidence: OpenReview https://openreview.net/forum?id=YtWZdwEG5K ; arXiv 2602.21704 Comments field: 'Accepted by ICLR 2026'\",\"why_sota\":\"STRONGEST and most recent PUBLISHED training-free mitigation; the primary head-to-head SOTA. Builds a semantic truthfulnes…"
+    }
+  ],
+  "totalTokens": 177629,
+  "totalToolCalls": 53
+}
