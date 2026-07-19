@@ -59,13 +59,22 @@ The training-free targeted operator raises self-condition visual attention **+22
 level (C2≈0.029), with a tight CI far from 0. **The core algorithm provably works and is controllable** (α tunes
 the amount; α≈2.5 would restore to the user profile rather than overshoot).
 
-## 4. Honest finding: attention is necessary but NOT sufficient for the behavior
-On the behavioral swap-probe, even the **proper** operator (attention +225%) did **not** recover swap-detection
-(self+STEER ≈ 0%), while **user-role framing** did move it (0%→~10-20%). So restoring visual *attention* alone does
-not fix the *decision*; the behavioral lever is the **provenance/role signal** itself (consistent with C0m driving
-74% of the attention effect, and with text-inertia / post-hallucination-reasoning). This reframes the fix: manipulate
-provenance signals, not just attention magnitude. (Caveat: the arbitrary cross-image "Same/Changed" metric is
-insensitive — even user only reaches ~10-20%; the faithful semantic-swap accuracy test (needs I_b) is the right metric.)
+## 4. Behavioral swap-detection with the proper operator (N=40) — partial recovery
+| condition | detect rate | 95% CI |
+|---|---|---|
+| self (illusion) | 0.000 | [0.000, 0.000] |
+| user (oracle) | 0.075 | [0.000, 0.175] |
+| **self + proper operator** | **0.025** | [0.000, 0.075] |
+
+The proper operator recovers **+2.5pp** (~**33% of the self→user gap**), vs **0%** for the crude version — so attention
+*does* help the decision, partially. But it is **not the full story** (self+STEER 2.5% << would-be-full recovery), and
+the metric is too insensitive/noisy (user only 7.5%, wide CIs) to be significant.
+
+**Honest finding:** restoring visual attention gives *partial* behavioral recovery; the larger lever is the
+**provenance/role signal** (C0m drove 74% of the attention effect). This reframes the fix toward **provenance
+injection** (auto-reframe self-reflection as user-provenance), and calls for the **faithful semantic-swap accuracy
+metric** (needs I_b, downloading) where user recovery is large (+51pp on big models per arXiv:2605.15864) and the
+operator has real room to show recovery.
 
 ## Caveats
 - N≈95/40 (one dissociation run OOM'd on the last 5 instances — set `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`).
