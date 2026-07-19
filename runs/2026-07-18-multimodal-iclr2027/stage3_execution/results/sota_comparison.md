@@ -1,5 +1,13 @@
 # SOTA comparison — faithful VisualSwap accuracy (real, pku-server 4×L40)
 
+> ⚠️ **SUPERSEDED / PREMATURE — read `innovation_plan.md`.** The frontier study (verified) found this comparison is
+> **not a valid SOTA claim**: (1) the phenomenon paper's global-2× actually gets **+18.2pp** on their protocol, but our
+> reimplementation here (per-forward multiply-renormalize + logit-preference metric on N≈136) shows +0.000 — a
+> methodology mismatch, NOT evidence that global-2× fails; (2) our logit-preference metric ≠ their post-swap accuracy;
+> (3) their setup applies 2× *during generation*, all heads, on full VS-Bench. This table stands only as a PILOT signal.
+> The rigorous redo (faithful global-2×, accuracy metric, magnitude-matched "money plot", PACD) is in `innovation_plan.md`.
+
+
 **Model:** Qwen3-VL-8B-Thinking. **Data:** VisualSwap-MathVerse, I_a↔I_b matched 200/200 (N=124 valid after letter filtering).
 **Metric:** prefers-A_b = logit(A_b letter) > logit(A_a) after reason-on-I_a → reflect → swap-to-I_b. self=illusion floor, base=ceiling.
 **Code:** `../code/scripts/sota_compare.py`. All baselines are training-free; intervention = post-softmax amplify-and-renormalize

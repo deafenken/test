@@ -1,0 +1,593 @@
+{
+  "summary": "Deep-read the VLM self-reflection / visual-attention frontier, benchmark our provenance-injection fix against the real SOTA, and find genuinely-effective, non-scooped innovation points that would beat SOTA",
+  "agentCount": 14,
+  "logs": [],
+  "result": {
+    "recon": [
+      {
+        "paper": "VRRL — \"Visually Grounded Self-Reflection for Vision-Language Models via Reinforcement Learning\", Tang, Yin, Durrett (UT Austin / NYU), arXiv:2607.02490, submitted 2026-07-02. Sources retrieved: https://export.arxiv.org/api/query?id_list=2607.02490 and full text https://arxiv.org/html/2607.02490",
+        "what_it_does": "A two-stage RL training framework (SFT then GRPO) to make VLMs actually attend to the image when self-reflecting/correcting, targeting out-of-distribution generalization. Two novel training components: (1) random turn masking of trajectory prefixes so the model trains on recovering from wrong intermediate predictions; (2) buffered roll-ins from an experience-replay buffer exposing the model to diverse failure states. Base models: Qwen2.5-VL-3B/7B-Instruct and Qwen3-VL-4B-Instruct (spatial nav only). Tasks: coordinate grounding on tables/charts (ID = small arXiv tables; OOD = Large Table, Cell Query, Bar Chart, Scatter Plot; reward = final point within Euclidean 40px) and FrozenLake spatial navigation (train 3x3-5x5; OOD 6x6, 7x7; exact-match optimal-path reward). Motivating observation: zero-shot multi-turn reflection prompting fails — models 'simply repeat previous predictions without meaningful correction' and prompting to reflect 'provides little benefit and can even hurt performance.'",
+        "its_numbers": "Visual grounding OOD Avg accuracy — Qwen2.5-VL-3B: Single-SFT->GRPO 30.1, Multi-SFT->GRPO 40.0, VRRL 45.7 (+5.7pp over best RL baseline); per-split VRRL 3B: Large Table 88.6, Cell Query 20.3, Bar Chart 33.5, Scatter 40.3; ID 99.6. Qwen2.5-VL-7B: Single-SFT->GRPO 70.2, Multi-SFT->GRPO 73.2, VRRL 78.4 (+5.2pp); per-split VRRL 7B: Large Table 89.6, Cell Query 77.3, Bar Chart 57.0, Scatter 89.7; ID 99.7. Spatial navigation (Qwen2.5-VL-3B) OOD Avg: Multi-SFT->GRPO 26.0, VRRL 39.2 (+13.2pp); 6x6 42.8->54.8, 7x7 9.2->23.6; ID 85.2 vs 83.9 (slight ID drop). No visual-attention magnitude metric and no MathVerse/VQA-accuracy numbers reported.",
+        "training_free": false,
+        "gap_it_leaves": "(1) Requires full RL training (SFT + GRPO with masking + replay) — no training-free path; it explicitly shows prompting-based reflection fails, which is the exact regime our training-free provenance-injection operates in, so we complement rather than compete. (2) Metrics are coordinate-grounding (40px) and exact-match navigation paths — NOT accuracy on multimodal math/VQA; no VisualSwap or MathVerse evaluation, so no head-to-head SOTA number for us to beat on our benchmark. (3) No mechanistic analysis — zero measurement of visual attention weights/image-token attention during reflection, and no study of trigger provenance (self- vs user-generated); their corrective feedback is environment-generated (red dots/line overlays), never self-generated. Our contribution (attention-magnitude is neutral, provenance/role-framing is the lever) is orthogonal and untouched by VRRL. A training-free method must (a) show recovery of the reflection gap WITHOUT their RL cost, and (b) explain WHY prompting fails — which VRRL asserts empirically but never mechanistically diagnoses.",
+        "relation_to_ours": "adjacent"
+      },
+      {
+        "paper": "arXiv:2605.15864 — \"Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination\" (Shi, Yang, Wu, Jin, Shui, Berg-Kirkpatrick, Ma). https://arxiv.org/abs/2605.15864 ; full text https://arxiv.org/html/2605.15864 ; project https://visualswap.github.io",
+        "what_it_does": "This is THE phenomenon paper our work builds on. It introduces VisualSwap (an image-swap probe: after a VLM reasons over an image, swap it for a visually-similar/semantically-different one and test whether the model notices on re-examination) and VS-Bench (800 image pairs from MathVista, MathVerse, MathVision, MMMU-Pro). Core finding: models overwhelmingly miss the swap; \"thinking\" models are ~3x more vulnerable than \"instruct\" counterparts; scaling does not mitigate. Crucially it establishes the SELF-vs-USER dissociation we study: multi-turn USER instructions restore visual grounding, but SELF-generated reflective statements (\"let me check the figure again\") during continuous generation do not. Their attention analysis attributes this to attention magnitude on visual tokens (user instructions elevate it, self-reflection does not), and they propose a training-free fix: uniformly scale attention to image tokens by 2x across all layers/heads during re-look generation.",
+        "its_numbers": "FIX (global 2x attention amplification on image tokens, all layers+heads, Table 9): Qwen3-VL-8B-Instruct 46.6->54.5 (+7.9pp); Qwen3-VL-8B-Thinking 36.6->54.8 (+18.2pp). SELF-vs-USER GAP (Table 4: Base / Probe-after-swap / Multi-turn-user recovery): Qwen3-VL-8B-Instruct 69.1/46.6/58.2 (+11.6); Qwen3-VL-8B-Thinking 76.0/36.6/67.5 (+30.9); Qwen3-VL-235B-A22B-Instruct 81.1/61.3/77.9 (+16.6); Qwen3-VL-235B-A22B-Thinking 88.8/34.1/85.4 (+51.3). CEILING: multi-turn USER recovery nearly matches base — 235B-Thinking 34.1->85.4 vs 88.8 base. POST-SWAP ACCURACY DROPS (Table 2 avgs, Instruct / Thinking): Qwen3-VL-8B 22.5%/39.4%; Qwen3-VL-32B 17.9%/48.3%; Qwen3-VL-235B-A22B 19.9%/54.6%; ERNIE-4.5-VL-28B-A3B 34.3%/60.3% (the \"up to 60%\" headline); Kimi-VL-A3B 27.0%/42.4%.",
+        "training_free": true,
+        "gap_it_leaves": "Their own fix (uniform 2x attention amplification) only PARTIALLY recovers accuracy and leaves a large gap below their own USER-turn ceiling: on Qwen3-VL-8B-Thinking their 2x reaches only 54.8 vs the multi-turn-user recovery of 67.5 and base 76.0 — i.e. amplification closes maybe ~40% of the self-vs-user gap while user-role framing closes ~85%. This is the crack our result exploits: they INTERPRET the self-vs-user dissociation as an attention-MAGNITUDE effect and fix it by cranking magnitude, but they never dissociate magnitude from provenance/role-framing. Our tuned per-head operator raises visual attention +225% yet is accuracy-NEUTRAL, showing magnitude is not the causal lever — provenance (user vs self) is. Their paper therefore leaves open the mechanism (role/provenance gating vs raw attention) and does not offer a provenance-based fix; our training-free provenance-injection (reframe the self re-look as a USER turn) targets exactly the residual gap their 2x amplification cannot close. Note: they report no ERNIE/Kimi fix numbers, and their fix table only covers Qwen3-VL-8B, so cross-model efficacy of their amplification is untested.",
+        "relation_to_ours": "direct-sota-competitor"
+      },
+      {
+        "paper": "Four training-free visual-attention-steering baselines for LVLM hallucination: (1) PAI — \"Paying More Attention to Image\" (arXiv:2407.21771, Liu/Zheng/Chen, ECCV'24); (2) CAST — \"Caption-Guided Visual Attention Steering\" (arXiv:2605.04641, Li et al.); (3) VisFlow — \"Not All Tokens and Heads Are Equally Important: Dual-Level Attention Intervention\" (arXiv:2506.12609, Tang et al.); (4) DMAS — \"Dynamic Multimodal Activation Steering\" (arXiv:2602.21704, Yin et al.). All IDs verified via export.arxiv.org API; mechanisms/numbers from ar5iv.labs.arxiv.org full text.",
+        "what_it_does": "All four re-weight/steer attention or activations at inference, no training. PAI (2407.21771): amplifies pre-softmax attention of the LAST token onto image tokens, Ã(n,j)+=α|Ã(n,j)| for image indices j, applied to deeper layers via a hidden-state-similarity \"layer prior\", PLUS contrastive logit refinement subtracting pure-text logits: γ·p(y|V,I,H)−(γ−1)·p(y|I,H); α=0.2–0.6, γ=1.1. CAST (2605.04641): SVM-probes each head to find \"caption-guided\" heads (attention rises on caption queries), then adds a precomputed shift vector S(l,h)=mean(caption−noncaption) output to those heads' outputs: H^(l+1)=H^l+Σ_h[O+α·S]W_o; caption heads concentrate in layers 7–20 (65.9% of heads show caption-driven visual-attention increase). VisFlow (2506.12609): dual intervention — Token-level (TAI) amplifies \"salient\" visual tokens (k>1) and suppresses \"sink\" visual tokens (δ<1) using reception scores; Head-level (HAI) suppresses text-following and system-dominant heads by (1−α)·A, keeping visual-sensitive heads. DMAS (2602.21704): builds a semantic-clustered database of truthfulness steering vectors (pos−neg activation diffs, PCA-denoised) keyed by question embedding, plus a visual-perception vector from clean-vs-noise-image contrast (YOLOv11 object statements); at inference retrieves the nearest vector by cosine similarity and adds α·M_f·D_f+β·M_v·D_v to top-K heads' attention output.",
+        "its_numbers": "PAI (2407.21771), CHAIRs/CHAIRi↓ greedy: LLaVA 46.6→24.8 / 13.4→6.9; MiniGPT4 32.8→26.3 / 11.1→8.8; Shikra 51.2→37.6 / 14.4→10.0. POPE acc/F1: LLaVA 85.69→87.54 / 84.27→86.83; MiniGPT4 78.0→80.82; Shikra 78.16→78.57. GPT-4V accuracy: LLaVA 5.62→6.46, MiniGPT4 5.8→7.04. CAST (2605.04641): avg −6.03% object hallucination across 5 models × 5 benchmarks; POPE +5.64% acc / +5.50% F1 (LLaVA-1.5-7b +6.58/+6.44/+5.31 random/popular/adv; Qwen-VL-Chat +3.54/+4.10/+3.30; LLaVA-NeXT +5.90/+6.30/+4.78); CHAIR −6.43 pts; MMHal +0.16 score, −2.95% VH. VisFlow (2506.12609): CHAIRs/CHAIRi LLaVA-1.5 15.0/3.8 (recall 63.1), MiniGPT-4 18.0/7.8, mPLUG-Owl2 16.0/4.9; POPE-F1 LLaVA-1.5 89.55/87.09/84.35 (rand/pop/adv), mPLUG-Owl2 88.72/82.19/80.17 (MME/MMHal not reported in retrieved text). DMAS (2602.21704): LLaVA-1.5 POPE 86.81% acc/86.79 F1, CHAIRs 51.0→30.8 / CHAIRi 11.4, MME +94.66 (565.33→659.99, appears to be a subset split not full ~1500 perception total); models incl. LLaVA-1.5 7B/13B, QwenVL, Qwen2.5-VL, InternVL3, Mantis, Idefics3.",
+        "training_free": true,
+        "gap_it_leaves": "CRITICAL for us: NONE of the four conditions on token ROLE/PROVENANCE (user-turn vs model-self-generated). Every method categorizes tokens only by semantic/positional TYPE — image vs instruction vs system vs response (VisFlow), or last-token→image indices (PAI), or head identity (CAST/DMAS) — and applies its intervention UNIFORMLY across inputs regardless of who authored the trigger. VisFlow explicitly treats all instruction/response text tokens the same \"once categorized by position\"; PAI reuses identical instruction text in both contrastive branches; CAST/DMAS apply precomputed shift/steering vectors to fixed heads for all inputs. This is exactly our lever: our finding is that the visual-attention surge is GATED BY PROVENANCE (user vs self), and — decisively — our tuned per-head amplification operator raises visual attention +225% yet is NEUTRAL on accuracy, contradicting the shared premise of all four baselines that boosting/steering visual-attention MAGNITUDE is what mitigates hallucination. PAI is the closest attention-magnitude analog and the strongest direct competitor; CAST/DMAS add head-selection/steering-vector machinery but still bet on magnitude; none reframes self-generated re-look content as a user turn. Note the four are validated on POPE/CHAIR/MMHal object-hallucination, NOT on a re-examination/VisualSwap faithfulness setting — a benchmark gap we should flag when we run them as baselines.",
+        "relation_to_ours": "training-free-baseline"
+      },
+      {
+        "paper": "Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination (arXiv 2605.15864, May 2026, ICML 2026)",
+        "what_it_does": "Independently introduces the VisualSwap probing framework and VS-Bench (800 image pairs from MathVista/MathVerse/MathVision/MMMU-Pro): after a VLM reasons over an image, the image is swapped for a visually-similar but semantically-different one to test whether self-reflection genuinely re-examines. Reports the exact 'illusion of visual re-examination' we found, on our exact model (Qwen3-VL-8B-Thinking) plus Kimi-VL and ERNIE-VL. Shows the fix (multi-turn user instruction restores grounding) and the core mechanism (user instructions elevate attention to visual tokens; self-generated reflection does not). Also already runs an attention-amplification operator as causal proof-of-concept.",
+        "its_numbers": "Thinking models ~3x more vulnerable than instruct (Qwen3-VL-32B: Instruct -17.9pp vs Thinking -48.3pp; 235B: Instruct -19.9pp vs Thinking -54.6pp). Qwen3-VL-8B-Thinking probe accuracy 36.6%; multi-turn user instruction recovers to 67.5% (+30.9pp). 235B-Thinking 34.1%->85.4% (+51.3pp). Attention amplification (2x on image tokens) gives +18.2pp on 8B-Thinking (36.6%->54.8%) and +7.9pp on 8B-Instruct; visual-attention score deltas e.g. probe Δ=1.07 vs multi-turn Δ=2.21 (235B, layer 55). Concludes 'insufficient visual attention drives the failure mode.'",
+        "training_free": true,
+        "gap_it_leaves": "Two surviving wedges. (1) They do NOT decompose WHY the user turn works: Appendix H explicitly flags 'decompose which factor of the user instruction drives this recovery' as future work but does not run it — our decomposition (provenance/role-framing 74% + re-look-content 26%; turn-boundary NOT the driver) is genuinely novel against them. (2) They conclude attention-MAGNITUDE is the causal lever (2x amp = +18.2pp); our tuned per-head operator raises visual attention +225% yet is accuracy-neutral, directly contradicting them and refining the causal story toward provenance/role framing. Also: their fix is a manual second user turn, whereas ours auto-reframes the self-generated re-look in-place (single-pass). Caveats: their recovery (+30.9pp) dwarfs our +8pp, so our fix looks weaker/subsumed unless reframed; and our magnitude-neutral claim must reconcile against their +18.2pp amplification result or reviewers will see a direct conflict.",
+        "relation_to_ours": "scoops-us"
+      }
+    ],
+    "ideas": [
+      {
+        "title": "Provenance-difference steering: a learned user-minus-self gate vector on the belief-revision heads",
+        "mechanism": "Build a contrast set of paired forward passes over the SAME swapped image Ib and the SAME re-look sentence, differing ONLY in provenance framing: the re-look wrapped as a `<|im_start|>user` turn vs. left as continued `assistant` generation. This is precisely the axis our decomposition isolated (role-framing = 74% of the user-turn recovery). At the re-look and first answer-token positions, cache each head's attention-output activation and compute the difference-of-means vector d_{l,h} = mean(user) - mean(self). This is a PROVENANCE direction, not a caption direction (CAST), not a truthfulness/visual-perception direction (DMAS), not a scalar magnitude gain (PAI/VisualSwap 2x). At inference on the self-generated re-look, add alpha*d_{l,h} to each head's output, synthesizing the user-provenance internal state in place -- no second turn, no edit to role tokens. Sweep alpha and a layer band, select on held-out.",
+        "why_effective": "Our data show the user-turn STATE (not attention magnitude) is what licenses answer revision, and that a plain lexical relabel captures only ~+8pp of the +30.9pp user-turn ceiling (VisualSwap Table 4: 36.6->67.5 on 8B-Thinking) -- i.e. relabel under-synthesizes the provenance state because it is diluted by surrounding assistant context. A diff-of-means vector injects the provenance signal directly and at every generated token, reconstructing the user-provenance activation manifold far more completely than a token-level relabel, and it targets the causal variable our +225%-attention-neutral result identified -- provenance, not read-magnitude.",
+        "why_novel": "Every retrieved steering baseline keys its vector on a NON-provenance axis: PAI on pre-softmax last-token->image magnitude (arXiv:2407.21771), VisualSwap on uniform 2x magnitude (arXiv:2605.15864), CAST on caption-driven heads, DMAS on truthfulness+visual-perception. None computes a user-vs-self role-provenance vector. The VisualSwap authors explicitly leave 'which factor of the user instruction drives recovery' as future work (Appendix H). Web search confirms no 2026 method builds a provenance-conditioned steering vector.",
+        "beats_what_sota": "VisualSwap's uniform 2x amplification -- their headline training-free fix -- reaches 54.8 on Qwen3-VL-8B-Thinking (probe 36.6, +18.2pp; arXiv:2605.15864 Table 9) but stalls far below the multi-turn-user ceiling 67.5 and base 76.0. Target: exceed 54.8 and approach 67.5 in a SINGLE pass, i.e. beat the training-free SOTA by roughly +5 to +10pp while eliminating the second-turn requirement.",
+        "concrete_experiment": "Contrast set = our existing decomposition pairs (user-framed vs self-framed re-look, identical content) on Qwen3-VL-8B-Thinking; extract d_{l,h} at re-look+answer positions; sweep alpha in {2,4,8}x per-head scale and layer bands. Evaluate on our N~136 MathVerse-VisualSwap subset AND the full VS-Bench MathVerse split (200 pairs). Head-to-head vs (i) reimplemented VisualSwap 2x amp, (ii) our provenance relabel, (iii) an ABLATION injecting a visual-attention-magnitude vector instead of the provenance vector (predict ~neutral, re-deriving our +225%-attention-neutral control). Report BOTH swap-recovery and non-swap retention (over-correction check on control/unchanged images).",
+        "risk": "The provenance direction could be near-collinear with 'insert a user turn,' reducing the method to a cheaper reimplementation of relabel rather than a stronger fix; mitigate by demonstrating it exceeds relabel and composes with the KV fix (#3). If provenance gating is threshold-like rather than linear, diff-of-means may underfit -- fallback to per-head mean-ablation toward the user centroid (conditional steering)."
+      },
+      {
+        "title": "Provenance-contrastive decoding (PACD): contrast user-provenance vs self-provenance of the identical re-look",
+        "mechanism": "At the re-look, run two forward branches over the identical swapped image Ib and identical re-look content, differing ONLY in provenance: z_user (re-look framed as a user turn) and z_self (re-look as assistant continuation). Decode from p proportional to softmax((1+lambda)*z_user - lambda*z_self). This up-weights exactly the tokens that provenance FLIPS -- the visually-corrected answer tokens the self-frame suppresses -- while cancelling tokens both frames agree on (fluency, format). lambda swept on held-out, with a standard adaptive-plausibility floor so the contrast only acts on head tokens above a probability threshold.",
+        "why_effective": "PAI-style vision-present/absent contrast recovers generic grounding but does nothing to the provenance-GATED revision that our finding identifies as the actual failure mode. Contrasting on the provenance axis surgically amplifies the belief-revision the gate withholds and cancels shared nuisance tokens. Since provenance is the demonstrated lever (magnitude is neutral at +225%), a contrast built on that exact axis should outperform magnitude-based contrast and uniform amplification, and should sharpen beyond what a single relabel branch achieves in place.",
+        "why_novel": "The retrieved contrastive-decoding family contrasts on other axes: PAI = vision-present minus vision-absent (arXiv:2407.21771, gamma=1.1); Instruction-Contrastive-Decoding SUBTRACTS a role-prefix disturbance (opposite sign to ours); CODE contrasts self-caption perturbations (content, not provenance). No method ADDS user-provenance while SUBTRACTING self-provenance of the same trigger. This is a new contrast axis, confirmed novel by web search.",
+        "beats_what_sota": "PAI is the closest attention-magnitude+contrast competitor, and VisualSwap 2x amp (54.8 on 8B-Thinking; arXiv:2605.15864) is the direct training-free SOTA. Target: exceed 54.8 and rival the 67.5 user ceiling at 2x inference cost (training-free, acceptable). Prediction: PACD beats PAI's vision-contrast on VisualSwap by a wide margin because the failure is provenance-gated, not vision-absent.",
+        "concrete_experiment": "Implement two-branch decoding on Qwen3-VL-8B-Thinking; sweep lambda. Head-to-head vs reimplemented PAI (its gamma vision-contrast) and VisualSwap 2x amp on N~136 + VS-Bench MathVerse. KEY ablation -- contrast AXIS with all else held equal: user-vs-self (ours) vs vision-on-vs-off (PAI); predict ours wins on swap-recovery. Report non-swap retention to confirm the contrast does not force spurious answer flips on unchanged images.",
+        "risk": "If the z_user single branch already fully recovers, the contrast adds little beyond relabel -- but our data (relabel +8pp vs user ceiling +30.9pp) indicate the in-place user-branch under-recovers, so the contrast should add real sharpening. Over-large lambda degrades fluency/format; cap with the adaptive-plausibility constraint standard in contrastive decoding."
+      },
+      {
+        "title": "Commit-then-revise: provenance relabel + selective committed-answer KV eviction",
+        "mechanism": "Two coupled moves grounded in a two-source-competition account of the answer token. (a) Provenance relabel (our fix): reframe the self re-look as a user turn, flipping the belief-revision gate to 'revise' mode. (b) Selective KV re-grounding: locate the span in the model's own Ra that states its COMMITTED (wrong) answer, and during the relabeled re-look down-weight or mask the KV of ONLY that committed-answer span (keep the reasoning steps; leave image KV intact). This removes the 'defend-the-commitment' attractor that otherwise wins even in revise mode. Provenance sets the mode; KV eviction removes the competing prior-answer pull so the writing heads rewrite from visual evidence.",
+        "why_effective": "Explains mechanistically why relabel alone under-delivers (+8pp): even in revise mode, the assistant's committed-answer tokens stay in context and the writing heads copy them. Removing that attractor lets provenance recovery run to completion. Critically, the plain multi-turn-USER baseline ALSO leaves the committed answer in context, so removing it can push recovery ABOVE the +30.9pp user ceiling, not merely toward it -- a route to genuinely new ground rather than ceiling-matching.",
+        "why_novel": "Retrieved KV-cache work is about efficiency/reuse and value-space steering (web search), never belief-revision via provenance-conditioned eviction of the committed-answer span. No VisualSwap/PAI/CAST/DMAS/VRRL method touches the KV of the model's own prior answer. Combining provenance-relabel with answer-span KV eviction is new.",
+        "beats_what_sota": "Our own relabel (+8pp) -> target +15 to +20pp; VisualSwap 2x amp 54.8 on 8B-Thinking (arXiv:2605.15864); potential to EXCEED the multi-turn-user ceiling 67.5 by removing an attractor the user-turn baseline retains. This is the proposal with the highest ceiling.",
+        "concrete_experiment": "Auto-locate the committed-answer span in Ra (last-answer/regex heuristic + verification). 2x2 ablation: {relabel on/off} x {KV-evict on/off}, plus an eviction-strength beta sweep (soft down-weight -> hard mask). Specificity control: evict a RANDOM equal-length span (predict no gain), proving the effect is about the committed answer, not generic context reduction. Run on N~136 + VS-Bench MathVerse, Qwen3-VL-8B-Thinking. Report swap-recovery AND non-swap retention (eviction must not tank control accuracy).",
+        "risk": "Auto-identifying the committed-answer span can misfire on diffuse/multi-part answers; mitigate with soft down-weighting (graceful degradation) plus a span-detection verifier. Hard masking may hurt coherence; the beta sweep from soft to hard addresses this. On non-swap controls, eviction must be shown not to induce spurious revisions."
+      },
+      {
+        "title": "Why provenance gates vision: dissociating reading-heads from belief-revision heads, and reconciling the magnitude tension",
+        "mechanism": "Formal account: at the answer token the residual stream is a competition between (a) the committed answer from prior assistant CoT and (b) fresh visual evidence; a small set of 'belief-revision / writing' heads decide copy-vs-rewrite, and their WRITE-GATE is modulated by provenance role tokens, not by how much visual info is READ. Localize these heads by path/activation patching: patch each head's answer-token output from the user-provenance run into the self-provenance run and measure answer-flip-to-correct. Reconciliation prediction: the answer-flipping (writing) heads are largely DISJOINT from the max-visual-attention (reading) heads -- so our +225% magnitude operator (which hit reading heads) was neutral, while VisualSwap's uniform 2x incidentally grazes some writing heads, yielding only a partial +18.2pp. Deliver a minimal operator: apply the provenance vector (Innovation 1) to ONLY the localized writing heads.",
+        "why_effective": "Converts 'magnitude is neutral' from a puzzle into a predictive theory that says WHERE to intervene; a writing-head-targeted operator recovers with a fraction of the heads touched by uniform 2x and should reach a higher ceiling because it is causally aimed. It is also the reviewer-defensible WHY that both frontier papers lack, and it removes the direct-conflict a reviewer would flag between our neutrality claim and VisualSwap's +18.2pp.",
+        "why_novel": "No prior VLM work localizes provenance-gated belief-revision/commitment heads or dissociates reading- from writing-heads. VisualSwap concludes 'failure of autonomous attentional control' and fixes it with magnitude, leaving the user-turn decomposition to future work (arXiv:2605.15864, Appendix H); VRRL offers zero mechanistic analysis (training-only, arXiv:2607.02490). The reading/writing dissociation directly refutes the insufficient-visual-attention (magnitude) account.",
+        "beats_what_sota": "As an operator: matches or beats VisualSwap 2x amp (54.8 on 8B-Thinking) while touching a small fraction of the heads. As science: supplies the mechanism that lets Innovations 1-3 beat the +18.2pp SOTA defensibly, and reconciles our magnitude-neutral finding with their +18.2pp so the two results no longer read as a contradiction.",
+        "concrete_experiment": "Path-patch user->self at the answer token per head on Qwen3-VL-8B-Thinking (N~136, feasible on 4xL40); rank heads by answer-flip-to-correct effect; correlate that rank with the visual-attention score S_vis (predict low/negative correlation). Then compare recovery: writing-head-only provenance steering vs reading-head magnitude amplification vs uniform 2x amp on N~136 + VS-Bench MathVerse. Falsifiable: if writing-heads are a subset of reading-heads, revise the account to 'provenance modulates the write-gate of shared heads, not their read-magnitude' -- still novel and still explains neutrality.",
+        "risk": "Path patching over long thinking traces is noisy; average over N and use a last-answer-token logit-difference metric. If the disjointness prediction fails, the headline reconciliation weakens, but the fallback (write-gate vs read-magnitude on shared heads) preserves the core provenance-not-magnitude claim, so the contribution is robust to that outcome."
+      },
+      {
+        "title": "Provenance Steering Operator (PSO): a content-fixed, activation-space provenance direction that beats magnitude steering AT MATCHED MAGNITUDE (the single highest-leverage addition)",
+        "mechanism": "Build content-fixed USER-minus-SELF contrast pairs: take the model's own self-generated re-look span R (its 'let me re-examine the figure' continuation) and run two forward passes with IDENTICAL tokens R -- one as continuous assistant generation (SELF), one wrapped as a user turn (USER, chat-template role tokens flipped). Capture per-layer per-head attention-output vectors mean-pooled over the R span and the first answer token. Define the provenance direction d_{l,h} = mean_calib(a^USER_{l,h} - a^SELF_{l,h}); rank heads by a USER-vs-SELF linear-probe AUC and keep top-K (sweep K in {8,16,32,all}). At test time in the SELF condition, add alpha*d_{l,h} to the selected heads' outputs during re-look+answer decoding (H^{l+1}=H^l+sum_h[O+alpha*d]W_o -- the CAST additive-shift form but keyed on ROLE, not caption-heads). The decisive companion is a MAGNITUDE-MATCHED control: our existing tuned per-head amplifier retuned to the SAME image-token attention score as PSO.",
+        "why_effective": "This converts our strongest real finding into a method. We already know provenance gates the visual-attention surge and that magnitude is causally neutral (our tuned operator raises visual attention +225% for ~0 accuracy). PSO injects exactly the user-vs-self contrast the model uses to gate genuine re-examination, and it acts in-place at every layer rather than only through surface tokens, so it should exceed our token-level prompt reframing (+8pp) and approach the multi-turn USER ceiling (36.6->67.5, +30.9pp; arXiv:2605.15864 Table 4) while sitting at LOWER visual-attention magnitude than global-2x. The money plot writes itself: accuracy-vs-magnitude is already NON-monotone in the literature -- their 2x is +100% attention for +18.2pp, our operator is +225% attention for ~0pp -- and PSO lands at low magnitude / high accuracy, three points no magnitude account can fit.",
+        "why_novel": "Every training-free baseline steers the wrong axis: PAI amplifies last-token->image pre-softmax magnitude (arXiv:2407.21771, dossier); CAST steers SVM-selected caption-heads (arXiv:2605.04641, dossier); VisFlow re-weights tokens/heads by semantic/positional TYPE (arXiv:2506.12609, dossier); DMAS retrieves truthfulness/semantic steering vectors (arXiv:2602.21704, dossier). NONE conditions on token ROLE/PROVENANCE. The one provenance-steering paper I verified this session (arXiv:2606.06315) is text-only model-identity fingerprinting, not VLM role-gating. VisualSwap's own fix is a MANUAL second user turn and, confirmed this session at https://arxiv.org/html/2605.15864, runs no magnitude-matched control and defers the user-instruction factor decomposition to Appendix H. A content-fixed provenance direction used as a decoding operator is genuinely new.",
+        "beats_what_sota": "Target: PSO >= +15 to +20pp over the self floor (0.52) on Qwen3-VL-8B-Thinking VS-MathVerse -- beating global-2x's +18.2pp (arXiv:2605.15864 Table 9) and PAI/CAST/DMAS head-to-head on the SAME benchmark, at equal-or-lower visual-attention magnitude. Decisively, the magnitude-matched control stays ~0pp (our existing +225%/0pp point), falsifying the shared magnitude premise of all four baselines while PSO is the one operator that moves accuracy.",
+        "concrete_experiment": "Model Qwen3-VL-8B-Thinking, VS-MathVerse N~136, 4-fold CV (calib 102 / test 34 per fold; report mean+/-std to control small-N fragility). Metric: faithful post-swap accuracy + the layer-55-style image-token attention score from arXiv:2605.15864. Extract d_{l,h} on calib folds; sweep alpha to first match then exceed the USER-turn effect. On each held-out fold run ALL arms on identical decoding: self floor; base + multi-turn USER ceiling; global-2x (their exact post-softmax recipe); PAI (alpha=0.2-0.6,gamma=1.1); CAST (caption heads); DMAS (nearest steering vector); our prompt-level provenance-injection; PSO; and the magnitude-matched +225% control. Falsifiable predictions: H1 PSO > global-2x and > PAI/CAST/DMAS on accuracy; H2 magnitude-matched control <= +3pp DESPITE >= PSO's visual-attention magnitude (money plot: same x, different y); H3 PSO is sub-additive with prompt-level provenance-injection (shared axis) but adds nothing to magnitude methods.",
+        "risk": "The provenance direction d may be partly entangled with the image-attention-increasing direction; mitigate by Gram-Schmidt orthogonalizing d against the magnitude subspace before injection and re-testing (if orthogonalized d still recovers, the dissociation is airtight). Secondary risks: top-K head selection overfitting at N~136 (hence CV) and per-head alpha tuning leaking test signal (freeze alpha on calib only)."
+      },
+      {
+        "title": "Source-discounting decomposition of global-2x: EXPLAIN (not contradict) the SOTA fix and fill VisualSwap's deferred Appendix H",
+        "mechanism": "Reproduce global-2x exactly (uniform post-softmax 2x on image-token attention, all layers/heads, during re-look; confirmed post-softmax this session at https://arxiv.org/html/2605.15864) and verify we recover their +18.2pp on 8B-Thinking. Then split it into two orthogonal operators tuned to an IDENTICAL image-attention magnitude M*: (V_bal) BALANCE-PRESERVING magnitude -- scale image AND self-re-look-text attention together so image magnitude hits M* but the image:text ratio is unchanged; (V_disc) SOURCE-DISCOUNTING -- hold image magnitude at M* but suppress attention to the SELF-authored re-look text tokens, redistributing to image (operationalizing 'treat my own prior text as unverified'). Add V_prov = prompt-level provenance-injection tuned to also reach M*. Finally, per-item, regress global-2x's accuracy benefit onto the amount of text->image mass it reallocates away from self-authored tokens.",
+        "why_effective": "This is the paper's survival move: it turns the reviewer's inevitable 'you contradict the SOTA's +18.2pp' objection into 'we explain the SOTA.' Because their 2x is post-softmax and (per the retrieved description) modifies image-token probabilities directly, an un-renormalized 2x STEALS relative mass from the self-authored re-look text -- i.e. it is partial source-discounting wearing a magnitude costume. That reconciles our magnitude-neutral operator (which scaled attention while PRESERVING the self-provenance allocation -> neutral) with their positive result under one mechanism: accuracy tracks how much the model DISCOUNTS its own committed re-look text, not how loud visual attention gets.",
+        "why_novel": "VisualSwap attributes recovery to attention magnitude and, confirmed this session, never runs a magnitude-matched or balance-preserving control and defers the factor decomposition to Appendix H without isolating magnitude-vs-provenance (https://arxiv.org/html/2605.15864). No prior work decomposes an attention-amplification fix into balance-preserving-magnitude vs source-discounting components, and none regresses the fix's per-item benefit onto self-text reallocation. This is exactly the Appendix-H analysis they promised but did not perform.",
+        "beats_what_sota": "It does not beat global-2x on accuracy -- it co-opts it: prediction accuracy(V_disc) ~= accuracy(V_prov) >> accuracy(V_bal) ~= neutral (+0-3pp), ALL at equal image magnitude M*, and global-2x's +18.2pp benefit scales with per-item text->image reallocation (partial r meaningfully positive) but NOT with raw magnitude increase. That establishes provenance/source-discounting as the general cause and magnitude as a confounded proxy, subordinating the entire magnitude-steering family (PAI/CAST/DMAS) to our axis.",
+        "concrete_experiment": "Qwen3-VL-8B-Thinking, VS-MathVerse N~136. Step 1: reproduce +18.2pp (anchors Innovation 1's baseline). Step 2: implement V_bal, V_disc, V_prov, each tuned so image-token attention score = M* (matched to global-2x's own M*); report faithful accuracy + attention score for each. Step 3: per-item, log delta_reallocation = drop in self-re-look-text attention mass under real global-2x, and regress accuracy_correct ~ delta_reallocation vs accuracy_correct ~ delta_magnitude; report partial correlations. Decision rule: if V_bal is neutral and benefit loads on reallocation not magnitude, the magnitude hypothesis is falsified AND the SOTA is explained.",
+        "risk": "Hinges on their 2x implementation detail: if their post-softmax 2x is RE-normalized (closer to pure sharpening than mass-stealing), V_disc may not fully account for +18.2pp. Contingency: reframe the mechanism as distribution-SHARPENING/entropy-reduction that aligns the self attention pattern toward the USER pattern -- still directly testable by measuring KL(self-pattern || user-pattern) before/after each operator and correlating with accuracy. Either way the balance-preserving control is the falsifier."
+      },
+      {
+        "title": "Cross-model + cross-benchmark generalization AND a VRRL-regime rebuttal: training-free provenance cracks the exact prompting regime RL declared unfixable",
+        "mechanism": "Two panels. (A) Generalization: apply provenance-injection + PSO across a model panel -- Qwen3-VL-8B-Instruct, 8B-Thinking, 32B-Thinking, plus the two non-Qwen models VisualSwap reports the illusion for but gives NO fix numbers (ERNIE-4.5-VL-28B-A3B, Kimi-VL-A3B) -- and across all four VS-Bench sources (MathVista/MathVerse/MathVision/MMMU-Pro). (B) VRRL rebuttal: reproduce VRRL's negative result in our setting -- a generic reflection prompt ('re-examine the image and correct if needed') with NO provenance reframing -- then show provenance-injection on the SAME scaffold flips it from ~0/negative to clearly positive, and attribute the flip to self-provenance gating measured via the image-token attention score VRRL never reports.",
+        "why_effective": "This de-risks the two things most likely to sink the paper: single-model/single-benchmark fragility, and the 'is this just prompting?' dismissal. VRRL states verbatim (retrieved https://arxiv.org/html/2607.02490) that 'Prompting models to reflect provides little benefit and can even hurt performance... zero-shot models simply repeat previous predictions,' and uses that to justify full SFT+GRPO with turn-masking and replay. We show a SPECIFIC prompting form -- provenance reframing -- is the exception that works training-free, and we supply the mechanistic reason VRRL never measured (their feedback is environment-generated red-dot/line overlays, with zero attention analysis). That positions us as the training-free complement that rivals VRRL's motivation at zero training cost.",
+        "why_novel": "VisualSwap validated its global-2x fix ONLY on Qwen3-VL-8B and reports no fix for ERNIE/Kimi despite documenting the illusion there (arXiv:2605.15864); a cross-model provenance fix is untouched. VRRL has no visual-attention measurement and no self-vs-user provenance study whatsoever (confirmed this session, https://arxiv.org/html/2607.02490). The result 'a prompting method that works BECAUSE it manipulates provenance, explaining why generic reflection prompting fails' is orthogonal to both.",
+        "beats_what_sota": "Beats global-2x on COVERAGE and consistency: provenance recovery across >=5 models x 4 benchmarks where global-2x is untested beyond 8B, with the largest gains on the 3x-more-vulnerable Thinking models. Rivals/complements VRRL: matches its stated goal (elicit genuine visually-grounded reflection) with ZERO training vs their SFT+GRPO+masking+replay, and -- crucially -- succeeds in the prompting regime VRRL proved fails, which VRRL itself cannot claim.",
+        "concrete_experiment": "Panel A: run base / self-floor / global-2x / provenance-injection / PSO on each of the 5 models x 4 VS-Bench sources; primary metric faithful post-swap accuracy, report recovery fraction of the self-vs-user gap and pair each with its image-token attention score to show recovery WITHOUT magnitude monotonicity. Panel B (single model, 8B-Thinking, N~136): three arms on one scaffold -- (i) no-reflection self floor, (ii) generic-reflection prompt (expect ~0/negative, reproducing VRRL), (iii) provenance-injection (expect clearly positive); report accuracy + attention score per arm; the falsifiable claim is that (ii)->(iii) accuracy gain is mediated by the self-text discounting from Innovation 2 (formal mediation test). Stretch: port provenance-injection to one VRRL-style coordinate-grounding re-examination probe to show the mechanism survives a task/metric shift (flagged stretch, different 40px metric).",
+        "risk": "Cross-architecture attention hooking for the MoE models (ERNIE-4.5-VL-28B-A3B, Kimi-VL-A3B) is engineering-heavy and PSO needs per-model calibration; prompt-level provenance-injection is architecture-agnostic and is the fallback if PSO hooking stalls on a given model. The VRRL-task port is a genuine domain shift (grounding vs math VQA) and may need a bespoke swap-probe; keep it explicitly optional so the core cross-VS-Bench claim stands alone. Per-split N is small -- pool sources for the headline, report per-split as secondary."
+      }
+    ],
+    "verdicts": [
+      {
+        "title": "Provenance-difference steering (user-minus-self gate vector on belief-revision heads) for VLM visual-re-examination recovery",
+        "scooped": true,
+        "scooped_by": "Ackerman & Panickssery, \"Inspection and Control of Self-Generated-Text Recognition Ability in Llama3-8b-Instruct\" (arXiv:2410.02064) — builds a causal residual-stream self-vs-external authorship/provenance direction and steers the model to believe/disbelieve it authored text \"by applying the vector to them as the model reads them.\" That is a provenance steering vector flipping how the model treats read text. Scoops the MECHANISM/novelty claim, not the VLM+belief-revision application.",
+        "will_it_work": "uncertain",
+        "effectiveness": 0.4,
+        "novelty": 0.35,
+        "recommendation": "maybe",
+        "notes": "VERDICT: Executable, mechanism plausible with external causal support — but the headline NOVELTY claim is false and the SOTA-beating TARGET is likely unreachable. Reframe as a VLM application/ablation, not a new mechanism or SOTA headline.\n\nNOVELTY SCOOPED AT MECHANISM LEVEL. The \"WHY NOVEL\" claim (\"every baseline keys on a non-provenance axis; nobody builds a user-vs-self role-provenance vector\") is wrong. Ackerman & Panickssery (arXiv:2410.02064, cited by the 2026 self-recognition literature) already: (1) isolate a linear residual-stream direction encoding self-vs-external authorship / the \"self\" concept; (2) show it is CAUSAL for whether the model perceives/asserts authorship; (3) STEER by \"applying the vector to [texts] as the model reads them\" to make it treat external text as self-authored or vice-versa — a provenance steering vector doing the same causal job the proposal claims as new. The proposal doesn't cite it. Adjacent: \"The Assistant Axis\" (arXiv:2601.10387), \"Style Modulation Heads for Persona Control\" (arXiv:2603.13249). Verified NON-scoops: PAI (2407.21771, magnitude axis), VisualSwap (2605.15864, uniform 2x, builds no vector), self-recognition fingerprinting (2606.06315, RANDOM sparse vectors not diff-of-means), arbitration (2604.09364, modality not provenance axis). WHAT SURVIVES novel: VLM setting, tying the provenance flip to downstream VISUAL re-examination on swapped images, belief-revision-head localization, task-accuracy recovery — a novel APPLICATION of a known tool, not a new mechanism.\n\nWILL IT WORK — UNCERTAIN, leaning short of target. For: team's own grounding (role-framing = 74% of recovery; relabel +8pp; +225% attention-magnitude is NEUTRAL, so head-OUTPUT diff-of-means correctly targets content-routing/provenance not magnitude — logic is coherent) plus 2410.02064's positive result that a self/authorship vector IS steerable. Against: (a) \"A Sober Look at Steering Vectors\" — diff-of-means degrades complex reasoning, brittle across layer/alpha, high per-example variance; math answer-revision is complex reasoning. (b) STRONGEST caution: arXiv:2604.09364 applies contrastive-direction + SAE steering to the SAME \"VLM sees but won't act on visual evidence\" problem and gets only +1.4-3.8pp — representation steering in this exact niche yields single-digit gains, far below the +5-10pp-over-54.8 target. (c) Plateau risk: if the vector mostly re-encodes the lexical/role signal the relabel already captures (+8pp), it plateaus near +8pp, not the +30.9pp ceiling; the claim a first-moment mean vector \"reconstructs the manifold far more completely\" than relabel is an unproven assumption — the genuine user-turn state includes real role-token KV structure an additive residual offset may not synthesize. (d) Non-identifiability (Venkatesh & Kurapath, Feb 2026) undercuts calling it \"the\" provenance direction.\n\nBEATS SOTA — UNLIKELY AS FRAMED + a MEASUREMENT CONFOUND. Proposal mixes two number systems: team's own is base 0.69 -> self 0.52 (+8pp) on an N=136 MathVerse subset, but \"BEATS 54.8, approach 67.5\" is on VisualSwap VS-Bench scale (base 76.0, probe 36.6). VisualSwap numbers verified accurate (2x amp=54.8 Table 9; multi-turn=67.5 Table 4). Team has NOT run VS-Bench; beating 54.8 requires it and gains don't transfer across subsets for free. Factual error to fix: proposal says VisualSwap \"leaves which factor of user instruction drives recovery as future work (Appendix H)\" — the paper actually PERFORMS that decomposition in Appendix H, so that novelty hook is invalid.\n\nRECOMMENDATION: MAYBE — pursue only if repositioned. (1) Drop \"new mechanism\"/\"nobody builds a provenance vector\"; cite 2410.02064, position as first VLM/belief-revision application with head-level localization. (2) Drop/hedge \"beat 54.8 in one pass\"; comparable prior (2604.09364) predicts single-digit gains. (3) Must run on VS-Bench itself before any SOTA comparison. (4) Add the honest control the idea invites: does diff-of-means beat the lexical relabel at all? If it plateaus at +8pp, that itself is a publishable mechanistic result (provenance state is not an additive residual offset). Best realistic value: a mechanistic/ablation contribution, not a SOTA paper."
+      },
+      {
+        "title": "Provenance-Contrastive Decoding (PACD) for the VisualSwap re-examination illusion",
+        "scooped": false,
+        "scooped_by": "",
+        "will_it_work": "uncertain",
+        "effectiveness": 0.5,
+        "novelty": 0.68,
+        "recommendation": "pursue",
+        "notes": "NOT SCOOPED. Retrieved and verified the contrast-axis novelty. Source paper (arXiv:2605.15864, VisualSwap) proposes NO contrastive/provenance/logit method — only 2x image-token attention amplification (Self 36.6 -> 54.8, +18.2pp, explicitly a \"proof-of-concept\") and multi-turn user intervention (67.5 ceiling). ICD (2403.18715) SUBTRACTS a role-prefix *disturbance* (opposite sign, instruction-perturbation not turn-provenance). PAI (2407.21771) = image-attention amp + vision-present/absent contrast. CEI/Context-Aware \"Faithful V-L\" (2601.05939) = embedding injection, no contrast, no reframing. No retrieved method ADDS user-provenance while SUBTRACTING self-provenance of the identical trigger. The axis is genuinely new; the machinery (CAD/VCD/ICD-family logit contrast + adaptive-plausibility floor) is standard, so novelty is axis-level not mechanism-level (~0.68).\n\nWILL IT WORK — uncertain, three grounded worries:\n(1) MARGINAL-VALUE GAP (decisive). z_user alone IS your existing provenance-injection fix (already +8pp, 46-67% of gap). PACD's only added value is subtracting z_self. Contrastive decoding routinely fails to beat its own positive branch and can wash out head tokens. The make-or-break ablation — PACD vs decode-from-z_user-alone — is one run and is NOT done. If it doesn't clear z_user by a meaningful margin, the paper collapses to \"the CD reskin of provenance-injection.\" This is the single most important experiment; gate the whole idea on it.\n(2) INTERNAL CONTRADICTION with the target SOTA. The 54.8 you aim to beat is itself an *attention-magnitude* result (2x amp, +18.2pp), yet your foundational claim is \"magnitude is neutral (+225% per-head = 0 accuracy).\" A reviewer will hit this instantly. You must reconcile global-token-amp vs tuned-per-head-amp (e.g., global amp reshapes text-vs-image mass / suppresses text inertia broadly, whereas per-head magnitude scaling doesn't) or the \"provenance is the lever, not magnitude\" premise underpinning PACD is undercut.\n(3) SCALE MISMATCH. Your result is a faithful subset (N~136, base 0.69/self 0.52); 54.8/67.5 are full-bench. \"Beats 54.8 / rivals 67.5\" is not yet apples-to-apples — re-run on the paper's protocol before claiming SOTA. Also note PACD's positive branch = the user reframe, so 67.5 is a ceiling it structurally cannot exceed; \"rival 67.5\" is the optimistic cap, not upside.\n\nVERDICT: pursue, but conditionally. Cheap (2x inference, training-free), novel axis, grounded in a demonstrated lever, and the source paper leaves the fix explicitly to future work — good positioning. However the contribution is an incremental sharpening of an already-working single-branch fix, so mandate: (a) the z_user-alone ablation as the primary result, (b) reconciliation of the magnitude contradiction, (c) full-bench re-run for any SOTA claim. If (a) is flat, downgrade to a negative/analysis result rather than a method paper. Citations retrieved: 2605.15864, 2407.21771, 2403.18715, 2601.05939 (also surveyed 2412.06775, 2506.14766, 2601.13707, 2601.03500)."
+      },
+      {
+        "title": "Commit-then-revise: provenance relabel + selective committed-answer KV eviction",
+        "scooped": false,
+        "scooped_by": "",
+        "will_it_work": "uncertain",
+        "effectiveness": 0.45,
+        "novelty": 0.5,
+        "recommendation": "maybe",
+        "notes": "METHOD NOT SCOOPED, CONCEPT IS. The exact move (provenance-conditioned KV eviction of the model's OWN committed-answer span in a VLM re-examination setting) is not found in searches. VisualSwap (arXiv:2605.15864, confirmed: base 76.0, self/probe 36.6, multi-turn user 67.5, 2x amp 54.8 on Qwen3-VL-8B-Thinking) proposes NONE of your moves. But the underlying concept is established 2026 text-LLM prior art: 'Do LLMs Benefit From Their Own Words?' (arXiv:2602.24287) documents 'context pollution' and shows DROPPING the assistant turn recovers quality; 'Same Evidence, Different Answers' (arXiv:2605.30251) names 'self-anchored drift'; 'When Do LLMs Admit Their Mistakes?' (arXiv:2505.16170) shows belief (not surface tokens) causally gates retraction. So novelty is narrow/incremental, not fundamental.\n\nTWO EFFICACY THREATS grounded in your own finding. (1) Internal inconsistency: your headline is 'attention-magnitude is NOT the lever, provenance is' (+225% amp = neutral). KV eviction is itself an attention-space edit (zeroing attention to a span); reviewers will ask why one attention edit is neutral and another decisive. Your defense — removing a competing COPY source, not amplifying — is coherent and distinct from the amp operator, but currently unproven and cuts against your prior. (2) Belief persistence (2505.16170): if the wrong belief already propagated into the residual stream, evicting the surface answer-token KV may not move it. Counter-route (2604.19149, 'How Do Answer Tokens Read Reasoning Traces'): copying occurs at READ time via attention to KV, so eviction removes the copy source at the write moment even if belief persists. Net: genuinely uncertain, plausible-but-risky.\n\nDECISIVE METHODOLOGICAL RISK: the trivial baseline. Because you already relabel the re-look as a user turn, you can simply construct that turn WITHOUT the committed answer (prompt-level omission, no KV surgery). arXiv:2602.24287 shows this class of removal already recovers own-response pollution. If it matches KV eviction, the KV framing is unnecessary. Run FIRST: (a) provenance-relabel + textual omission of committed answer; (b) KV eviction WITHOUT relabel (tests the coupling claim). The contribution survives only if KV eviction beats textual omission and requires relabel.\n\nCEILING CLAIM is defensible, not magical: base 76.0 vs user ceiling 67.5 leaves ~8.5pp headroom, and the user baseline does retain its prior answer, so exceeding 67.5 is testable. But the premise that the ceiling is BOUND BY the retained answer (vs a capability limit) is speculative. No external SOTA exists; honest bars are your own relabel (+8pp), 2x amp (54.8), and the 67.5 user ceiling — 'beats SOTA' is not well-defined here.\n\nRECOMMENDATION: pursue only if the two controls above run first and the localization of a clean committed-answer span (separable from reasoning steps, which restate the answer in thinking models) is demonstrated. Highest ceiling of the candidates, but also the highest chance of being either trivial-baseline-equivalent or neutral for the same reason your amp operator was neutral."
+      },
+      {
+        "title": "Provenance gates vision: dissociating reading-heads from belief-revision/writing-heads",
+        "scooped": false,
+        "scooped_by": "Not fully scooped, but heavily crowded. Closest: arXiv:2606.28273 (Vision-Default, Prior-Override) already causal-patches a sparse (2.5-4.8%) set of VLM decision/commitment heads mediating visual-evidence-vs-prior conflict and separates vision-attending from decision heads. Also arXiv:2510.17771 (Seeing but Not Believing, layer-level perception!=belief), NOTICE arXiv:2406.16320 (VLM head patching), persuasion-heads arXiv:2605.09314, copy-suppression (OpenReview g8oaZRhDcf).",
+        "will_it_work": "uncertain",
+        "effectiveness": 0.38,
+        "novelty": 0.35,
+        "recommendation": "maybe",
+        "notes": "VERIFIED PRIOR ART (all retrieved). VisualSwap=arXiv:2605.15864 (ICML2026) is real; its +18.2pp (Qwen3-VL-8B-Thinking 36.6->54.8, 2x on image tokens, Table 9/Sec5.7) and layer-level (not per-head) attention analysis confirmed. BUT its Appendix H DOES decompose which factor of the user instruction drives recovery, so the memo's claim that VisualSwap 'leaves the user-turn decomposition to future work' is partly false. VRRL=arXiv:2607.02490 confirmed training-only.\n\nNOVELTY IS DENTED, NOT DEAD. The framing 'residual-stream competition between committed answer and fresh visual evidence, resolved by a sparse set of decision/commitment heads' is already published for VLMs in arXiv:2606.28273 (Vision-Default, Prior-Override): causal head patching, sparse 2.5-4.8% causally-necessary heads, vision-attending vs decision heads distinguished. 'Reading fine / writing is the bottleneck / magnitude isn't the lever' is pre-empted conceptually (layer-level) by arXiv:2510.17771 (models lock onto correct evidence even when answer is wrong). 'Writing heads' machinery exists in text (copy-suppression g8oaZRhDcf; persuasion-heads 2605.09314). The ONLY clearly-novel slice left is tying the write-gate specifically to PROVENANCE (self vs user role token) in the self-reflection/VisualSwap setting + the magnitude reconciliation. That is narrow.\n\nBIGGEST 'WILL IT WORK' RISK (grounded, not speculation): the localization RECIPE is aimed at the wrong locus. Innovation says 'patch each head's ANSWER-TOKEN output.' NOTICE (arXiv:2406.16320) found in a VLM that answer-token head patching is near-dead (max avg logit diff 0.016, ZERO universal heads) while the ROLE/'Assistant:' token is ~25x stronger (up to 0.4, 6 heads). So the causal action likely lives at the role/turn token, not the answer token. This is ironically CONSISTENT with the innovation's own thesis (provenance role tokens gate the write) but means the proposed patching experiment as specified will probably find no clean 'writing heads' at the answer token. Fixable: patch at the role/turn-boundary token instead.\n\nINTERNAL LOGICAL INCONSISTENCY in the reconciliation. It simultaneously claims (a) writing heads are magnitude-INSENSITIVE (provenance-gated, not gated by how much visual info is read) and (b) VisualSwap's uniform 2x HELPS by 'grazing writing heads' visual attention. If writing heads are magnitude-insensitive, doubling their visual attention should ALSO be neutral, so +18.2pp cannot come from grazing them. A reviewer will catch this - which undercuts the memo's selling point that this 'removes the contradiction a reviewer would flag.'\n\nFOUNDATIONAL RISK. The team's premise (their +225% operator is NEUTRAL) directly conflicts with VisualSwap's PUBLISHED +18.2pp from magnitude 2x on the SAME model (Qwen3-VL-8B-Thinking). Both amplify visual attention on image tokens. If VisualSwap's 2x truly yields +18.2pp, then magnitude IS a lever and the whole innovation premise is falsified. The neutral result may be an artifact of the team's operator (where applied, pre/post-softmax, per-head normalization). The team MUST reproduce VisualSwap's plain 2x before building theory on 'magnitude is neutral.'\n\nBEATS-SOTA CLAIM IS UNSUPPORTED. (i) Metric incompatibility: team scale is faithful-accuracy 0.69->0.52; VisualSwap's 54.8 is a different probe-accuracy scale - 'matches or beats 54.8' is not a valid comparison as written. (ii) Ceiling: the team's FULL provenance reframe (all role framing) already caps at only +8pp (~46-67% of the 17.7pp gap). A MORE surgical writing-head-only operator is very unlikely to EXCEED the full reframe, so the 'higher ceiling because causally aimed' claim is optimistic and unlikely; realistic expectation <=+8pp, i.e. LOSES to VisualSwap's +18.2pp on accuracy.\n\nBOTTOM LINE. Executable as a mechanistic study (sparse commitment heads demonstrably exist in VLMs per 2606.28273), and the provenance-gated-write angle is a genuine, if narrow, novel contribution. But: (1) reframe the intervention to the role/turn token (NOTICE), (2) resolve the magnitude discrepancy by reproducing VisualSwap 2x first, (3) fix the magnitude-insensitive-vs-grazing contradiction, (4) DROP the 'beats SOTA' claim and reconcile metrics. Pursue only as a mechanism/explanation paper (the reviewer-defensible WHY), not as a SOTA-beating operator."
+      },
+      {
+        "title": "Provenance Steering Operator (PSO): content-fixed user-minus-self activation direction, magnitude-matched",
+        "scooped": false,
+        "scooped_by": "No direct scoop. Closest: arXiv:2604.02315 (user-turn vs assistant-turn generation, text-only, probing-only, no steering vector); arXiv:2601.10387 (The Assistant Axis, persona-axis steering, text-only); role/persona-vector steering (ACL-Findings 2025 'Can Role Vectors Affect LLM Behaviour?'). These crowd the ROLE/PROVENANCE axis but none builds a content-fixed user-minus-self attention-output contrast to fix the VLM visual-re-examination illusion, and none runs a magnitude-matched control (VisualSwap arXiv:2605.15864 itself does not).",
+        "will_it_work": "uncertain",
+        "effectiveness": 0.45,
+        "novelty": 0.55,
+        "recommendation": "maybe",
+        "notes": "CITATIONS ALL VERIFY. VisualSwap arXiv:2605.15864 Table 4 (76.0/36.6/67.5, Qwen3-VL-8B-Thinking) and Table 9 (36.6->54.8, +18.2pp @ 2x) confirmed via arxiv.org/html/2605.15864; it runs no activation operator and no magnitude-matched control. PAI 2407.21771, CAST 2605.04641, VisFlow 2506.12609, DMAS 2602.21704, self-recognition 2606.06315 all resolve and match the dossier.\n\nCENTRAL WILL-IT-WORK RISK (grounded in your own findings): PSO extracts d = mean(a_USER - a_SELF) in ATTENTION-OUTPUT space and adds it back there. But that is the exact space where you already proved magnitude is causally NEUTRAL (+225% visual attention / ~0pp). The user-minus-self difference at re-look heads is dominated by the very surge you showed is inert, so PSO's direction is confounded with the neutral component and may collapse to ~0pp for the SAME reason your tuned amplifier did. Your successful lever (+8pp) acted at INPUT provenance (reframing the trigger as a user turn), letting the model's own (nonlinear) gate fire; PSO instead emulates the gate's OUTPUT signature downstream of the gate. If gating is nonlinear in role tokens, a fixed mean-pooled additive direction won't reproduce it. Probe-AUC head selection + orthogonalizing off the magnitude component is the only thing that might save it — make that mandatory, not optional.\n\nINTERNAL CONTRADICTION TO RESOLVE: your headline 'attention-magnitude is NOT the lever' is contradicted by VisualSwap Table 9, where simple 2x image-attention scaling gives +18.2pp on the SAME model. Two points (+100%/+18.2, +225%/0) are equally consistent with a concave/saturating-then-overshooting monotone curve — they do NOT establish a non-monotone axis requiring provenance. The 'money plot' only becomes decisive if PSO actually lands at low-magnitude/high-accuracy; that is the bet, not established fact.\n\nCOMPARABILITY PROBLEM: the money plot mixes cross-setup numbers — VisualSwap Tables are on their 800-pair full set; your points are N~136. To claim 'beats global-2x +18.2pp at equal/lower magnitude' you MUST re-run their 2x baseline in your exact setup; do not cite their Table 9 number against your N=136 points.\n\nNOVELTY: real but incremental. The specific operator (content-fixed provenance contrast as decoding operator for VLM re-examination gating) is un-scooped, but the claim 'NONE conditions on token ROLE/PROVENANCE' is overstated — role/persona-vector steering does exactly that. Defensible novelty is the narrow application + the magnitude-matched control.\n\nRECOMMENDATION: pursue the EXPERIMENT but drop the 'beats SOTA +15-20pp' framing as the headline. Highest-value, lowest-risk deliverable is the magnitude-matched control + accuracy-vs-magnitude curve, which is publishable and mechanistically decisive REGARDLESS of PSO's magnitude: if PSO also lands near-neutral, that is itself an informative result showing provenance is not recoverable from attention-output activations. Target +8pp (matching your prompt fix) as success, not the +18.2/+30.9 ceilings. Beating a re-run 2x baseline at lower magnitude is the real, defensible win condition."
+      },
+      {
+        "title": "Source-discounting decomposition of VisualSwap's global-2x attention fix",
+        "scooped": false,
+        "scooped_by": "",
+        "will_it_work": "uncertain",
+        "effectiveness": 0.45,
+        "novelty": 0.55,
+        "recommendation": "maybe",
+        "notes": "Verified target: VisualSwap (arxiv.org/abs/2605.15864, html/2605.15864) proposes \"global 2x\" = scale image-token attention 2x, all layers/heads during re-look; reports +18.2pp on Qwen3-VL-8B-Thinking (36.6->54.8), +7.9pp Instruct (46.6->54.5); runs NO magnitude-matched/provenance control on the 2x fix; calls it proof-of-concept/future work. So the gap is real and the \"we explain the SOTA\" reframing is a legitimate survival move.\n\nCORE CONTRIBUTION NOT DIRECTLY SCOOPED: no retrieved paper decomposes an attention-amplification fix into balance-preserving-magnitude (V_bal) vs source-discounting (V_disc) at matched image magnitude M*, nor regresses per-item 2x benefit onto self-text->image reallocation. BUT it is crowded: matched-magnitude control logic is established (VLM-grounding matched-modulation-budget token-selection-vs-magnitude control; 2602.11169 L2-matched direction-vs-magnitude double dissociation); the V_disc operator overlaps SID 2408.02032, ASCD, DaID 2604.10071 (suppress textual inertia + amplify visual), pre-softmax image-logit amplification for sycophancy 2410.11302; head-decomposition of grounding already in 2606.28273. Novelty is purely the EXPLANATORY framing, not the operators or methodology -> novelty ~0.55.\n\nTWO LOAD-BEARING RISKS (why will_it_work=uncertain, effectiveness=0.45):\n1. Unverified renormalization premise. Thesis needs post-softmax 2x to reallocate RELATIVE mass away from self-authored re-look text. Paper never gives the equation; renormalization NOT confirmed in text. If 2x is un-renormalized (as memory states), self-text weights are UNCHANGED absolutely, row sum >1, text->image reallocation ~= 0, regression predictor degenerate, thesis collapses. Must be measured empirically BEFORE the decomposition means anything.\n2. Internal-consistency conflict with team's own +225% neutral operator. A +225% operator almost certainly raised image RELATIVE share (already relatively discounts self-text) yet was neutral -> predicts V_disc also neutral, contradicting hypothesis. V_disc only escapes by ABSOLUTELY suppressing self-text -- a different op from both the +225% operator and un-renormalized 2x -- in which case V_disc is a NEW mechanism, not an explanation of global-2x. Either horn weakens the story.\n\nMAGNITUDE MISMATCH: V_prov recovered only ~46-67% of gap; global-2x reports near-full +18.2pp. If V_disc~=V_prov~=partial, source-discounting cannot account for full 2x benefit -> residual unexplained variance undercuts \"we explain SOTA.\" Cross-setup \"~=\" claims (different N/model-instance/accuracy scale) are non-rigorous until run in ONE setup.\n\nDOES NOT BEAT SOTA (by design; co-opts 2x). Defensible for a mechanism paper but no leaderboard win; explanation only compelling if renormalization premise holds AND reallocation r strong AND V_disc reproduces most of 2x at matched M*.\n\nAPPENDIX-H OVERLAP FLAG: VisualSwap Appendix H is \"Decomposition of User Instruction Effects\" (role vs content) -- may partially overlap the team's provenance-injection 74/26 split. Retrieve its exact content before claiming that decomposition as novel.\n\nPURSUE ONLY AFTER: (1) confirm/measure whether 2x reallocates ABSOLUTE self-text mass; (2) run V_bal/V_disc/V_prov/2x in one setup for valid comparison; (3) pre-register V_disc~=neutral as an equally-publishable negative that still sharpens the magnitude-vs-provenance axis; (4) check Appendix H overlap. The matched-magnitude design is clean and falsifiable (good science) but the why-effective narrative is stated with unwarranted confidence given the unverified renormalization mechanism."
+      },
+      {
+        "title": "Cross-model provenance-injection + VRRL rebuttal: mostly scooped by VisualSwap, underperforms its published fixes",
+        "scooped": true,
+        "scooped_by": "VisualSwap, \"Are VLMs Seeing or Just Saying?\" (arXiv:2605.15864) — already reports (a) user-vs-self visual-attention gating (Table 5), (b) training-free global-2x attention fix +18.2% on Qwen3-VL-8B-Thinking (Table 9), and (c) multi-turn user-provenance recovery for ERNIE-4.5-VL and Kimi-VL across all four VS-Bench benchmarks (Table 12, Appendix D.2).",
+        "will_it_work": "likely",
+        "effectiveness": 3,
+        "novelty": 3,
+        "recommendation": "drop",
+        "notes": "Verified both anchor papers via arXiv API + ar5iv full text.\n\nFATAL FRAMING FLAW: The innovation's central novelty claim — \"VisualSwap reports no fix numbers for ERNIE/Kimi despite documenting the illusion there\" — is FALSE. VisualSwap Table 12 (Appendix D.2) reports multi-turn user-provenance recovery for all 15 models including ERNIE-4.5-VL-28B-A3B-Thinking (base 79.9%, probe 19.6%) and Kimi-VL-A3B-Thinking (base 69.8%, probe 27.4%) across MathVista/MathVerse/MathVision/MMMU-Pro. So \"cross-model provenance fix is untouched\" collapses. Panel A largely re-demonstrates a known result.\n\nCORE MECHANISM IS SCOOPED: VisualSwap already states \"user instructions substantially elevate attention to visual tokens, whereas self-reflection does not\" (Table 5) — this IS the provenance-is-the-lever finding. Our headline is their conclusion.\n\nCONTRADICTS OUR OWN RESULT / DOESN'T BEAT SOTA: (1) VisualSwap's training-free global-2x attention amplification gives +18.2% on Qwen3-VL-8B-Thinking (Table 9), directly conflicting with our \"attention-magnitude is neutral\" claim; a reviewer who reruns global-2x will see it help. (2) Our provenance-injection recovers only ~+8pp, whereas VisualSwap's already-published multi-turn recovers +30.9pp (36.6->67.5) on the same model and global-2x recovers +18.2pp. We UNDERPERFORM the anchor's own two fixes. \"Beats global-2x on coverage\" is a weak claim since global-2x wins on magnitude where both are tested.\n\nVRRL REBUTTAL IS APPLES-TO-ORANGES: VRRL (arXiv:2607.02490, Tang/Yin/Durrett) confirmed to have zero attention measurement and zero self-vs-user provenance study (good, orthogonal). BUT its \"prompting to reflect provides little benefit / repeats predictions\" negative result is on visual grounding (tables/charts) and FrozenLake navigation with Qwen2.5-VL/Qwen3-VL-4B — NOT VS-Bench math. Claiming we \"crack the exact prompting regime VRRL declared unfixable\" overstates: VRRL never tested reflection-prompting on math VQA, so we cannot refute them on their turf; we'd build our own negative baseline on a different task.\n\nWILL IT WORK (empirically): likely yes — cross-model recovery numbers are near-guaranteed because VisualSwap already shows user-provenance restores ERNIE/Kimi. But producing positive numbers is re-demonstration, not discovery.\n\nSALVAGEABLE (narrow): The only non-scooped ingredients are (1) AUTOMATED self->user relabeling that reuses the SAME re-look content — VisualSwap's multi-turn injects new user instructions, confounding role-label with new-content; our decomposition (74% role-framing, 26% content, NOT turn-boundary) cleanly isolates the role token as the causal lever, which VisualSwap does not do; (2) the mechanistic head-localization. To be viable the paper must (a) drop the false \"no ERNIE/Kimi fix\" claim, (b) directly confront and reconcile VisualSwap's +18.2% global-2x vs our neutral per-head result (likely: global-2x perturbs the whole generation distribution, not just attention magnitude), and (c) reframe VRRL as orthogonal complement rather than a same-regime rebuttal. Even reframed, it is an incremental mechanistic refinement of VisualSwap, not a SOTA-beating contribution."
+      }
+    ],
+    "plan": {
+      "sota_landscape": "On the specific problem — faithful post-swap accuracy on the VisualSwap re-examination probe / VS-Bench — the SOTA is held by the phenomenon paper itself, VisualSwap (\"Are VLMs Seeing or Just Saying?\", arXiv:2605.15864, ICML 2026; verified from html + PDF). It is the ONLY paper with fix numbers on this benchmark, and it reports exactly two:\n\n(a) Multi-turn user instruction — the practical CEILING, but needs a manual 2nd user turn carrying NEW instruction content U (not the model's own re-look). Verified numbers (Table 4 / Table 15): Qwen3-VL-8B-Thinking 36.6->67.5 (+30.9pp); 8B-Instruct 46.6->58.2 (+11.6pp); 235B-Thinking 34.1->85.4 (+51.3pp); 235B-Instruct 61.3->77.9 (+16.6pp).\n\n(b) Global-2x attention amplification — the single-pass, training-free SOTA method we must beat. Verified (Table 9): 8B-Thinking 36.6->54.8 (+18.2pp); 8B-Instruct 46.6->54.5 (+7.9pp). Mechanism (verified from PDF Sec 5.7): \"scale the attention weights allocated to image tokens by 2x, applied uniformly across all layers and heads, during generation of Rb\"; their Visual Attention Score is post-softmax; RENORMALIZATION IS UNSPECIFIED. Only reported for Qwen3-VL-8B.\n\nThe training-free single-pass leaderboard therefore has exactly ONE entry (global-2x = 54.8 on 8B-Thinking) — an unusually beatable SOTA on a fresh benchmark. No other method has been evaluated on VS-Bench: the four training-free steering methods (PAI 2407.21771, CAST 2605.04641, VisFlow 2506.12609, DMAS 2602.21704) are SOTA for OBJECT hallucination (POPE/CHAIR/MMHal) but untested on re-examination; VRRL (arXiv:2607.02490, Tang/Yin/Durrett, verified) is SOTA for TRAINED visually-grounded reflection but on coordinate-grounding (40px Euclidean) + FrozenLake navigation, NOT VS-Bench math — orthogonal, no head-to-head number, and requires SFT+GRPO (not training-free). Cross-model: VisualSwap documents the illusion on ERNIE-4.5-VL-28B-A3B (Thinking base 79.9->probe 19.6) and Kimi-VL-A3B but publishes NO fix for either (Table 12 multi-turn = Qwen-8B/235B only; Table 9 amp = 8B only) — a genuinely open gap. HONESTY CAVEAT: our own N~136 subset (base 0.69->self 0.52, -17.7pp) is NOT on VS-Bench scale — their 8B-Thinking MathVerse split is base 83.0->probe 29.5 (Table 12) — so no \"beats 54.8\" claim is valid until we re-run the exact VS-Bench protocol.",
+      "baselines_to_run": [
+        {
+          "name": "Self-floor (Probe)",
+          "ref": "arXiv:2605.15864 (Probe protocol, verified)",
+          "how": "Swap Ia->Ib, re-prefill, continue the SAME assistant turn with a self-generated reflection prompt P drawn from their 10 Table-14 variants (e.g. 'Wait, let me check the image again'); measure faithful post-swap accuracy. Lower bound; anchors every recovery-fraction.",
+          "training_free": true
+        },
+        {
+          "name": "Multi-turn user ceiling",
+          "ref": "arXiv:2605.15864 Table 4/12 (verified 67.5 on 8B-Thinking)",
+          "how": "Close Ra as a complete assistant response, append a NEW user turn U ('Check the image again and re-examine'), decode Rb. Reproduce 67.5 (8B-Thinking) / 58.2 (8B-Instruct) as the ceiling anchor.",
+          "training_free": true
+        },
+        {
+          "name": "Global-2x attention amplification (THE SOTA to beat)",
+          "ref": "arXiv:2605.15864 Table 9 (verified +18.2pp on 8B-Thinking)",
+          "how": "During Rb generation multiply post-softmax attention weights on image tokens by 2x, uniformly across ALL layers/heads. Run BOTH renormalized and unrenormalized variants (paper leaves it unspecified). MUST reproduce +18.2pp before any 'magnitude is neutral' claim — this is the linchpin that reconciles our neutral +225% per-head result with their result.",
+          "training_free": true
+        },
+        {
+          "name": "Prompt-level provenance-injection (ours)",
+          "ref": "our work (+8pp on N~136; re-measure on VS-Bench)",
+          "how": "Auto-reframe the model's OWN self re-look P as a user turn — identical content, flip only the role tokens ([Response End][User Start]...[User End][Response Start]) — single pass. Honest internal baseline and the positive branch of PACD.",
+          "training_free": true
+        },
+        {
+          "name": "PAI (Paying More Attention to Image)",
+          "ref": "arXiv:2407.21771 (title verified)",
+          "how": "Amplify last-token PRE-softmax attention onto image indices in deeper layers (alpha=0.2-0.6 via hidden-state-similarity layer prior) + contrastive logit refinement gamma*p(y|V,I,H)-(gamma-1)*p(y|I,H), gamma=1.1. Port to Qwen3-VL. Closest magnitude+contrast competitor; the key head-to-head for PACD's contrast-axis ablation.",
+          "training_free": true
+        },
+        {
+          "name": "CAST (Caption-guided attention steering)",
+          "ref": "arXiv:2605.04641 (title verified)",
+          "how": "SVM-probe each head for caption-driven visual-attention rise (heads concentrate in layers 7-20), add precomputed additive shift S(l,h)=mean(caption-noncaption) to those heads' outputs, scaled by alpha. Same additive-shift form as our PSO but keyed on caption-heads not role.",
+          "training_free": true
+        },
+        {
+          "name": "VisFlow (dual-level attention intervention)",
+          "ref": "arXiv:2506.12609 (title verified)",
+          "how": "Token-level (amplify salient k>1 / suppress sink delta<1 visual tokens by reception score) + head-level (suppress text-following & system-dominant heads by (1-alpha)*A). Heavier reimplementation — STRETCH baseline.",
+          "training_free": true
+        },
+        {
+          "name": "DMAS (dynamic multimodal activation steering)",
+          "ref": "arXiv:2602.21704 (title verified)",
+          "how": "Retrieve nearest truthfulness steering vector by question embedding + a clean-vs-noise visual-perception vector, add alpha*M_f*D_f + beta*M_v*D_v to top-K heads' attention output. STRETCH baseline (needs the semantic-clustered vector DB).",
+          "training_free": true
+        },
+        {
+          "name": "Magnitude-matched control (ours, decisive)",
+          "ref": "our tuned per-head amplifier, retuned to global-2x's Svis=M*",
+          "how": "Retune our +225% per-head amplifier so image-token Svis exactly equals global-2x's M*, but as PURE magnitude. The decisive internal control for the money plot: predict ~0-3pp at the SAME Svis where provenance recovers ~+8-12pp. Falsifies the shared magnitude premise of PAI/CAST/VisFlow/DMAS/global-2x if it holds.",
+          "training_free": true
+        }
+      ],
+      "ranked_innovations": [
+        {
+          "rank": 1,
+          "title": "Accuracy-vs-Svis money plot with a magnitude-matched control (reconcile our neutral +225% with global-2x's +18.2pp)",
+          "expected_gain": "Not a leaderboard gain — the decisive mechanistic result, publishable whichever way it lands. Prediction at matched Svis=M*: provenance-op recovers ~+8-12pp while the magnitude-matched op stays ~0-3pp (same x, different y). If provenance ALSO lands neutral in activation-output space, that is itself informative (provenance is not an additive attention-output offset). Highest expected value in the program because it is decisive regardless of sign and resolves the contradiction every reviewer will hit.",
+          "experiment": "Step 1 (mandatory prerequisite): reproduce global-2x's +18.2pp exactly on Qwen3-VL-8B-Thinking, both renorm and no-renorm, and measure whether it reallocates ABSOLUTE self-re-look-text attention mass. Step 2: implement three ops tuned to identical image Svis=M* — V_bal (balance-preserving magnitude: scale image AND self-text together), V_disc (source-discounting: hold image at M* but suppress attention to self-authored re-look text, redistribute to image), V_prov (prompt-level provenance). Step 3: report faithful accuracy + Svis for each; per-item regress global-2x benefit onto text->image reallocation vs raw magnitude increase (partial correlations). VS-Bench MathVerse (200) + N~136. Decision rule: if V_bal is neutral and benefit loads on reallocation not magnitude, the magnitude hypothesis is falsified and the SOTA is explained."
+        },
+        {
+          "rank": 2,
+          "title": "PACD - Provenance-Contrastive Decoding (single-pass, gated on the z_user-alone ablation)",
+          "expected_gain": "Modest and honestly bounded. Target: beat the single-pass global-2x (54.8 on 8B-Thinking) on the real VS-Bench protocol; realistic +2-5pp OVER our own z_user provenance-injection IF subtracting the self-branch helps. Structural ceiling = 67.5 (z_user is PACD's positive branch, cannot exceed it). Calibration from arXiv:2604.09364 (verified: training-free activation steering gives up to +3.8pp in this exact VLM-visual-conflict niche) says do NOT promise the +18.2/+30.9 ceilings. If flat vs z_user-alone, downgrade to a negative/analysis result.",
+          "experiment": "Two-branch decode over IDENTICAL Ib and IDENTICAL re-look content: z_user (re-look framed as a user turn) vs z_self (assistant continuation); sample from softmax((1+lambda)*z_user - lambda*z_self) with an adaptive-plausibility floor; sweep lambda. PRIMARY ablation that GATES the whole idea (one run): PACD vs decode-from-z_user-alone — must clear it by a meaningful margin. KEY axis ablation: user-vs-self (ours) vs vision-on-vs-off (PAI's gamma contrast), all else equal — predict ours wins on swap-recovery. Report swap-recovery AND non-swap retention. Qwen3-VL-8B-Thinking, VS-Bench MathVerse, 3 seeds."
+        },
+        {
+          "rank": 3,
+          "title": "Source-discounting decomposition - EXPLAIN (co-opt) the SOTA global-2x fix",
+          "expected_gain": "No leaderboard win by design; it subordinates the entire magnitude-steering family (PAI/CAST/DMAS/global-2x) to the provenance axis and is the reviewer-defensible reconciliation that lets Ranks 1-2 stand. Prediction: V_disc ~= V_prov >> V_bal ~= neutral at matched M*, and global-2x's +18.2pp loads on per-item text->image reallocation, not raw magnitude. Contingent on the renormalization premise (measure first).",
+          "experiment": "Folded into Rank 1's arm set. Reproduce +18.2pp; confirm/measure whether 2x reallocates ABSOLUTE self-text mass (if unrenormalized it does relatively; if renormalized, the thesis needs V_disc as an explicit new op). Run V_bal/V_disc/V_prov at matched M* in ONE setup; report faithful accuracy + Svis; per-item partial correlations accuracy~reallocation vs accuracy~magnitude. Pre-register V_disc~=neutral as an equally-publishable negative. Also retrieve VisualSwap Appendix H (Table 15) — verified it already rules out bare structural markers (System-token-only 8B-Thinking 33.3 vs Probe 36.6) and perplexity (meaningless->0), so cite them and claim only the authorship-of-identical-content cell."
+        },
+        {
+          "rank": 4,
+          "title": "Commit-then-revise: provenance relabel + committed-answer KV eviction (highest ceiling, gated on two trivial-baseline controls)",
+          "expected_gain": "Highest ceiling of the candidates and now mechanistically supported: VisualSwap Table 16 (verified) shows Thinking models overwhelmingly REPEAT the same error after swap (235B-Thinking 90%, 72/80; 8B-Thinking flips 374/606 initially-correct to wrong) — direct evidence of the committed-answer attractor this targets. Target > our +8pp; per-item potential to exceed the 67.5 user ceiling by removing an attractor the user-turn baseline retains. But high risk of trivial-baseline-equivalence — realistic outcome uncertain.",
+          "experiment": "Auto-locate the committed-answer span in Ra (last-answer/regex + verification; note thinking traces restate the answer, so span isolation must be demonstrated). 2x2 {relabel on/off} x {KV-evict on/off} + eviction-strength beta sweep. CONTROLS RUN FIRST (decisive): (a) provenance-relabel + PROMPT-LEVEL omission of the committed answer (no KV surgery — arXiv:2602.24287 shows this class of removal already recovers own-response pollution); (b) KV-evict WITHOUT relabel. Contribution survives ONLY if KV-evict beats textual omission AND requires relabel. Specificity control: evict a RANDOM equal-length span (predict no gain). VS-Bench MathVerse + N~136, 8B-Thinking; report non-swap retention."
+        },
+        {
+          "rank": 5,
+          "title": "Reading-heads vs writing-heads localization (mechanism paper) - patch at the ROLE/turn token, not the answer token",
+          "expected_gain": "Not SOTA — the reviewer-defensible WHY that lets Ranks 1-4 stand and reconciles our neutral result with +18.2pp. Deliver a minimal writing-head-only provenance operator (target: match global-2x while touching a small head fraction). Prediction: answer-flip-to-correct heads are largely DISJOINT from max-Svis heads. NOVELTY IS DENTED: arXiv:2606.28273 (verified) already finds a sparse 2.5-4.8% VLM causal circuit decomposing into ROUTING and WRITING heads for perception-knowledge conflict — our only novel slice is tying the write-gate specifically to PROVENANCE (self vs user role token).",
+          "experiment": "Path-patch user->self provenance PER HEAD on 8B-Thinking (N~136, feasible on 4xL40). CRITICAL DESIGN FIX: patch at the ROLE/turn-boundary token, not the answer token — arXiv:2406.16320 (NOTICE) establishes VLM head-patching localizes to universal cross-attention/middle-layer heads and answer-token patching is weak; verify the role-vs-answer-token strength from its body before finalizing. Rank heads by answer-flip-to-correct; correlate with Svis (predict low/negative). Resolve the internal logical tension (if writing heads are magnitude-insensitive, global-2x cannot help by 'grazing' them) BEFORE publishing. Position against 2606.28273."
+        },
+        {
+          "rank": 6,
+          "title": "Cross-model + cross-benchmark generalization of the single-pass provenance fix (support panel; VRRL as orthogonal complement)",
+          "expected_gain": "Coverage, not mechanism — but a genuinely open win: VERIFIED that VisualSwap publishes NO fix for ERNIE-4.5-VL-28B-A3B or Kimi-VL-A3B (Table 12 multi-turn = Qwen-8B/235B only; Table 9 amp = 8B only). A training-free single-pass fix on ERNIE/Kimi + 32B is unclaimed; largest gains expected on the 3x-more-vulnerable Thinking variants (ERNIE-Thinking drops 60.3pp). Do NOT overclaim a VRRL 'rebuttal' — VRRL never tested reflection-prompting on VS-Bench math, so frame it as orthogonal (training-free vs their SFT+GRPO), not same-turf refutation.",
+          "experiment": "Run self-floor / global-2x / provenance-injection / best-method-from-Ranks-1-4 on Qwen3-VL-8B-Instruct+Thinking, 32B-Thinking, ERNIE-4.5-VL-28B-A3B (I+T), Kimi-VL-A3B (I+T) x all 4 VS-Bench sources (MathVista/MathVerse/MathVision/MMMU-Pro). Primary metric faithful post-swap accuracy; report recovery fraction of the self-vs-user gap paired with Svis to show recovery WITHOUT magnitude monotonicity. Reframe our decomposition honestly: cite Appendix H (Table 15), claim only the identical-content authorship-flip cell."
+        }
+      ],
+      "full_experiment_grid": "BENCHMARK/DATASETS: VS-Bench (arXiv:2605.15864) = 4 sources x 200 image pairs = 800: MathVista, MathVerse, MathVision, MMMU-Pro. Method development on the MathVerse split (200) + our legacy N~136 MathVerse subset for continuity; full 4-source only for the generalization panel and the final results table. MUST use their exact 3 scaffolds (Standard / Probe / Multi-turn, verified from PDF App F) so numbers are comparable to Tables 4/9/12.\n\nMETRICS (report ALL three together for every cell): (1) faithful post-swap accuracy (their protocol); (2) Visual Attention Score Svis = avg post-softmax image-token attention (their layer-18-21 and layer-55 style) — reported alongside accuracy so we can show accuracy up WITHOUT Svis up (the money plot); (3) non-swap RETENTION on unchanged control images, to catch over-correction. For mechanism: per-head answer-flip-to-correct effect + head-rank vs Svis correlation.\n\nMODELS (primary -> generalization): Qwen3-VL-8B-Thinking (PRIMARY: all methods + all mechanism); Qwen3-VL-8B-Instruct (all methods); Qwen3-VL-32B-Thinking (scale check, top methods only). Generalization panel (the open gap): ERNIE-4.5-VL-28B-A3B Instruct+Thinking, Kimi-VL-A3B Instruct+Thinking. Qwen3-VL-235B-A22B: OUT OF BUDGET on 4xL40 — cite their published numbers as external reference only.\n\nMETHODS (columns): self-floor(Probe); multi-turn ceiling; global-2x (renorm + no-renorm); PAI; CAST; [VisFlow, DMAS = stretch]; our prompt-level provenance-injection; PACD (lambda sweep); V_bal / V_disc / V_prov at matched M*; PSO provenance-vector (diff-of-means, alpha sweep) with the honest 'does diff-of-means beat the lexical relabel at all' ablation and orthogonalization off the magnitude component; magnitude-matched control (+225% retuned to M*); commit-then-revise 2x2 (relabel x KV-evict) + textual-omission control + KV-only control + random-span specificity control; writing-head-only operator.\n\nSEEDS/PROTOCOL: VS-Bench decoding is greedy/deterministic — for greedy accuracy treat the 4 sources as the variance estimate and report per-source + mean. For any SAMPLED decoding (PACD lambda, steering alpha/beta sweeps): 3 seeds, mean +/- std. For steering-VECTOR methods (PSO, CAST, DMAS, V_disc) on small-N sets: 4-fold cross-validation (calib ~102 / test ~34 on N~136; or 150/50 on the 200-pair split), extract directions on calib ONLY, report mean +/- std to control small-N fragility. Hyperparameter selection (global-2x renorm choice; alpha; lambda; beta; head-set K in {8,16,32,all}) on held-out calib, reported on test — never tune on test.\n\nCOMPUTE (4xL40, ~192GB): 8B and 28B-A3B/A3B models fit comfortably; 32B fits with tensor-parallel + weight quantization; per-head path-patching feasible on 8B (N~136). 235B excluded. Estimated order: reproduce global-2x + multi-turn (small); the matched-M* arm set on 8B (medium); mechanism patching on 8B (medium, one-time); generalization panel across 6 model-variants x 4 sources (the largest single cost).\n\nTHREE NON-NEGOTIABLE GATES before any SOTA claim: (G1) reproduce global-2x +18.2pp in our own setup; (G2) re-run everything on the real VS-Bench protocol (our 0.69/0.52 subset != their 83.0/29.5 scale); (G3) drop the two dead novelty hooks (Appendix H already decomposes the user turn; 2410.02064 already built a provenance steering vector).",
+      "one_paragraph": "We are attacking a fresh, unusually beatable benchmark: on VS-Bench (arXiv:2605.15864, verified) the only training-free single-pass SOTA is VisualSwap's own global-2x attention amplification (54.8 on Qwen3-VL-8B-Thinking, +18.2pp), with their multi-turn user instruction as the +30.9pp ceiling, and no other method (PAI/CAST/VisFlow/DMAS, or the RL method VRRL 2607.02490) evaluated here. But three honesty gates bind the whole program. (1) We MUST reproduce global-2x's +18.2pp in our own setup before any 'magnitude is neutral' claim — our neutral +225% per-head result and their uniform post-softmax 2x are DIFFERENT operations (theirs is all-heads and renormalization-unspecified), and the single decisive deliverable is a magnitude-matched control / accuracy-vs-Svis curve that is publishable whichever way it lands. (2) We MUST re-run on the actual VS-Bench protocol — our N~136 subset (0.69->0.52) is not their scale (8B-Thinking MathVerse 83.0->29.5), so no cross-scale 'beats 54.8' is valid yet. (3) Two novelty hooks are dead: VisualSwap's Appendix H (Table 15, verified) already decomposes the user-turn recovery and already shows bare turn-structure markers are negligible, and Ackerman & Panickssery (arXiv:2410.02064, verified) already built and steered a self-vs-external provenance vector — so our surviving novel slice is narrow but real: holding the re-look CONTENT fixed and flipping only authorship (the cell their decomposition confounds), as a single-pass automatic fix, plus the mechanistic dissociation that the write-gate is provenance-gated not magnitude-gated. Calibrated by the closest prior (arXiv:2604.09364, +3.8pp max for training-free steering in this exact niche), the realistic target is to BEAT single-pass global-2x (54.8) and APPROACH — not exceed — the 67.5 user ceiling, with the magnitude-vs-provenance mechanism as the headline rather than a leaderboard number. The most defensible paper is: reproduce and EXPLAIN the SOTA (money plot + source-discounting), ship a single-pass provenance fix that beats 54.8, and claim a genuinely open coverage win on ERNIE-4.5-VL and Kimi-VL, for which VisualSwap reports no fix at all."
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Recon"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Ideate"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 3,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 4,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "recon",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "ac4f55f4a4c289531",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784455424806,
+      "queuedAt": 1784455419190,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "VRRL — \"Visually Grounded Self-Reflection for Vision-Langua…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784455530665,
+      "tokens": 22206,
+      "toolCalls": 6,
+      "durationMs": 105859,
+      "resultPreview": "{\"paper\":\"VRRL — \\\"Visually Grounded Self-Reflection for Vision-Language Models via Reinforcement Learning\\\", Tang, Yin, Durrett (UT Austin / NYU), arXiv:2607.02490, submitted 2026-07-02. Sources retrieved: https://export.arxiv.org/api/query?id_list=2607.02490 and full text https://arxiv.org/html/2607.02490\",\"what_it_does\":\"A two-stage RL training framework (SFT then GRPO) to make VLMs actually at…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "recon",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "aff4b779eb44647f5",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784455428868,
+      "queuedAt": 1784455419190,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "arXiv:2605.15864 — \"Are VLMs Seeing or Just Saying? Uncover…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784455506494,
+      "tokens": 21007,
+      "toolCalls": 5,
+      "durationMs": 77624,
+      "resultPreview": "{\"paper\":\"arXiv:2605.15864 — \\\"Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination\\\" (Shi, Yang, Wu, Jin, Shui, Berg-Kirkpatrick, Ma). https://arxiv.org/abs/2605.15864 ; full text https://arxiv.org/html/2605.15864 ; project https://visualswap.github.io\",\"what_it_does\":\"This is THE phenomenon paper our work builds on. It introduces VisualSwap (an image-swap probe: after…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "recon",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "a7a34007cb21e84d3",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784455428353,
+      "queuedAt": 1784455419190,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Four training-free visual-attention-steering baselines for …",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784455555883,
+      "tokens": 26861,
+      "toolCalls": 12,
+      "durationMs": 127529,
+      "resultPreview": "{\"paper\":\"Four training-free visual-attention-steering baselines for LVLM hallucination: (1) PAI — \\\"Paying More Attention to Image\\\" (arXiv:2407.21771, Liu/Zheng/Chen, ECCV'24); (2) CAST — \\\"Caption-Guided Visual Attention Steering\\\" (arXiv:2605.04641, Li et al.); (3) VisFlow — \\\"Not All Tokens and Heads Are Equally Important: Dual-Level Attention Intervention\\\" (arXiv:2506.12609, Tang et al.); (…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "recon",
+      "phaseIndex": 1,
+      "phaseTitle": "Recon",
+      "agentId": "a233939112788f5e8",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784455424081,
+      "queuedAt": 1784455419190,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Are VLMs Seeing or Just Saying? Uncovering the Illusion of …",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784455581263,
+      "tokens": 29135,
+      "toolCalls": 9,
+      "durationMs": 157181,
+      "resultPreview": "{\"paper\":\"Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination (arXiv 2605.15864, May 2026, ICML 2026)\",\"what_it_does\":\"Independently introduces the VisualSwap probing framework and VS-Bench (800 image pairs from MathVista/MathVerse/MathVision/MMMU-Pro): after a VLM reasons over an image, the image is swapped for a visually-similar but semantically-different one to test…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "ideate:A",
+      "phaseIndex": 2,
+      "phaseTitle": "Ideate",
+      "agentId": "a17ef082b0db36204",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784455588111,
+      "queuedAt": 1784455582996,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784455992619,
+      "tokens": 38035,
+      "toolCalls": 9,
+      "durationMs": 404508,
+      "resultPreview": "{\"innovations\":[{\"title\":\"Provenance-difference steering: a learned user-minus-self gate vector on the belief-revision heads\",\"mechanism\":\"Build a contrast set of paired forward passes over the SAME swapped image Ib and the SAME re-look sentence, differing ONLY in provenance framing: the re-look wrapped as a `<|im_start|>user` turn vs. left as continued `assistant` generation. This is precisely th…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "ideate:B",
+      "phaseIndex": 2,
+      "phaseTitle": "Ideate",
+      "agentId": "a06cb8f1e7329b6c8",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784455585486,
+      "queuedAt": 1784455582996,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456024436,
+      "tokens": 54330,
+      "toolCalls": 10,
+      "durationMs": 438950,
+      "resultPreview": "{\"innovations\":[{\"title\":\"Provenance Steering Operator (PSO): a content-fixed, activation-space provenance direction that beats magnitude steering AT MATCHED MAGNITUDE (the single highest-leverage addition)\",\"mechanism\":\"Build content-fixed USER-minus-SELF contrast pairs: take the model's own self-generated re-look span R (its 'let me re-examine the figure' continuation) and run two forward passes…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "verify",
+      "phaseIndex": 3,
+      "phaseTitle": "Verify",
+      "agentId": "aade6a7d260ffaf29",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456031638,
+      "queuedAt": 1784456027081,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Provenance-difference steering (user-minus-self gate vector…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456350632,
+      "tokens": 42120,
+      "toolCalls": 18,
+      "durationMs": 318994,
+      "resultPreview": "{\"title\":\"Provenance-difference steering (user-minus-self gate vector on belief-revision heads) for VLM visual-re-examination recovery\",\"scooped\":true,\"scooped_by\":\"Ackerman & Panickssery, \\\"Inspection and Control of Self-Generated-Text Recognition Ability in Llama3-8b-Instruct\\\" (arXiv:2410.02064) — builds a causal residual-stream self-vs-external authorship/provenance direction and steers the mo…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 8,
+      "label": "verify",
+      "phaseIndex": 3,
+      "phaseTitle": "Verify",
+      "agentId": "a52753e36e4fe2878",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456036361,
+      "queuedAt": 1784456027081,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Provenance-Contrastive Decoding (PACD) for the VisualSwap r…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456192544,
+      "tokens": 27864,
+      "toolCalls": 9,
+      "durationMs": 156182,
+      "resultPreview": "{\"title\":\"Provenance-Contrastive Decoding (PACD) for the VisualSwap re-examination illusion\",\"scooped\":false,\"scooped_by\":\"\",\"will_it_work\":\"uncertain\",\"effectiveness\":0.5,\"novelty\":0.68,\"recommendation\":\"pursue\",\"notes\":\"NOT SCOOPED. Retrieved and verified the contrast-axis novelty. Source paper (arXiv:2605.15864, VisualSwap) proposes NO contrastive/provenance/logit method — only 2x image-token a…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 9,
+      "label": "verify",
+      "phaseIndex": 3,
+      "phaseTitle": "Verify",
+      "agentId": "a721b9db8fd174ba0",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456033043,
+      "queuedAt": 1784456027081,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Commit-then-revise: provenance relabel + selective committe…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456267786,
+      "tokens": 35974,
+      "toolCalls": 12,
+      "durationMs": 234743,
+      "resultPreview": "{\"title\":\"Commit-then-revise: provenance relabel + selective committed-answer KV eviction\",\"scooped\":false,\"scooped_by\":\"\",\"will_it_work\":\"uncertain\",\"effectiveness\":0.45,\"novelty\":0.5,\"recommendation\":\"maybe\",\"notes\":\"METHOD NOT SCOOPED, CONCEPT IS. The exact move (provenance-conditioned KV eviction of the model's OWN committed-answer span in a VLM re-examination setting) is not found in searches…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 10,
+      "label": "verify",
+      "phaseIndex": 3,
+      "phaseTitle": "Verify",
+      "agentId": "aed09609b81aeb6aa",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456034737,
+      "queuedAt": 1784456027081,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Provenance gates vision: dissociating reading-heads from be…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456301002,
+      "tokens": 33681,
+      "toolCalls": 12,
+      "durationMs": 266265,
+      "resultPreview": "{\"title\":\"Provenance gates vision: dissociating reading-heads from belief-revision/writing-heads\",\"scooped\":false,\"scooped_by\":\"Not fully scooped, but heavily crowded. Closest: arXiv:2606.28273 (Vision-Default, Prior-Override) already causal-patches a sparse (2.5-4.8%) set of VLM decision/commitment heads mediating visual-evidence-vs-prior conflict and separates vision-attending from decision head…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 11,
+      "label": "verify",
+      "phaseIndex": 3,
+      "phaseTitle": "Verify",
+      "agentId": "a6384abe675e8ede9",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456038024,
+      "queuedAt": 1784456027081,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Provenance Steering Operator (PSO): content-fixed user-minu…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456204326,
+      "tokens": 27486,
+      "toolCalls": 10,
+      "durationMs": 166302,
+      "resultPreview": "{\"title\":\"Provenance Steering Operator (PSO): content-fixed user-minus-self activation direction, magnitude-matched\",\"scooped\":false,\"scooped_by\":\"No direct scoop. Closest: arXiv:2604.02315 (user-turn vs assistant-turn generation, text-only, probing-only, no steering vector); arXiv:2601.10387 (The Assistant Axis, persona-axis steering, text-only); role/persona-vector steering (ACL-Findings 2025 'C…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 12,
+      "label": "verify",
+      "phaseIndex": 3,
+      "phaseTitle": "Verify",
+      "agentId": "a1f656385f7214831",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456036086,
+      "queuedAt": 1784456027081,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Source-discounting decomposition of VisualSwap's global-2x …",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456287775,
+      "tokens": 32991,
+      "toolCalls": 10,
+      "durationMs": 251688,
+      "resultPreview": "{\"title\":\"Source-discounting decomposition of VisualSwap's global-2x attention fix\",\"scooped\":false,\"scooped_by\":\"\",\"will_it_work\":\"uncertain\",\"effectiveness\":0.45,\"novelty\":0.55,\"recommendation\":\"maybe\",\"notes\":\"Verified target: VisualSwap (arxiv.org/abs/2605.15864, html/2605.15864) proposes \\\"global 2x\\\" = scale image-token attention 2x, all layers/heads during re-look; reports +18.2pp on Qwen3-…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 13,
+      "label": "verify",
+      "phaseIndex": 3,
+      "phaseTitle": "Verify",
+      "agentId": "a9c47815007a2a33d",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456036991,
+      "queuedAt": 1784456027082,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Cross-model provenance-injection + VRRL rebuttal: mostly sc…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784456259778,
+      "tokens": 28973,
+      "toolCalls": 9,
+      "durationMs": 222787,
+      "resultPreview": "{\"title\":\"Cross-model provenance-injection + VRRL rebuttal: mostly scooped by VisualSwap, underperforms its published fixes\",\"scooped\":true,\"scooped_by\":\"VisualSwap, \\\"Are VLMs Seeing or Just Saying?\\\" (arXiv:2605.15864) — already reports (a) user-vs-self visual-attention gating (Table 5), (b) training-free global-2x attention fix +18.2% on Qwen3-VL-8B-Thinking (Table 9), and (c) multi-turn user-p…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 14,
+      "label": "final-plan",
+      "phaseIndex": 4,
+      "phaseTitle": "Synthesize",
+      "agentId": "a2e5afa47e1f21e4b",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1784456354639,
+      "queuedAt": 1784456352318,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "On the specific problem — faithful post-swap accuracy on th…",
+      "promptPreview": "You are a rigorous VLM researcher. USE tools: ToolSearch->WebFetch/WebSearch; read arXiv abstracts (export.arxiv.org/api/query?id_list=ID) and full text (arxiv.org/abs/ID or ar5iv.org/abs/ID). Do NOT rely on memory for 2026 papers.\n\nOUR CURRENT RESULT (real, Qwen3-VL-8B-Thinking, VisualSwap-MathVerse, N~136): the visual re-examination\nillusion reproduces (faithful accuracy base 0.69 -> self 0.52, …",
+      "lastProgressAt": 1784457118814,
+      "tokens": 97877,
+      "toolCalls": 19,
+      "durationMs": 764174,
+      "resultPreview": "{\"sota_landscape\":\"On the specific problem — faithful post-swap accuracy on the VisualSwap re-examination probe / VS-Bench — the SOTA is held by the phenomenon paper itself, VisualSwap (\\\"Are VLMs Seeing or Just Saying?\\\", arXiv:2605.15864, ICML 2026; verified from html + PDF). It is the ONLY paper with fix numbers on this benchmark, and it reports exactly two:\\n\\n(a) Multi-turn user instruction —…"
+    }
+  ],
+  "totalTokens": 518540,
+  "totalToolCalls": 150
+}
