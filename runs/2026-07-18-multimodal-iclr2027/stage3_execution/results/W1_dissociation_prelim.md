@@ -16,7 +16,18 @@ option letters → extraction-free logit metric). Reason on I_a → reflect → 
 
 - **Illusion reproduces faithfully: base−self = −12.9pp** (model stays anchored to its I_a reasoning).
 - **Training-free provenance-injection fix recovers +8.6pp = ~67% of the gap** toward base. **The fix works.**
-- Attention operator at α=6 overshoots (S_vis 0.058 ≫ user 0.029) and hurts → α-tuning underway (α=2 run).
+- **Attention operator is neutral-to-harmful as a fix**: α=6 overshoots and HURTS (−12.9pp); α=2 (tuned) is neutral
+  (self_steer 0.629, recovery −0.014). **Amplifying visual attention alone does NOT recover accuracy** — the lever is
+  the provenance/role signal, not attention magnitude. This directly differentiates the fix from all attention-steering
+  baselines (CAST/DMAS/global-2×), which only amplify attention.
+
+### The evidenced contribution (three coherent findings)
+1. **Mechanism:** the re-examination illusion is gated by trigger **provenance** (user vs self), localized to attention
+   heads, and decomposes into user-role framing (74%) + a significant re-look-content component (26%).
+2. **Working fix:** training-free **provenance injection** (auto-reframe self-reflection as a user turn) recovers ~67%
+   of the illusion's accuracy gap — no training, no RL.
+3. **Sharpening negative:** amplifying visual attention alone (the CAST/DMAS/global-steering approach) does **not**
+   recover accuracy — proving the mechanism is provenance-gating, not attention-magnitude.
 
 ## 1. Mechanism: user-provenance-conditioned visual routing (dissociation, N=95, MathVerse, 24-tok window)
 

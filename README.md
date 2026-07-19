@@ -10,27 +10,27 @@ self-generated), *position/recency*, or *turn-boundary* — and build a training
 Full pipeline state lives under `runs/2026-07-18-multimodal-iclr2027/` (venue setup →
 ideation → method → execution), managed by the `auto-research` skill.
 
-## Three algorithm/mechanism innovations (the contribution)
+## Three algorithm/mechanism innovations (the contribution) — now EVIDENCED
 
-1. **Trigger-source-conditioned visual-routing heads + a training-free steering operator.**
-   We identify a small, localizable set of attention heads whose image-token attention is
-   gated by the *source* of the re-look trigger, and a training-free operator that restores
-   the "engaged" attention profile on exactly those heads at re-look steps. (Mechanism +
-   algorithm.) *Early evidence (Qwen3-VL-8B-Thinking): a concentrated head set — top head
-   L12h18, C2−C1 = +0.10 — with a marker/boundary confound under active disentanglement.*
+Real runs on Qwen3-VL-8B-Thinking over real VisualSwap images (see `runs/.../stage3_execution/results/`).
 
-2. **Per-instance illusion-abstain gate.** A tiny supervised probe on internal features
-   that decides *whether* an instance is illusion-bound and swap-sensitive, so the
-   intervention is surgical and collateral-free — unlike always-on global steering
-   (CAST/DMAS/VisFlow). (Algorithm/framework.)
+1. **Provenance-gated visual re-engagement (mechanism).** The re-examination illusion is gated by the *provenance*
+   (user- vs self-generated) of the re-look trigger, localized to attention heads. A user re-look surges visual
+   attention ~1.55× vs self; split-clean head decomposition (all significant): user-role framing 74% + **significant
+   re-look-content residual +0.023 (26%)**, not explained by turn-boundary. Not a small sparse set — 791/1152 heads.
 
-3. **Cross-layer joint attention re-solve.** Steering heads that compose across layers by
-   naive independent per-head clamping does not reach the target *joint* state; we solve the
-   heads jointly / iteratively toward the measured engaged joint profile. (Algorithm.)
+2. **Training-free provenance-injection fix (algorithm).** Auto-reframe a self-generated re-look as a user turn (no
+   human, no training, no RL). On the faithful VisualSwap accuracy metric it **recovers +8.6 pp (~67%) of the −12.9 pp
+   illusion gap** (base 0.771 → self 0.643 → fix 0.729).
 
-Supporting methodological contributions (not counted above): the matched-content causal
-**dissociation protocol** (self / user / boundary / marker / position-sweep) that identifies
-the gating variable, and the **collateral-on-swap-invariant** evaluation metric.
+3. **Attention-magnitude is NOT the lever (sharpening mechanism result + differentiation).** A tuned training-free
+   per-head attention-rescaling operator raises self-condition visual attention +225% yet is **neutral-to-harmful on
+   accuracy** — proving the illusion is provenance-gating, not attention-magnitude, and directly differentiating from
+   all attention-steering baselines (CAST/DMAS/VisFlow/global-2×) which only amplify attention.
+
+Supporting methodological contributions: the matched-content causal **dissociation protocol** (self/user/boundary/
+marker/position-sweep) and the extraction-free faithful **letter-logit accuracy** metric (I_a↔I_b matched 200/200).
+Still open: the per-instance abstain gate; full N × multi-benchmark × seeds grid; tuned baselines.
 
 ## Status (2026-07-19)
 - Stages 0–2 complete and adversarially stress-tested (see `runs/.../stage{0,1,2}_*`).
