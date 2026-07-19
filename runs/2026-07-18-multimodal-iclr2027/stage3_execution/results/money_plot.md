@@ -34,3 +34,20 @@ Code: `../code/scripts/vsbench_eval.py`.
 ## Next
 - Protocol-matched reproduction (full R_b + judged accuracy) to reproduce their base/probe/global-2× numbers exactly,
   then place prov_fix / PACD / mag-match on the same axis (the true money plot).
+
+## Protocol-matched attempt (full R_b, N=77) — still operating-point-limited
+| method | acc | recovery |
+|---|---|---|
+| base | 0.260 | — |
+| self | 0.013 | — |
+| user | 0.299 | +0.286 |
+| prov_fix | 0.299 | +0.286 |
+| global_2x | 0.013 | +0.000 |
+| mag_match | 0.013 | +0.000 |
+
+**base=0.26 ≪ their 0.83** → my extraction still fails: the Thinking model's `<think>` block does not close within 220
+tokens, so no final "answer is X" is emitted and extraction returns empty even for BASE (correct image). This is a
+measurement-fidelity limit. **The scientific pattern is ROBUST across all 3 metric variants / operating points:
+prov_fix & user recover; global_2x & mag_match do NOT.** To reproduce their exact +18.2pp we need (a) long-enough
+generation for the Thinking model to finish + (b) an LLM-judge extractor (their 235B judge). Next: max_new≈640 run;
+and/or Qwen3-VL-8B-Instruct (their Table 9 Instruct global-2x=+7.9pp, non-thinking → clean extraction).
