@@ -51,3 +51,27 @@ pos = np.clip(m.flatten(),0,None); pos_sorted = np.sort(pos)[::-1]
 tot = pos_sorted.sum()
 for K in [5,10,30,50,100]:
     print(f"    top-{K} heads hold {100*pos_sorted[:K].sum()/max(tot,1e-9):.1f}% of total positive C2-C1 mass")
+
+# ---- MECHANISM DECOMPOSITION at the top provenance heads (split-clean) ----
+# Localize top-K heads on a LOCALIZATION half, then decompose the effect on the EVAL half.
+# Tests: is the C2>C1 surge PURE PROVENANCE (C2>C0m, content-sourced) or MARKER/BOUNDARY
+# re-anchoring (C0m ~= C2, and C3 also up)?
+print("\n### MECHANISM DECOMPOSITION at top-30 heads (split-clean localize/eval) ###")
+half = N//2
+loc = {c: stacks[c][:half] for c in conds}
+ev  = {c: stacks[c][half:] for c in conds}
+prov_loc = (loc["C2"]-loc["C1"]).mean(0).flatten()          # localize on first half
+topH = np.argsort(prov_loc)[::-1][:30]                       # top-30 provenance heads (LOC split)
+def ev_contrast(a,b):
+    d=(ev[a]-ev[b]).reshape(ev[a].shape[0],-1)[:,topH]       # [N/2, 30] at localized heads, EVAL split
+    x=d.mean(1)                                              # per-instance mean over the 30 heads
+    rng=np.random.RandomState(1); idx=rng.randint(0,len(x),(2000,len(x)))
+    bs=x[idx].mean(1); return x.mean(), np.percentile(bs,2.5), np.percentile(bs,97.5)
+for lab,(a,b) in [("C2-C1 (total user-turn effect)",("C2","C1")),
+                  ("C0m-C1 (marker/sink only)",("C0m","C1")),
+                  ("C2-C0m (CONTENT provenance residual)",("C2","C0m")),
+                  ("C3-C1 (assistant boundary)",("C3","C1")),
+                  ("C2-C3 (user vs assistant boundary)",("C2","C3"))]:
+    mm,lo,hi=ev_contrast(a,b); sig="*SIG*" if (lo>0 or hi<0) else ""
+    print(f"    {lab:38s} {mm:+.4f} [{lo:+.4f},{hi:+.4f}] {sig}")
+print("    Reading: C2-C0m>0 & sig => genuine CONTENT-provenance; else marker/boundary re-anchoring (Fallback A).")

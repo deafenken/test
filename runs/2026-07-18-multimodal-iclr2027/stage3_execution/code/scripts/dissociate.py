@@ -52,7 +52,7 @@ def img_mask_for(inputs, model):
     return (ids == model.config.image_token_id)
 
 @torch.no_grad()
-def gen_reasoning(proc, model, dev, img, q, max_new=96):
+def gen_reasoning(proc, model, dev, img, q, max_new=160):
     msgs=[{"role":"user","content":[{"type":"image","image":img},
            {"type":"text","text":q+"\nThink briefly, then give the final answer."}]}]
     text=proc.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
@@ -112,6 +112,7 @@ def main():
     ap.add_argument("--snap", required=True)
     ap.add_argument("--parquet", required=True)
     ap.add_argument("--n", type=int, default=30)
+    ap.add_argument("--n_steps", type=int, default=24)
     ap.add_argument("--dev", default="cuda:0")
     ap.add_argument("--out", default="/home/intern/provlook_out")
     args=ap.parse_args()
@@ -133,7 +134,7 @@ def main():
         perheads={}
         for c in conds:
             text=build_condition(proc, img, q, R, c)
-            ph, sv, n_img = measure_svis(proc, model, args.dev, img, text)
+            ph, sv, n_img = measure_svis(proc, model, args.dev, img, text, n_steps=args.n_steps)
             rec[f"svis_{c}"]=sv; rec["n_img"]=n_img
             perheads[c]=ph
         rows.append(rec)

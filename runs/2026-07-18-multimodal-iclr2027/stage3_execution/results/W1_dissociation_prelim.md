@@ -1,37 +1,55 @@
-# Week-1 preliminary results — provenance dissociation (real, on pku-server 4×L40)
+# Week-1 results — provenance dissociation + behavioral illusion (real, pku-server 4×L40)
 
-**Status: preliminary (small N, short measurement window). Honest, not cherry-picked.**
-Model class validated; the numbers below are the first real runs, to be scaled up.
+**Real runs on Qwen3-VL-8B-Thinking (36L×32H=1152 heads) over real VisualSwap images. Honest, not cherry-picked.**
+Code: `../code/scripts/{dissociate,analyze_heads,swap_probe}.py`.
 
-## Setup
-- Models: Qwen2.5-VL-7B-Instruct (28L×28H=784 heads); **Qwen3-VL-8B-Thinking** (36L×32H=1152 heads, faithful model class of arXiv:2605.15864).
-- Data: real VisualSwap images (I_a), MathVerse_MINI, **N=20** instances.
-- Measure: per-head visual-attention mass S_vis over the first **8** re-look continuation tokens, eager attention.
-- Conditions (byte-identical reflection string P, image content fixed):
-  C1 self/mid-decode · C2 user-turn · C3 assistant-boundary · C0m user-markers+empty-content.
-- Code: `../code/scripts/{dissociate,analyze_heads}.py`.
+## 1. Mechanism: user-provenance-conditioned visual routing (dissociation, N=95, MathVerse, 24-tok window)
 
-## Aggregate S_vis (mean over ALL heads) — Qwen3-VL-8B-Thinking
-| contrast | mean | 95% CI | sig |
-|---|---|---|---|
-| C2−C1 (provenance) | −0.0015 | [−0.0054, +0.0014] | no |
-| C2−C3 (user vs assistant boundary) | +0.0002 | [−0.0032, +0.0027] | no |
-| C3−C1 (boundary) | −0.0016 | [−0.0064, +0.0029] | no |
-| C0m−C1 (marker/sink) | −0.0020 | [−0.0058, +0.0004] | no |
+Aggregate S_vis (mean over all heads), stable across the run:
+| condition | S_vis | reading |
+|---|---|---|
+| C1 self / mid-decode | ~0.019 | the illusion: self "look again" barely re-engages vision |
+| **C2 user turn** | **~0.029** | **~1.55× C1 — a user re-look surges visual attention** |
+| C3 assistant boundary | ~0.021 | ≈ C1 — a turn boundary alone is NOT enough |
+| C0m user-markers, empty | ~0.025 | user-role framing recovers most of the surge |
 
-**Aggregate is null** — expected, since H1/H2 predict a head-*concentrated* effect that the all-head mean washes out.
+Per-head (all-head mean washes out a broad effect): C2−C1 per-head max **+0.140** at (L12,h18);
+**791/1152 heads have 95% CI > 0**. Top provenance heads: L12h18, L14h7, L17h17, L13h19, L15h11, L20h15, ...
+Effect is **broad, not sparse** (top-100 heads hold only 40% of positive mass) → H2's "small set" is only partial; it's "a large fraction of heads are provenance-conditioned".
 
-## Per-head localization — Qwen3-VL-8B-Thinking (the real test)
-- **C2−C1:** per-head max **+0.1025** at head (L12,h18); top-20 mean +0.0379; **363/1152 heads have 95% CI > 0**.
-  Top provenance heads: L12h18, L3h21, L14h7, L14h6, L12h4, L6h16, L3h11, L1h11, L22h17, L13h17.
-- **C2−C3:** max +0.073 (L14h7); **496/1152 heads CI>0** — a broad user-vs-assistant-boundary differential.
-- Concentration of positive C2−C1 mass: top-30 heads = 27%, top-50 = 37%, top-100 = 55%. Moderately concentrated (not a tiny 5-head set).
+### Split-clean decomposition (localize top-30 heads on one half, measure on the disjoint half) — all *SIG*
+| contrast | mean [95% CI] | interpretation |
+|---|---|---|
+| C2−C1 total user-turn effect | +0.089 [+0.073, +0.107] | the full surge |
+| C0m−C1 marker / user-role only | +0.066 [+0.057, +0.075] | **74%** is user-role framing |
+| **C2−C0m CONTENT-provenance residual** | **+0.023 [+0.011, +0.037]** | **26% is genuine re-look content — significant** |
+| C3−C1 assistant boundary | +0.025 [+0.010, +0.045] | boundary contributes, but < user-role |
+| C2−C3 user vs assistant boundary | +0.064 [+0.042, +0.084] | user provenance beyond boundary |
 
-## The confound the design caught (as pre-registered)
-- **C0m (user markers, empty content) also activates the same top heads** (368/1152 CI>0, same top head L12h18). So part of the C2 effect is **turn-marker / sink-token insertion**, not pure re-look provenance. The role-vs-marker-vs-boundary dissociation is not yet clean — exactly the F2 risk we pre-registered.
+**Finding:** visual re-engagement is gated primarily by **user-role provenance** of the re-look cue (markers),
+with a **significant additional content component**, and is **not** explained by turn-boundary alone. This is a
+mechanistic decomposition the phenomenon paper (arXiv:2605.15864, layer-level only) does not provide.
 
-## Reading
-There **is** a head-localized, trigger-conditioned visual-routing response (Innovation 1's substrate exists). Its exact gating variable (provenance vs marker vs boundary) is **not yet resolved** at N=20 / 8-token window. Next: (i) scale N and the measurement window, (ii) faithful thinking-model illusion setup, (iii) implement the swap-based **accuracy** gap so the fix can be shown to *recover accuracy*, (iv) proper localization/eval split. Pre-committed fallbacks (A: boundary/recency gating; B: mechanistic characterization) remain in force if provenance is falsified.
+## 2. Behavioral illusion (swap-probe, N≈40, real VisualSwap images)
 
-## Qwen2.5-VL-7B-Instruct (pilot, weaker illusion) — for reference
-Aggregate final (N=20): C1=0.0234, C2=0.0270, C3=0.0242, C0m=0.0233 — C2>C1 in direction, noisy.
+Model reasons on image I_i, then the image is swapped to a different figure I_j; a matched Yes/No
+"Same or Changed?" check is delivered as self vs user; detection = logit(Changed) > logit(Same).
+| condition | detect-swap rate |
+|---|---|
+| **self-reflection** | **0.00** (0/25) — NEVER notices the swap: the illusion, starkly |
+| user turn | 0.05–0.20 — noticing improves with user framing |
+| self + crude STEER | 0.00 — see caveat |
+
+**Finding:** a clean behavioral demonstration — under self-reflection the model is functionally blind to a mid-reasoning
+image swap; user framing partially restores noticing. Directly mirrors the attention mechanism above.
+
+## 3. Honest negative / next step: the fix
+The **crude** steering (scaling image-token hidden states ×1.6 on layers {3,6,12,14,22}) did **not** recover
+swap-detection (0%). The proper operator — per-head rescaling of image-key attention on the *localized* heads to the
+measured user-role profile (Innovation 1's actual algorithm) — is the next iteration; the crude proxy is insufficient.
+
+## Caveats
+- N≈95/40 (one dissociation run OOM'd on the last 5 instances — set `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`).
+- Single benchmark (MathVerse); cross-image swaps are arbitrary (not the human-checked semantic swaps) so the behavioral
+  gap is a lower bound. 24-token window; Qwen3-VL-8B-Thinking only so far.
+- These are Week-1 mechanism/illusion results, not the full method eval. The steering-fix recovery is unproven.
